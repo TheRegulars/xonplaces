@@ -355,14 +355,7 @@ void MSG_WriteCoord32f (sizebuf_t *sb, float f)
 
 void MSG_WriteCoord (sizebuf_t *sb, float f, protocolversion_t protocol)
 {
-	if (protocol == PROTOCOL_QUAKE || protocol == PROTOCOL_QUAKEDP || protocol == PROTOCOL_NEHAHRAMOVIE || protocol == PROTOCOL_NEHAHRABJP || protocol == PROTOCOL_NEHAHRABJP2 || protocol == PROTOCOL_NEHAHRABJP3 || protocol == PROTOCOL_QUAKEWORLD)
-		MSG_WriteCoord13i (sb, f);
-	else if (protocol == PROTOCOL_DARKPLACES1)
-		MSG_WriteCoord32f (sb, f);
-	else if (protocol == PROTOCOL_DARKPLACES2 || protocol == PROTOCOL_DARKPLACES3 || protocol == PROTOCOL_DARKPLACES4)
-		MSG_WriteCoord16i (sb, f);
-	else
-		MSG_WriteCoord32f (sb, f);
+	MSG_WriteCoord32f (sb, f);
 }
 
 void MSG_WriteVector (sizebuf_t *sb, const vec3_t v, protocolversion_t protocol)
@@ -396,10 +389,7 @@ void MSG_WriteAngle32f (sizebuf_t *sb, float f)
 
 void MSG_WriteAngle (sizebuf_t *sb, float f, protocolversion_t protocol)
 {
-	if (protocol == PROTOCOL_QUAKE || protocol == PROTOCOL_QUAKEDP || protocol == PROTOCOL_NEHAHRAMOVIE || protocol == PROTOCOL_NEHAHRABJP || protocol == PROTOCOL_NEHAHRABJP2 || protocol == PROTOCOL_NEHAHRABJP3 || protocol == PROTOCOL_DARKPLACES1 || protocol == PROTOCOL_DARKPLACES2 || protocol == PROTOCOL_DARKPLACES3 || protocol == PROTOCOL_DARKPLACES4 || protocol == PROTOCOL_QUAKEWORLD)
-		MSG_WriteAngle8i (sb, f);
-	else
-		MSG_WriteAngle16i (sb, f);
+	MSG_WriteAngle16i (sb, f);
 }
 
 //
@@ -535,14 +525,7 @@ float MSG_ReadCoord32f (sizebuf_t *sb)
 
 float MSG_ReadCoord (sizebuf_t *sb, protocolversion_t protocol)
 {
-	if (protocol == PROTOCOL_QUAKE || protocol == PROTOCOL_QUAKEDP || protocol == PROTOCOL_NEHAHRAMOVIE || protocol == PROTOCOL_NEHAHRABJP || protocol == PROTOCOL_NEHAHRABJP2 || protocol == PROTOCOL_NEHAHRABJP3 || protocol == PROTOCOL_QUAKEWORLD)
-		return MSG_ReadCoord13i(sb);
-	else if (protocol == PROTOCOL_DARKPLACES1)
-		return MSG_ReadCoord32f(sb);
-	else if (protocol == PROTOCOL_DARKPLACES2 || protocol == PROTOCOL_DARKPLACES3 || protocol == PROTOCOL_DARKPLACES4)
-		return MSG_ReadCoord16i(sb);
-	else
-		return MSG_ReadCoord32f(sb);
+	return MSG_ReadCoord32f(sb);
 }
 
 void MSG_ReadVector (sizebuf_t *sb, vec3_t v, protocolversion_t protocol)
@@ -570,10 +553,7 @@ float MSG_ReadAngle32f (sizebuf_t *sb)
 
 float MSG_ReadAngle (sizebuf_t *sb, protocolversion_t protocol)
 {
-	if (protocol == PROTOCOL_QUAKE || protocol == PROTOCOL_QUAKEDP || protocol == PROTOCOL_NEHAHRAMOVIE || protocol == PROTOCOL_NEHAHRABJP || protocol == PROTOCOL_NEHAHRABJP2 || protocol == PROTOCOL_NEHAHRABJP3 || protocol == PROTOCOL_DARKPLACES1 || protocol == PROTOCOL_DARKPLACES2 || protocol == PROTOCOL_DARKPLACES3 || protocol == PROTOCOL_DARKPLACES4 || protocol == PROTOCOL_QUAKEWORLD)
-		return MSG_ReadAngle8i (sb);
-	else
-		return MSG_ReadAngle16i (sb);
+	return MSG_ReadAngle16i (sb);
 }
 
 

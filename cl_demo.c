@@ -443,7 +443,7 @@ void CL_PlayDemo_f (void)
 	// update networking ports (this is mainly just needed at startup)
 	NetConn_UpdateSockets();
 
-	cls.protocol = PROTOCOL_QUAKE;
+	cls.protocol = PROTOCOL_DARKPLACES7;
 
 	Con_Printf("Playing demo %s.\n", name);
 	cls.demofile = f;

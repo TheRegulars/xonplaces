@@ -167,26 +167,6 @@ cvar_t scratch3 = {0, "scratch3", "0", "unused cvar in quake, can be used by mod
 cvar_t scratch4 = {0, "scratch4", "0", "unused cvar in quake, can be used by mods"};
 cvar_t temp1 = {0, "temp1","0", "general cvar for mods to use, in stock id1 this selects which death animation to use on players (0 = random death, other values select specific death scenes)"};
 
-cvar_t nehx00 = {0, "nehx00", "0", "nehahra data storage cvar (used in singleplayer)"};
-cvar_t nehx01 = {0, "nehx01", "0", "nehahra data storage cvar (used in singleplayer)"};
-cvar_t nehx02 = {0, "nehx02", "0", "nehahra data storage cvar (used in singleplayer)"};
-cvar_t nehx03 = {0, "nehx03", "0", "nehahra data storage cvar (used in singleplayer)"};
-cvar_t nehx04 = {0, "nehx04", "0", "nehahra data storage cvar (used in singleplayer)"};
-cvar_t nehx05 = {0, "nehx05", "0", "nehahra data storage cvar (used in singleplayer)"};
-cvar_t nehx06 = {0, "nehx06", "0", "nehahra data storage cvar (used in singleplayer)"};
-cvar_t nehx07 = {0, "nehx07", "0", "nehahra data storage cvar (used in singleplayer)"};
-cvar_t nehx08 = {0, "nehx08", "0", "nehahra data storage cvar (used in singleplayer)"};
-cvar_t nehx09 = {0, "nehx09", "0", "nehahra data storage cvar (used in singleplayer)"};
-cvar_t nehx10 = {0, "nehx10", "0", "nehahra data storage cvar (used in singleplayer)"};
-cvar_t nehx11 = {0, "nehx11", "0", "nehahra data storage cvar (used in singleplayer)"};
-cvar_t nehx12 = {0, "nehx12", "0", "nehahra data storage cvar (used in singleplayer)"};
-cvar_t nehx13 = {0, "nehx13", "0", "nehahra data storage cvar (used in singleplayer)"};
-cvar_t nehx14 = {0, "nehx14", "0", "nehahra data storage cvar (used in singleplayer)"};
-cvar_t nehx15 = {0, "nehx15", "0", "nehahra data storage cvar (used in singleplayer)"};
-cvar_t nehx16 = {0, "nehx16", "0", "nehahra data storage cvar (used in singleplayer)"};
-cvar_t nehx17 = {0, "nehx17", "0", "nehahra data storage cvar (used in singleplayer)"};
-cvar_t nehx18 = {0, "nehx18", "0", "nehahra data storage cvar (used in singleplayer)"};
-cvar_t nehx19 = {0, "nehx19", "0", "nehahra data storage cvar (used in singleplayer)"};
 cvar_t cutscene = {0, "cutscene", "1", "enables cutscenes in nehahra, can be used by other mods"};
 
 cvar_t sv_autodemo_perclient = {CVAR_SAVE, "sv_autodemo_perclient", "0", "set to 1 to enable autorecorded per-client demos (they'll start to record at the beginning of a match); set it to 2 to also record client->server packets (for debugging)"};
@@ -579,27 +559,6 @@ void SV_Init (void)
 	Cvar_RegisterVariable (&scratch4);
 	Cvar_RegisterVariable (&temp1);
 
-	// LordHavoc: Nehahra uses these to pass data around cutscene demos
-	Cvar_RegisterVariable (&nehx00);
-	Cvar_RegisterVariable (&nehx01);
-	Cvar_RegisterVariable (&nehx02);
-	Cvar_RegisterVariable (&nehx03);
-	Cvar_RegisterVariable (&nehx04);
-	Cvar_RegisterVariable (&nehx05);
-	Cvar_RegisterVariable (&nehx06);
-	Cvar_RegisterVariable (&nehx07);
-	Cvar_RegisterVariable (&nehx08);
-	Cvar_RegisterVariable (&nehx09);
-	Cvar_RegisterVariable (&nehx10);
-	Cvar_RegisterVariable (&nehx11);
-	Cvar_RegisterVariable (&nehx12);
-	Cvar_RegisterVariable (&nehx13);
-	Cvar_RegisterVariable (&nehx14);
-	Cvar_RegisterVariable (&nehx15);
-	Cvar_RegisterVariable (&nehx16);
-	Cvar_RegisterVariable (&nehx17);
-	Cvar_RegisterVariable (&nehx18);
-	Cvar_RegisterVariable (&nehx19);
 	Cvar_RegisterVariable (&cutscene); // for Nehahra but useful to other mods as well
 
 	Cvar_RegisterVariable (&sv_autodemo_perclient);
@@ -777,7 +736,7 @@ void SV_StartSound (prvm_edict_t *entity, int channel, const char *sample, int n
 	}
 	else
 		MSG_WriteShort (dest, (ent<<3) | channel);
-	if ((field_mask & SND_LARGESOUND) || sv.protocol == PROTOCOL_NEHAHRABJP2)
+	if ((field_mask & SND_LARGESOUND))
 		MSG_WriteShort (dest, sound_num);
 	else
 		MSG_WriteByte (dest, sound_num);
@@ -905,15 +864,12 @@ void SV_SendServerinfo (client_t *client)
 	memset(client->stats, 0, sizeof(client->stats));
 	memset(client->statsdeltabits, 0, sizeof(client->statsdeltabits));
 
-	if (sv.protocol != PROTOCOL_QUAKE && sv.protocol != PROTOCOL_QUAKEDP && sv.protocol != PROTOCOL_NEHAHRAMOVIE && sv.protocol != PROTOCOL_NEHAHRABJP && sv.protocol != PROTOCOL_NEHAHRABJP2 && sv.protocol != PROTOCOL_NEHAHRABJP3)
-	{
-		if (sv.protocol == PROTOCOL_DARKPLACES1 || sv.protocol == PROTOCOL_DARKPLACES2 || sv.protocol == PROTOCOL_DARKPLACES3)
-			client->entitydatabase = EntityFrame_AllocDatabase(sv_mempool);
-		else if (sv.protocol == PROTOCOL_DARKPLACES4)
-			client->entitydatabase4 = EntityFrame4_AllocDatabase(sv_mempool);
-		else
-			client->entitydatabase5 = EntityFrame5_AllocDatabase(sv_mempool);
-	}
+	if (sv.protocol == PROTOCOL_DARKPLACES1 || sv.protocol == PROTOCOL_DARKPLACES2 || sv.protocol == PROTOCOL_DARKPLACES3)
+		client->entitydatabase = EntityFrame_AllocDatabase(sv_mempool);
+	else if (sv.protocol == PROTOCOL_DARKPLACES4)
+		client->entitydatabase4 = EntityFrame4_AllocDatabase(sv_mempool);
+	else
+		client->entitydatabase5 = EntityFrame5_AllocDatabase(sv_mempool);
 
 	// reset csqc entity versions
 	for (i = 0;i < prog->max_edicts;i++)
@@ -1655,7 +1611,7 @@ static void SV_MarkWriteEntityStateToClient(entity_state_t *s)
 		// always send world submodels in newer protocols because they don't
 		// generate much traffic (in old protocols they hog bandwidth)
 		// but only if sv_cullentities_nevercullbmodels is off
-		else if (!(s->effects & EF_NODEPTHTEST) && (!isbmodel || !sv_cullentities_nevercullbmodels.integer || sv.protocol == PROTOCOL_QUAKE || sv.protocol == PROTOCOL_QUAKEDP || sv.protocol == PROTOCOL_NEHAHRAMOVIE))
+		else if (!(s->effects & EF_NODEPTHTEST) && (!isbmodel || !sv_cullentities_nevercullbmodels.integer))
 		{
 			// entity has survived every check so far, check if visible
 			ed = PRVM_EDICT_NUM(s->number);
@@ -2047,9 +2003,8 @@ void SV_WriteClientdataToMessage (client_t *client, prvm_edict_t *ent, sizebuf_t
 	{
 		if (PRVM_serveredictvector(ent, punchangle)[i])
 			bits |= (SU_PUNCH1<<i);
-		if (sv.protocol != PROTOCOL_QUAKE && sv.protocol != PROTOCOL_QUAKEDP && sv.protocol != PROTOCOL_NEHAHRAMOVIE && sv.protocol != PROTOCOL_NEHAHRABJP && sv.protocol != PROTOCOL_NEHAHRABJP2 && sv.protocol != PROTOCOL_NEHAHRABJP3)
-			if (punchvector[i])
-				bits |= (SU_PUNCHVEC1<<i);
+		if (punchvector[i])
+			bits |= (SU_PUNCHVEC1<<i);
 		if (PRVM_serveredictvector(ent, velocity)[i])
 			bits |= (SU_VELOCITY1<<i);
 	}
@@ -2119,19 +2074,6 @@ void SV_WriteClientdataToMessage (client_t *client, prvm_edict_t *ent, sizebuf_t
 	statsf[STAT_FRAGLIMIT] = fraglimit.value;
 	statsf[STAT_TIMELIMIT] = timelimit.value;
 
-	if (sv.protocol == PROTOCOL_QUAKE || sv.protocol == PROTOCOL_QUAKEDP || sv.protocol == PROTOCOL_NEHAHRAMOVIE || sv.protocol == PROTOCOL_NEHAHRABJP || sv.protocol == PROTOCOL_NEHAHRABJP2 || sv.protocol == PROTOCOL_NEHAHRABJP3 || sv.protocol == PROTOCOL_DARKPLACES1 || sv.protocol == PROTOCOL_DARKPLACES2 || sv.protocol == PROTOCOL_DARKPLACES3 || sv.protocol == PROTOCOL_DARKPLACES4 || sv.protocol == PROTOCOL_DARKPLACES5)
-	{
-		if (stats[STAT_VIEWHEIGHT] != DEFAULT_VIEWHEIGHT) bits |= SU_VIEWHEIGHT;
-		bits |= SU_ITEMS;
-		if (stats[STAT_WEAPONFRAME]) bits |= SU_WEAPONFRAME;
-		if (stats[STAT_ARMOR]) bits |= SU_ARMOR;
-		bits |= SU_WEAPON;
-		// FIXME: which protocols support this?  does PROTOCOL_DARKPLACES3 support viewzoom?
-		if (sv.protocol == PROTOCOL_DARKPLACES2 || sv.protocol == PROTOCOL_DARKPLACES3 || sv.protocol == PROTOCOL_DARKPLACES4 || sv.protocol == PROTOCOL_DARKPLACES5)
-			if (viewzoom != 255)
-				bits |= SU_VIEWZOOM;
-	}
-
 	if (bits >= 65536)
 		bits |= SU_EXTEND1;
 	if (bits >= 16777216)
@@ -2155,10 +2097,7 @@ void SV_WriteClientdataToMessage (client_t *client, prvm_edict_t *ent, sizebuf_t
 	{
 		if (bits & (SU_PUNCH1<<i))
 		{
-			if (sv.protocol == PROTOCOL_QUAKE || sv.protocol == PROTOCOL_QUAKEDP || sv.protocol == PROTOCOL_NEHAHRAMOVIE || sv.protocol == PROTOCOL_NEHAHRABJP || sv.protocol == PROTOCOL_NEHAHRABJP2 || sv.protocol == PROTOCOL_NEHAHRABJP3)
-				MSG_WriteChar(msg, (int)PRVM_serveredictvector(ent, punchangle)[i]);
-			else
-				MSG_WriteAngle16i(msg, PRVM_serveredictvector(ent, punchangle)[i]);
+			MSG_WriteAngle16i(msg, PRVM_serveredictvector(ent, punchangle)[i]);
 		}
 		if (bits & (SU_PUNCHVEC1<<i))
 		{
@@ -2169,10 +2108,7 @@ void SV_WriteClientdataToMessage (client_t *client, prvm_edict_t *ent, sizebuf_t
 		}
 		if (bits & (SU_VELOCITY1<<i))
 		{
-			if (sv.protocol == PROTOCOL_QUAKE || sv.protocol == PROTOCOL_QUAKEDP || sv.protocol == PROTOCOL_NEHAHRAMOVIE || sv.protocol == PROTOCOL_NEHAHRABJP || sv.protocol == PROTOCOL_NEHAHRABJP2 || sv.protocol == PROTOCOL_NEHAHRABJP3 || sv.protocol == PROTOCOL_DARKPLACES1 || sv.protocol == PROTOCOL_DARKPLACES2 || sv.protocol == PROTOCOL_DARKPLACES3 || sv.protocol == PROTOCOL_DARKPLACES4)
-				MSG_WriteChar(msg, (int)(PRVM_serveredictvector(ent, velocity)[i] * (1.0f / 16.0f)));
-			else
-				MSG_WriteCoord32f(msg, PRVM_serveredictvector(ent, velocity)[i]);
+			MSG_WriteCoord32f(msg, PRVM_serveredictvector(ent, velocity)[i]);
 		}
 	}
 
@@ -2196,42 +2132,6 @@ void SV_WriteClientdataToMessage (client_t *client, prvm_edict_t *ent, sizebuf_t
 		MSG_WriteShort (msg, stats[STAT_ACTIVEWEAPON]);
 		if (bits & SU_VIEWZOOM)
 			MSG_WriteShort (msg, bound(0, stats[STAT_VIEWZOOM], 65535));
-	}
-	else if (sv.protocol == PROTOCOL_QUAKE || sv.protocol == PROTOCOL_QUAKEDP || sv.protocol == PROTOCOL_NEHAHRAMOVIE || sv.protocol == PROTOCOL_NEHAHRABJP || sv.protocol == PROTOCOL_NEHAHRABJP2 || sv.protocol == PROTOCOL_NEHAHRABJP3 || sv.protocol == PROTOCOL_DARKPLACES1 || sv.protocol == PROTOCOL_DARKPLACES2 || sv.protocol == PROTOCOL_DARKPLACES3 || sv.protocol == PROTOCOL_DARKPLACES4)
-	{
-		if (bits & SU_WEAPONFRAME)
-			MSG_WriteByte (msg, stats[STAT_WEAPONFRAME]);
-		if (bits & SU_ARMOR)
-			MSG_WriteByte (msg, stats[STAT_ARMOR]);
-		if (bits & SU_WEAPON)
-		{
-			if (sv.protocol == PROTOCOL_NEHAHRABJP || sv.protocol == PROTOCOL_NEHAHRABJP2 || sv.protocol == PROTOCOL_NEHAHRABJP3)
-				MSG_WriteShort (msg, stats[STAT_WEAPON]);
-			else
-				MSG_WriteByte (msg, stats[STAT_WEAPON]);
-		}
-		MSG_WriteShort (msg, stats[STAT_HEALTH]);
-		MSG_WriteByte (msg, stats[STAT_AMMO]);
-		MSG_WriteByte (msg, stats[STAT_SHELLS]);
-		MSG_WriteByte (msg, stats[STAT_NAILS]);
-		MSG_WriteByte (msg, stats[STAT_ROCKETS]);
-		MSG_WriteByte (msg, stats[STAT_CELLS]);
-		if (gamemode == GAME_HIPNOTIC || gamemode == GAME_ROGUE || gamemode == GAME_QUOTH || IS_OLDNEXUIZ_DERIVED(gamemode))
-		{
-			for (i = 0;i < 32;i++)
-				if (stats[STAT_ACTIVEWEAPON] & (1<<i))
-					break;
-			MSG_WriteByte (msg, i);
-		}
-		else
-			MSG_WriteByte (msg, stats[STAT_ACTIVEWEAPON]);
-		if (bits & SU_VIEWZOOM)
-		{
-			if (sv.protocol == PROTOCOL_DARKPLACES2 || sv.protocol == PROTOCOL_DARKPLACES3 || sv.protocol == PROTOCOL_DARKPLACES4)
-				MSG_WriteByte (msg, bound(0, stats[STAT_VIEWZOOM], 255));
-			else
-				MSG_WriteShort (msg, bound(0, stats[STAT_VIEWZOOM], 65535));
-		}
 	}
 }
 
@@ -2314,29 +2214,6 @@ static void SV_SendClientDatagram (client_t *client)
 
 	switch (sv.protocol)
 	{
-	case PROTOCOL_QUAKE:
-	case PROTOCOL_QUAKEDP:
-	case PROTOCOL_NEHAHRAMOVIE:
-	case PROTOCOL_NEHAHRABJP:
-	case PROTOCOL_NEHAHRABJP2:
-	case PROTOCOL_NEHAHRABJP3:
-	case PROTOCOL_QUAKEWORLD:
-		// no packet size limit support on Quake protocols because it just
-		// causes missing entities/effects
-		// packets are simply sent less often to obey the rate limit
-		maxsize = 1024;
-		maxsize2 = 1024;
-		break;
-	case PROTOCOL_DARKPLACES1:
-	case PROTOCOL_DARKPLACES2:
-	case PROTOCOL_DARKPLACES3:
-	case PROTOCOL_DARKPLACES4:
-		// no packet size limit support on DP1-4 protocols because they kick
-		// the client off if they overflow, and miss effects
-		// packets are simply sent less often to obey the rate limit
-		maxsize = sizeof(sv_sendclientdatagram_buf);
-		maxsize2 = sizeof(sv_sendclientdatagram_buf);
-		break;
 	default:
 		// DP5 and later protocols support packet size limiting which is a
 		// better method than limiting packet frequency as QW does
@@ -2575,9 +2452,6 @@ SV_SendClientMessages
 void SV_SendClientMessages(void)
 {
 	int i, prepared = false;
-
-	if (sv.protocol == PROTOCOL_QUAKEWORLD)
-		Sys_Error("SV_SendClientMessages: no quakeworld support\n");
 
 	SV_FlushBroadcastMessages();
 
@@ -2864,7 +2738,7 @@ SV_ModelIndex
 */
 int SV_ModelIndex(const char *s, int precachemode)
 {
-	int i, limit = ((sv.protocol == PROTOCOL_QUAKE || sv.protocol == PROTOCOL_QUAKEDP || sv.protocol == PROTOCOL_NEHAHRAMOVIE || sv.protocol == PROTOCOL_NEHAHRABJP || sv.protocol == PROTOCOL_NEHAHRABJP2 || sv.protocol == PROTOCOL_NEHAHRABJP3) ? 256 : MAX_MODELS);
+	int i, limit = MAX_MODELS;
 	char filename[MAX_QPATH];
 	if (!s || !*s)
 		return 0;
@@ -2878,11 +2752,6 @@ int SV_ModelIndex(const char *s, int precachemode)
 		{
 			if (precachemode)
 			{
-				if (sv.state != ss_loading && (sv.protocol == PROTOCOL_QUAKE || sv.protocol == PROTOCOL_QUAKEDP || sv.protocol == PROTOCOL_NEHAHRAMOVIE || sv.protocol == PROTOCOL_NEHAHRABJP || sv.protocol == PROTOCOL_NEHAHRABJP2 || sv.protocol == PROTOCOL_NEHAHRABJP3 || sv.protocol == PROTOCOL_DARKPLACES1 || sv.protocol == PROTOCOL_DARKPLACES2 || sv.protocol == PROTOCOL_DARKPLACES3 || sv.protocol == PROTOCOL_DARKPLACES4 || sv.protocol == PROTOCOL_DARKPLACES5))
-				{
-					Con_Printf("SV_ModelIndex(\"%s\"): precache_model can only be done in spawn functions\n", filename);
-					return 0;
-				}
 				if (precachemode == 1)
 					Con_Printf("SV_ModelIndex(\"%s\"): not precached (fix your code), precaching anyway\n", filename);
 				strlcpy(sv.model_precache[i], filename, sizeof(sv.model_precache[i]));
@@ -2927,7 +2796,7 @@ SV_SoundIndex
 */
 int SV_SoundIndex(const char *s, int precachemode)
 {
-	int i, limit = ((sv.protocol == PROTOCOL_QUAKE || sv.protocol == PROTOCOL_QUAKEDP || sv.protocol == PROTOCOL_NEHAHRAMOVIE || sv.protocol == PROTOCOL_NEHAHRABJP || sv.protocol == PROTOCOL_NEHAHRABJP2 || sv.protocol == PROTOCOL_NEHAHRABJP3) ? 256 : MAX_SOUNDS);
+	int i, limit = MAX_SOUNDS;
 	char filename[MAX_QPATH];
 	if (!s || !*s)
 		return 0;
@@ -2941,11 +2810,6 @@ int SV_SoundIndex(const char *s, int precachemode)
 		{
 			if (precachemode)
 			{
-				if (sv.state != ss_loading && (sv.protocol == PROTOCOL_QUAKE || sv.protocol == PROTOCOL_QUAKEDP || sv.protocol == PROTOCOL_NEHAHRAMOVIE || sv.protocol == PROTOCOL_NEHAHRABJP || sv.protocol == PROTOCOL_NEHAHRABJP2 || sv.protocol == PROTOCOL_NEHAHRABJP3 || sv.protocol == PROTOCOL_DARKPLACES1 || sv.protocol == PROTOCOL_DARKPLACES2 || sv.protocol == PROTOCOL_DARKPLACES3 || sv.protocol == PROTOCOL_DARKPLACES4 || sv.protocol == PROTOCOL_DARKPLACES5))
-				{
-					Con_Printf("SV_SoundIndex(\"%s\"): precache_sound can only be done in spawn functions\n", filename);
-					return 0;
-				}
 				if (precachemode == 1)
 					Con_Printf("SV_SoundIndex(\"%s\"): not precached (fix your code), precaching anyway\n", filename);
 				strlcpy(sv.sound_precache[i], filename, sizeof(sv.sound_precache[i]));
@@ -3119,8 +2983,6 @@ static void SV_CreateBaseline (void)
 		if (svent->priv.server->baseline.modelindex & 0xFF00 || svent->priv.server->baseline.frame & 0xFF00)
 		{
 			large = true;
-			if (sv.protocol == PROTOCOL_NEHAHRABJP || sv.protocol == PROTOCOL_NEHAHRABJP2 || sv.protocol == PROTOCOL_NEHAHRABJP3)
-				large = false;
 		}
 
 		// add to the message
@@ -3134,11 +2996,6 @@ static void SV_CreateBaseline (void)
 		{
 			MSG_WriteShort (&sv.signon, svent->priv.server->baseline.modelindex);
 			MSG_WriteShort (&sv.signon, svent->priv.server->baseline.frame);
-		}
-		else if (sv.protocol == PROTOCOL_NEHAHRABJP || sv.protocol == PROTOCOL_NEHAHRABJP2 || sv.protocol == PROTOCOL_NEHAHRABJP3)
-		{
-			MSG_WriteShort (&sv.signon, svent->priv.server->baseline.modelindex);
-			MSG_WriteByte (&sv.signon, svent->priv.server->baseline.frame);
 		}
 		else
 		{
@@ -3386,7 +3243,7 @@ void SV_SpawnServer (const char *server)
 		char buffer[1024];
 		Protocol_Names(buffer, sizeof(buffer));
 		Con_Printf("Unknown sv_protocolname \"%s\", valid values are:\n%s\n", sv_protocolname.string, buffer);
-		sv.protocol = PROTOCOL_QUAKE;
+		sv.protocol = PROTOCOL_DARKPLACES7;
 	}
 
 // load progs to get entity field count
@@ -3505,10 +3362,6 @@ void SV_SpawnServer (const char *server)
 
 	if (cls.state == ca_dedicated)
 		Mod_PurgeUnused();
-
-// create a baseline for more efficient communications
-	if (sv.protocol == PROTOCOL_QUAKE || sv.protocol == PROTOCOL_QUAKEDP || sv.protocol == PROTOCOL_NEHAHRAMOVIE || sv.protocol == PROTOCOL_NEHAHRABJP || sv.protocol == PROTOCOL_NEHAHRABJP2 || sv.protocol == PROTOCOL_NEHAHRABJP3)
-		SV_CreateBaseline ();
 
 	sv.state = ss_active; // LordHavoc: workaround for svc_precache bug
 
@@ -3716,16 +3569,7 @@ static void SV_VM_Setup(void)
 	prog->builtins = vm_sv_builtins;
 	prog->numbuiltins = vm_sv_numbuiltins;
 	prog->max_edicts = 512;
-	if (sv.protocol == PROTOCOL_QUAKE)
-		prog->limit_edicts = 640; // before quake mission pack 1 this was 512
-	else if (sv.protocol == PROTOCOL_QUAKEDP)
-		prog->limit_edicts = 2048; // guessing
-	else if (sv.protocol == PROTOCOL_NEHAHRAMOVIE)
-		prog->limit_edicts = 2048; // guessing!
-	else if (sv.protocol == PROTOCOL_NEHAHRABJP || sv.protocol == PROTOCOL_NEHAHRABJP2 || sv.protocol == PROTOCOL_NEHAHRABJP3)
-		prog->limit_edicts = 4096; // guessing!
-	else
-		prog->limit_edicts = MAX_EDICTS;
+	prog->limit_edicts = MAX_EDICTS;
 	prog->reserved_edicts = svs.maxclients;
 	prog->edictprivate_size = sizeof(edict_engineprivate_t);
 	prog->name = "server";

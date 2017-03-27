@@ -1763,58 +1763,26 @@ static float Sbar_PrintScoreboardItem(scoreboard_t *s, float x, float y)
 		if((s->colors & 15) == (cl.scores[cl.playerentity - 1].colors & 15))
 			myself = true;
 
-	if (cls.protocol == PROTOCOL_QUAKEWORLD)
+	if (s->qw_spectator)
 	{
-		if (s->qw_spectator)
-		{
-			if (s->qw_ping || s->qw_packetloss)
-				DrawQ_String(x, y, va(vabuf, sizeof(vabuf), "%4i %3i %4i spectator  %c%s", bound(0, s->qw_ping, 9999), bound(0, s->qw_packetloss, 99), minutes, myself ? 13 : ' ', s->name), 0, 8, 8, 1, 1, 1, 1 * sbar_alpha_fg.value, 0, NULL, false, FONT_SBAR );
-			else
-				DrawQ_String(x, y, va(vabuf, sizeof(vabuf), "         %4i spectator  %c%s", minutes, myself ? 13 : ' ', s->name), 0, 8, 8, 1, 1, 1, 1 * sbar_alpha_fg.value, 0, NULL, false, FONT_SBAR );
-		}
+		if (s->qw_ping || s->qw_packetloss)
+			DrawQ_String(x, y, va(vabuf, sizeof(vabuf), "%4i %3i spect %c%s", bound(0, s->qw_ping, 9999), bound(0, s->qw_packetloss, 99), myself ? 13 : ' ', s->name), 0, 8, 8, 1, 1, 1, 1 * sbar_alpha_fg.value, 0, NULL, false, FONT_SBAR );
 		else
-		{
-			// draw colors behind score
-			//
-			//
-			//
-			//
-			//
-			c = palette_rgb_pantsscoreboard[(s->colors & 0xf0) >> 4];
-			DrawQ_Fill(x + 14*8*FONT_SBAR->maxwidth, y+1, 40*FONT_SBAR->maxwidth, 3, c[0] * (1.0f / 255.0f), c[1] * (1.0f / 255.0f), c[2] * (1.0f / 255.0f), sbar_alpha_fg.value, 0);
-			c = palette_rgb_shirtscoreboard[s->colors & 0xf];
-			DrawQ_Fill(x + 14*8*FONT_SBAR->maxwidth, y+4, 40*FONT_SBAR->maxwidth, 3, c[0] * (1.0f / 255.0f), c[1] * (1.0f / 255.0f), c[2] * (1.0f / 255.0f), sbar_alpha_fg.value, 0);
-			// print the text
-			//DrawQ_String(x, y, va(vabuf, sizeof(vabuf), "%c%4i %s", myself ? 13 : ' ', (int) s->frags, s->name), 0, 8, 8, 1, 1, 1, 1 * sbar_alpha_fg.value, 0, NULL, true, FONT_DEFAULT);
-			if (s->qw_ping || s->qw_packetloss)
-				DrawQ_String(x, y, va(vabuf, sizeof(vabuf), "%4i %3i %4i %5i %-4s %c%s", bound(0, s->qw_ping, 9999), bound(0, s->qw_packetloss, 99), minutes,(int) s->frags, cl.qw_teamplay ? s->qw_team : "", myself ? 13 : ' ', s->name), 0, 8, 8, 1, 1, 1, 1 * sbar_alpha_fg.value, 0, NULL, false, FONT_SBAR );
-			else
-				DrawQ_String(x, y, va(vabuf, sizeof(vabuf), "         %4i %5i %-4s %c%s", minutes,(int) s->frags, cl.qw_teamplay ? s->qw_team : "", myself ? 13 : ' ', s->name), 0, 8, 8, 1, 1, 1, 1 * sbar_alpha_fg.value, 0, NULL, false, FONT_SBAR );
-		}
+			DrawQ_String(x, y, va(vabuf, sizeof(vabuf), "         spect %c%s", myself ? 13 : ' ', s->name), 0, 8, 8, 1, 1, 1, 1 * sbar_alpha_fg.value, 0, NULL, false, FONT_SBAR );
 	}
 	else
 	{
-		if (s->qw_spectator)
-		{
-			if (s->qw_ping || s->qw_packetloss)
-				DrawQ_String(x, y, va(vabuf, sizeof(vabuf), "%4i %3i spect %c%s", bound(0, s->qw_ping, 9999), bound(0, s->qw_packetloss, 99), myself ? 13 : ' ', s->name), 0, 8, 8, 1, 1, 1, 1 * sbar_alpha_fg.value, 0, NULL, false, FONT_SBAR );
-			else
-				DrawQ_String(x, y, va(vabuf, sizeof(vabuf), "         spect %c%s", myself ? 13 : ' ', s->name), 0, 8, 8, 1, 1, 1, 1 * sbar_alpha_fg.value, 0, NULL, false, FONT_SBAR );
-		}
+		// draw colors behind score
+		c = palette_rgb_pantsscoreboard[(s->colors & 0xf0) >> 4];
+		DrawQ_Fill(x + 9*8*FONT_SBAR->maxwidth, y+1, 40*FONT_SBAR->maxwidth, 3, c[0] * (1.0f / 255.0f), c[1] * (1.0f / 255.0f), c[2] * (1.0f / 255.0f), sbar_alpha_fg.value, 0);
+		c = palette_rgb_shirtscoreboard[s->colors & 0xf];
+		DrawQ_Fill(x + 9*8*FONT_SBAR->maxwidth, y+4, 40*FONT_SBAR->maxwidth, 3, c[0] * (1.0f / 255.0f), c[1] * (1.0f / 255.0f), c[2] * (1.0f / 255.0f), sbar_alpha_fg.value, 0);
+		// print the text
+		//DrawQ_String(x, y, va(vabuf, sizeof(vabuf), "%c%4i %s", myself ? 13 : ' ', (int) s->frags, s->name), 0, 8, 8, 1, 1, 1, 1 * sbar_alpha_fg.value, 0, NULL, true, FONT_DEFAULT);
+		if (s->qw_ping || s->qw_packetloss)
+			DrawQ_String(x, y, va(vabuf, sizeof(vabuf), "%4i %3i %5i %c%s", bound(0, s->qw_ping, 9999), bound(0, s->qw_packetloss, 99), (int) s->frags, myself ? 13 : ' ', s->name), 0, 8, 8, 1, 1, 1, 1 * sbar_alpha_fg.value, 0, NULL, false, FONT_SBAR );
 		else
-		{
-			// draw colors behind score
-			c = palette_rgb_pantsscoreboard[(s->colors & 0xf0) >> 4];
-			DrawQ_Fill(x + 9*8*FONT_SBAR->maxwidth, y+1, 40*FONT_SBAR->maxwidth, 3, c[0] * (1.0f / 255.0f), c[1] * (1.0f / 255.0f), c[2] * (1.0f / 255.0f), sbar_alpha_fg.value, 0);
-			c = palette_rgb_shirtscoreboard[s->colors & 0xf];
-			DrawQ_Fill(x + 9*8*FONT_SBAR->maxwidth, y+4, 40*FONT_SBAR->maxwidth, 3, c[0] * (1.0f / 255.0f), c[1] * (1.0f / 255.0f), c[2] * (1.0f / 255.0f), sbar_alpha_fg.value, 0);
-			// print the text
-			//DrawQ_String(x, y, va(vabuf, sizeof(vabuf), "%c%4i %s", myself ? 13 : ' ', (int) s->frags, s->name), 0, 8, 8, 1, 1, 1, 1 * sbar_alpha_fg.value, 0, NULL, true, FONT_DEFAULT);
-			if (s->qw_ping || s->qw_packetloss)
-				DrawQ_String(x, y, va(vabuf, sizeof(vabuf), "%4i %3i %5i %c%s", bound(0, s->qw_ping, 9999), bound(0, s->qw_packetloss, 99), (int) s->frags, myself ? 13 : ' ', s->name), 0, 8, 8, 1, 1, 1, 1 * sbar_alpha_fg.value, 0, NULL, false, FONT_SBAR );
-			else
-				DrawQ_String(x, y, va(vabuf, sizeof(vabuf), "         %5i %c%s", (int) s->frags, myself ? 13 : ' ', s->name), 0, 8, 8, 1, 1, 1, 1 * sbar_alpha_fg.value, 0, NULL, false, FONT_SBAR );
-		}
+			DrawQ_String(x, y, va(vabuf, sizeof(vabuf), "         %5i %c%s", (int) s->frags, myself ? 13 : ' ', s->name), 0, 8, 8, 1, 1, 1, 1 * sbar_alpha_fg.value, 0, NULL, false, FONT_SBAR );
 	}
 	return 8;
 }
@@ -1828,12 +1796,7 @@ void Sbar_DeathmatchOverlay (void)
 	if (cl.last_ping_request < realtime - 2 && cls.netcon)
 	{
 		cl.last_ping_request = realtime;
-		if (cls.protocol == PROTOCOL_QUAKEWORLD)
-		{
-			MSG_WriteByte(&cls.netcon->message, qw_clc_stringcmd);
-			MSG_WriteString(&cls.netcon->message, "pings");
-		}
-		else if (cls.protocol == PROTOCOL_QUAKE || cls.protocol == PROTOCOL_QUAKEDP || cls.protocol == PROTOCOL_NEHAHRAMOVIE || cls.protocol == PROTOCOL_NEHAHRABJP || cls.protocol == PROTOCOL_NEHAHRABJP2 || cls.protocol == PROTOCOL_NEHAHRABJP3 || cls.protocol == PROTOCOL_DARKPLACES1 || cls.protocol == PROTOCOL_DARKPLACES2 || cls.protocol == PROTOCOL_DARKPLACES3 || cls.protocol == PROTOCOL_DARKPLACES4 || cls.protocol == PROTOCOL_DARKPLACES5 || cls.protocol == PROTOCOL_DARKPLACES6/* || cls.protocol == PROTOCOL_DARKPLACES7*/)
+		if (cls.protocol == PROTOCOL_DARKPLACES6/* || cls.protocol == PROTOCOL_DARKPLACES7*/)
 		{
 			// these servers usually lack the pings command and so a less efficient "ping" command must be sent, which on modern DP servers will also reply with a pingplreport command after the ping listing
 			static int ping_anyway_counter = 0;
@@ -1865,10 +1828,7 @@ void Sbar_DeathmatchOverlay (void)
 	ymin = 8;
 	ymax = 40 + 8 + (Sbar_IsTeammatch() ? (teamlines * 8 + 5): 0) + scoreboardlines * 8 - 1;
 
-	if (cls.protocol == PROTOCOL_QUAKEWORLD)
-		xmin = (int) (vid_conwidth.integer - (26 + 15) * 8 * FONT_SBAR->maxwidth) / 2; // 26 characters until name, then we assume 15 character names (they can be longer but usually aren't)
-	else
-		xmin = (int) (vid_conwidth.integer - (16 + 25) * 8 * FONT_SBAR->maxwidth) / 2; // 16 characters until name, then we assume 25 character names (they can be longer but usually aren't)
+	xmin = (int) (vid_conwidth.integer - (16 + 25) * 8 * FONT_SBAR->maxwidth) / 2; // 16 characters until name, then we assume 25 character names (they can be longer but usually aren't)
 	xmax = vid_conwidth.integer - xmin;
 
 	if(IS_OLDNEXUIZ_DERIVED(gamemode))
@@ -1878,14 +1838,7 @@ void Sbar_DeathmatchOverlay (void)
 
 	// draw the text
 	y = 40;
-	if (cls.protocol == PROTOCOL_QUAKEWORLD)
-	{
-		DrawQ_String(xmin, y, va(vabuf, sizeof(vabuf), "ping pl%% time frags team  name"), 0, 8, 8, 1, 1, 1, 1 * sbar_alpha_fg.value, 0, NULL, false, FONT_SBAR );
-	}
-	else
-	{
-		DrawQ_String(xmin, y, va(vabuf, sizeof(vabuf), "ping pl%% frags  name"), 0, 8, 8, 1, 1, 1, 1 * sbar_alpha_fg.value, 0, NULL, false, FONT_SBAR );
-	}
+	DrawQ_String(xmin, y, va(vabuf, sizeof(vabuf), "ping pl%% frags  name"), 0, 8, 8, 1, 1, 1, 1 * sbar_alpha_fg.value, 0, NULL, false, FONT_SBAR );
 	y += 8;
 
 	if (Sbar_IsTeammatch ())

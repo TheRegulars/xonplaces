@@ -387,7 +387,7 @@ static void Cvar_SetQuick_Internal (cvar_t *var, const char *value)
 			int top = (var->integer >> 4) & 15, bottom = var->integer & 15;
 			CL_SetInfo("topcolor", va(vabuf, sizeof(vabuf), "%i", top), true, false, false, false);
 			CL_SetInfo("bottomcolor", va(vabuf, sizeof(vabuf), "%i", bottom), true, false, false, false);
-			if (cls.protocol != PROTOCOL_QUAKEWORLD && cls.netcon)
+			if (cls.netcon)
 			{
 				MSG_WriteByte(&cls.netcon->message, clc_stringcmd);
 				MSG_WriteString(&cls.netcon->message, va(vabuf, sizeof(vabuf), "color %i %i", top, bottom));

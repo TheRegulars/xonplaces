@@ -176,18 +176,9 @@ static void Host_Status_f (void)
 		
 		if (in == 0) // default layout
 		{
-			if (sv.protocol == PROTOCOL_QUAKE && svs.maxclients <= 99)
-			{
-				// LordHavoc: this is very touchy because we must maintain ProQuake compatible status output
-				print ("#%-2u %-16.16s  %3i  %2i:%02i:%02i\n", i+1, client->name, frags, hours, minutes, seconds);
-				print ("   %s\n", ip);
-			}
-			else
-			{
-				// LordHavoc: no real restrictions here, not a ProQuake-compatible protocol anyway...
-				print ("#%-3u %-16.16s %4i  %2i:%02i:%02i\n", i+1, client->name, frags, hours, minutes, seconds);
-				print ("   %s\n", ip);
-			}
+			// LordHavoc: no real restrictions here, not a ProQuake-compatible protocol anyway...
+			print ("#%-3u %-16.16s %4i  %2i:%02i:%02i\n", i+1, client->name, frags, hours, minutes, seconds);
+			print ("   %s\n", ip);
 		}
 		else if (in == 1) // extended layout
 		{
@@ -491,37 +482,18 @@ void Host_Reconnect_f (void)
 			Con_Printf("Reconnect to what server?  (you have not connected to a server yet)\n");
 		return;
 	}
-	// if connected, do something based on protocol
-	if (cls.protocol == PROTOCOL_QUAKEWORLD)
+	// netquake uses reconnect on level changes (silly)
+	if (Cmd_Argc() != 1)
 	{
-		// quakeworld can just re-login
-		if (cls.qw_downloadmemory)  // don't change when downloading
-			return;
-
-		S_StopAllSounds();
-
-		if (cls.state == ca_connected && cls.signon < SIGNONS)
-		{
-			Con_Printf("reconnecting...\n");
-			MSG_WriteChar(&cls.netcon->message, qw_clc_stringcmd);
-			MSG_WriteString(&cls.netcon->message, "new");
-		}
+		Con_Print("reconnect : wait for signon messages again\n");
+		return;
 	}
-	else
+	if (!cls.signon)
 	{
-		// netquake uses reconnect on level changes (silly)
-		if (Cmd_Argc() != 1)
-		{
-			Con_Print("reconnect : wait for signon messages again\n");
-			return;
-		}
-		if (!cls.signon)
-		{
-			Con_Print("reconnect: no signon, ignoring reconnect\n");
-			return;
-		}
-		cls.signon = 0;		// need new connection messages
+		Con_Print("reconnect: no signon, ignoring reconnect\n");
+		return;
 	}
+	cls.signon = 0;		// need new connection messages
 }
 
 /*
@@ -1606,9 +1578,6 @@ static void Host_Color(int changetop, int changebottom)
 		Cvar_SetValueQuick(&cl_color, playercolor);
 		return;
 	}
-
-	if (cls.protocol == PROTOCOL_QUAKEWORLD)
-		return;
 
 	if (host_client->edict && PRVM_serverfunction(SV_ChangeTeam))
 	{
@@ -2942,11 +2911,8 @@ void Host_Pings_f (void)
 	if (!host_client->netconnection)
 		return;
 
-	if (sv.protocol != PROTOCOL_QUAKEWORLD)
-	{
-		MSG_WriteByte(&host_client->netconnection->message, svc_stufftext);
-		MSG_WriteUnterminatedString(&host_client->netconnection->message, "pingplreport");
-	}
+	MSG_WriteByte(&host_client->netconnection->message, svc_stufftext);
+	MSG_WriteUnterminatedString(&host_client->netconnection->message, "pingplreport");
 	for (i = 0;i < svs.maxclients;i++)
 	{
 		packetloss = 0;
@@ -2964,26 +2930,14 @@ void Host_Pings_f (void)
 		movementloss = (movementloss * 100 + NETGRAPH_PACKETS - 1) / NETGRAPH_PACKETS;
 		ping = (int)floor(svs.clients[i].ping*1000+0.5);
 		ping = bound(0, ping, 9999);
-		if (sv.protocol == PROTOCOL_QUAKEWORLD)
-		{
-			// send qw_svc_updateping and qw_svc_updatepl messages
-			MSG_WriteByte(&host_client->netconnection->message, qw_svc_updateping);
-			MSG_WriteShort(&host_client->netconnection->message, ping);
-			MSG_WriteByte(&host_client->netconnection->message, qw_svc_updatepl);
-			MSG_WriteByte(&host_client->netconnection->message, packetloss);
-		}
+		// write the string into the packet as multiple unterminated strings to avoid needing a local buffer
+		if(movementloss)
+			dpsnprintf(temp, sizeof(temp), " %d %d,%d", ping, packetloss, movementloss);
 		else
-		{
-			// write the string into the packet as multiple unterminated strings to avoid needing a local buffer
-			if(movementloss)
-				dpsnprintf(temp, sizeof(temp), " %d %d,%d", ping, packetloss, movementloss);
-			else
-				dpsnprintf(temp, sizeof(temp), " %d %d", ping, packetloss);
-			MSG_WriteUnterminatedString(&host_client->netconnection->message, temp);
-		}
+			dpsnprintf(temp, sizeof(temp), " %d %d", ping, packetloss);
+		MSG_WriteUnterminatedString(&host_client->netconnection->message, temp);
 	}
-	if (sv.protocol != PROTOCOL_QUAKEWORLD)
-		MSG_WriteString(&host_client->netconnection->message, "\n");
+	MSG_WriteString(&host_client->netconnection->message, "\n");
 }
 
 static void Host_PingPLReport_f(void)

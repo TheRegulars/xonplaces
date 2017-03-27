@@ -458,7 +458,7 @@ static void SV_ReadClientMove (void)
 	if (sv_message.badread) Con_Printf("SV_ReadClientMessage: badread at %s:%i\n", __FILE__, __LINE__);
 
 	// read ping time
-	if (sv.protocol != PROTOCOL_QUAKE && sv.protocol != PROTOCOL_QUAKEDP && sv.protocol != PROTOCOL_NEHAHRAMOVIE && sv.protocol != PROTOCOL_NEHAHRABJP && sv.protocol != PROTOCOL_NEHAHRABJP2 && sv.protocol != PROTOCOL_NEHAHRABJP3 && sv.protocol != PROTOCOL_DARKPLACES1 && sv.protocol != PROTOCOL_DARKPLACES2 && sv.protocol != PROTOCOL_DARKPLACES3 && sv.protocol != PROTOCOL_DARKPLACES4 && sv.protocol != PROTOCOL_DARKPLACES5 && sv.protocol != PROTOCOL_DARKPLACES6)
+	if (sv.protocol == PROTOCOL_DARKPLACES7)
 		move->sequence = MSG_ReadLong(&sv_message);
 	move->time = move->clienttime = MSG_ReadFloat(&sv_message);
 	if (sv_message.badread) Con_Printf("SV_ReadClientMessage: badread at %s:%i\n", __FILE__, __LINE__);
@@ -474,14 +474,7 @@ static void SV_ReadClientMove (void)
 	// read current angles
 	for (i = 0;i < 3;i++)
 	{
-		if (sv.protocol == PROTOCOL_QUAKE || sv.protocol == PROTOCOL_QUAKEDP || sv.protocol == PROTOCOL_NEHAHRAMOVIE || sv.protocol == PROTOCOL_NEHAHRABJP || sv.protocol == PROTOCOL_NEHAHRABJP2 || sv.protocol == PROTOCOL_NEHAHRABJP3)
-			move->viewangles[i] = MSG_ReadAngle8i(&sv_message);
-		else if (sv.protocol == PROTOCOL_DARKPLACES1)
-			move->viewangles[i] = MSG_ReadAngle16i(&sv_message);
-		else if (sv.protocol == PROTOCOL_DARKPLACES2 || sv.protocol == PROTOCOL_DARKPLACES3)
-			move->viewangles[i] = MSG_ReadAngle32f(&sv_message);
-		else
-			move->viewangles[i] = MSG_ReadAngle16i(&sv_message);
+		move->viewangles[i] = MSG_ReadAngle16i(&sv_message);
 	}
 	if (sv_message.badread) Con_Printf("SV_ReadClientMessage: badread at %s:%i\n", __FILE__, __LINE__);
 
@@ -494,10 +487,7 @@ static void SV_ReadClientMove (void)
 	// read buttons
 	// be sure to bitwise OR them into the move->buttons because we want to
 	// accumulate button presses from multiple packets per actual move
-	if (sv.protocol == PROTOCOL_QUAKE || sv.protocol == PROTOCOL_QUAKEDP || sv.protocol == PROTOCOL_NEHAHRAMOVIE || sv.protocol == PROTOCOL_NEHAHRABJP || sv.protocol == PROTOCOL_NEHAHRABJP2 || sv.protocol == PROTOCOL_NEHAHRABJP3 || sv.protocol == PROTOCOL_DARKPLACES1 || sv.protocol == PROTOCOL_DARKPLACES2 || sv.protocol == PROTOCOL_DARKPLACES3 || sv.protocol == PROTOCOL_DARKPLACES4 || sv.protocol == PROTOCOL_DARKPLACES5)
-		move->buttons = MSG_ReadByte(&sv_message);
-	else
-		move->buttons = MSG_ReadLong(&sv_message);
+	move->buttons = MSG_ReadLong(&sv_message);
 	if (sv_message.badread) Con_Printf("SV_ReadClientMessage: badread at %s:%i\n", __FILE__, __LINE__);
 
 	// read impulse
@@ -505,29 +495,26 @@ static void SV_ReadClientMove (void)
 	if (sv_message.badread) Con_Printf("SV_ReadClientMessage: badread at %s:%i\n", __FILE__, __LINE__);
 
 	// PRYDON_CLIENTCURSOR
-	if (sv.protocol != PROTOCOL_QUAKE && sv.protocol != PROTOCOL_QUAKEDP && sv.protocol != PROTOCOL_NEHAHRAMOVIE && sv.protocol != PROTOCOL_NEHAHRABJP && sv.protocol != PROTOCOL_NEHAHRABJP2 && sv.protocol != PROTOCOL_NEHAHRABJP3 && sv.protocol != PROTOCOL_DARKPLACES1 && sv.protocol != PROTOCOL_DARKPLACES2 && sv.protocol != PROTOCOL_DARKPLACES3 && sv.protocol != PROTOCOL_DARKPLACES4 && sv.protocol != PROTOCOL_DARKPLACES5)
+	// 30 bytes
+	move->cursor_screen[0] = MSG_ReadShort(&sv_message) * (1.0f / 32767.0f);
+	move->cursor_screen[1] = MSG_ReadShort(&sv_message) * (1.0f / 32767.0f);
+	move->cursor_start[0] = MSG_ReadFloat(&sv_message);
+	move->cursor_start[1] = MSG_ReadFloat(&sv_message);
+	move->cursor_start[2] = MSG_ReadFloat(&sv_message);
+	move->cursor_impact[0] = MSG_ReadFloat(&sv_message);
+	move->cursor_impact[1] = MSG_ReadFloat(&sv_message);
+	move->cursor_impact[2] = MSG_ReadFloat(&sv_message);
+	move->cursor_entitynumber = (unsigned short)MSG_ReadShort(&sv_message);
+	if (move->cursor_entitynumber >= prog->max_edicts)
 	{
-		// 30 bytes
-		move->cursor_screen[0] = MSG_ReadShort(&sv_message) * (1.0f / 32767.0f);
-		move->cursor_screen[1] = MSG_ReadShort(&sv_message) * (1.0f / 32767.0f);
-		move->cursor_start[0] = MSG_ReadFloat(&sv_message);
-		move->cursor_start[1] = MSG_ReadFloat(&sv_message);
-		move->cursor_start[2] = MSG_ReadFloat(&sv_message);
-		move->cursor_impact[0] = MSG_ReadFloat(&sv_message);
-		move->cursor_impact[1] = MSG_ReadFloat(&sv_message);
-		move->cursor_impact[2] = MSG_ReadFloat(&sv_message);
-		move->cursor_entitynumber = (unsigned short)MSG_ReadShort(&sv_message);
-		if (move->cursor_entitynumber >= prog->max_edicts)
-		{
-			Con_DPrintf("SV_ReadClientMessage: client send bad cursor_entitynumber\n");
-			move->cursor_entitynumber = 0;
-		}
-		// as requested by FrikaC, cursor_trace_ent is reset to world if the
-		// entity is free at time of receipt
-		if (PRVM_EDICT_NUM(move->cursor_entitynumber)->priv.server->free)
-			move->cursor_entitynumber = 0;
-		if (sv_message.badread) Con_Printf("SV_ReadClientMessage: badread at %s:%i\n", __FILE__, __LINE__);
+		Con_DPrintf("SV_ReadClientMessage: client send bad cursor_entitynumber\n");
+		move->cursor_entitynumber = 0;
 	}
+	// as requested by FrikaC, cursor_trace_ent is reset to world if the
+	// entity is free at time of receipt
+	if (PRVM_EDICT_NUM(move->cursor_entitynumber)->priv.server->free)
+		move->cursor_entitynumber = 0;
+	if (sv_message.badread) Con_Printf("SV_ReadClientMessage: badread at %s:%i\n", __FILE__, __LINE__);
 
 	// if the previous move has not been applied yet, we need to accumulate
 	// the impulse/buttons from it

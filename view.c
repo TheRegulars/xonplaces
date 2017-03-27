@@ -521,13 +521,8 @@ void V_CalcRefdefUsing (const matrix4x4_t *entrendermatrix, const vec3_t clviewa
 	if (clintermission)
 	{
 		// entity is a fixed camera, just copy the matrix
-		if (cls.protocol == PROTOCOL_QUAKEWORLD)
-			Matrix4x4_CreateFromQuakeEntity(&r_refdef.view.matrix, cl.qw_intermission_origin[0], cl.qw_intermission_origin[1], cl.qw_intermission_origin[2], cl.qw_intermission_angles[0], cl.qw_intermission_angles[1], cl.qw_intermission_angles[2], 1);
-		else
-		{
-			r_refdef.view.matrix = *entrendermatrix;
-			Matrix4x4_AdjustOrigin(&r_refdef.view.matrix, 0, 0, clstatsviewheight);
-		}
+		r_refdef.view.matrix = *entrendermatrix;
+		Matrix4x4_AdjustOrigin(&r_refdef.view.matrix, 0, 0, clstatsviewheight);
 		if (v_yshearing.value > 0)
 			Matrix4x4_QuakeToDuke3D(&r_refdef.view.matrix, &r_refdef.view.matrix, v_yshearing.value);
 		Matrix4x4_Copy(&viewmodelmatrix_nobob, &r_refdef.view.matrix);

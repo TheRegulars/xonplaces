@@ -235,12 +235,7 @@ void CL_SetInfo(const char *key, const char *value, qboolean send, qboolean allo
 	InfoString_SetValue(cls.userinfo, sizeof(cls.userinfo), key, value);
 	if (cls.state == ca_connected && cls.netcon)
 	{
-		if (cls.protocol == PROTOCOL_QUAKEWORLD)
-		{
-			MSG_WriteByte(&cls.netcon->message, qw_clc_stringcmd);
-			MSG_WriteString(&cls.netcon->message, va(vabuf, sizeof(vabuf), "setinfo \"%s\" \"%s\"", key, value));
-		}
-		else if (!strcasecmp(key, "name"))
+		if (!strcasecmp(key, "name"))
 		{
 			MSG_WriteByte(&cls.netcon->message, clc_stringcmd);
 			MSG_WriteString(&cls.netcon->message, va(vabuf, sizeof(vabuf), "name \"%s\"", value));
@@ -377,17 +372,8 @@ void CL_Disconnect(void)
 		memset(&buf, 0, sizeof(buf));
 		buf.data = bufdata;
 		buf.maxsize = sizeof(bufdata);
-		if (cls.protocol == PROTOCOL_QUAKEWORLD)
-		{
-			Con_DPrint("Sending drop command\n");
-			MSG_WriteByte(&buf, qw_clc_stringcmd);
-			MSG_WriteString(&buf, "drop");
-		}
-		else
-		{
-			Con_DPrint("Sending clc_disconnect\n");
-			MSG_WriteByte(&buf, clc_disconnect);
-		}
+		Con_DPrint("Sending clc_disconnect\n");
+		MSG_WriteByte(&buf, clc_disconnect);
 		NetConn_SendUnreliableMessage(cls.netcon, &buf, cls.protocol, 10000, 0, false);
 		NetConn_SendUnreliableMessage(cls.netcon, &buf, cls.protocol, 10000, 0, false);
 		NetConn_SendUnreliableMessage(cls.netcon, &buf, cls.protocol, 10000, 0, false);
@@ -1173,7 +1159,7 @@ static void CL_UpdateNetworkEntity(entity_t *e, int recursionlimit, qboolean int
 	if (!(e->render.effects & (EF_NOSHADOW | EF_ADDITIVE | EF_NODEPTHTEST))
 	 && (e->render.alpha >= 1)
 	 && !(e->render.flags & RENDER_VIEWMODEL)
-	 && (!(e->render.flags & RENDER_EXTERIORMODEL) || (!cl.intermission && cls.protocol != PROTOCOL_NEHAHRAMOVIE && !cl_noplayershadow.integer)))
+	 && (!(e->render.flags & RENDER_EXTERIORMODEL) || (!cl.intermission && !cl_noplayershadow.integer)))
 		e->render.flags |= RENDER_SHADOW;
 	if (e->render.flags & RENDER_VIEWMODEL)
 		e->render.flags |= RENDER_NOSELFSHADOW;

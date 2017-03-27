@@ -507,7 +507,6 @@ static void CL_AdjustAngles (void)
 		cl.viewangles[YAW] -= 360;
 	if (cl.viewangles[PITCH] >= 180)
 		cl.viewangles[PITCH] -= 360;
-        // TODO: honor serverinfo minpitch and maxpitch values in PROTOCOL_QUAKEWORLD
         // TODO: honor proquake pq_fullpitch cvar when playing on proquake server (server stuffcmd's this to 0 usually)
 	cl.viewangles[PITCH] = bound(in_pitch_min.value, cl.viewangles[PITCH], in_pitch_max.value);
 	cl.viewangles[ROLL] = bound(-180, cl.viewangles[ROLL], 180);
@@ -977,7 +976,6 @@ static void CL_ClientMovement_Move(cl_clientmovement_state_t *s)
 		// this is only really needed for nogravityonground combined with gravityunaffectedbyticrate
 		// <LordHavoc> I'm pretty sure I commented it out solely because it seemed redundant
 		// this got commented out in a change that supposedly makes the code match QW better
-		// so if this is broken, maybe put it in an if(cls.protocol != PROTOCOL_QUAKEWORLD) block
 		if (trace.plane.normal[2] > 0.7)
 			s->onground = true;
 
@@ -1054,7 +1052,7 @@ static void CL_ClientMovement_Physics_Swim(cl_clientmovement_state_t *s)
 	if (s->waterjumptime <= 0)
 	{
 		// water friction
-		f = 1 - s->cmd.frametime * cl.movevars_waterfriction * (cls.protocol == PROTOCOL_QUAKEWORLD ? s->waterlevel : 1);
+		f = 1 - s->cmd.frametime * cl.movevars_waterfriction;
 		f = bound(0, f, 1);
 		VectorScale(s->velocity, f, s->velocity);
 
@@ -1354,10 +1352,7 @@ static void CL_ClientMovement_Physics_Walk(cl_clientmovement_state_t *s)
 				// this mimics it for compatibility
 				VectorSet(neworigin2, s->origin[0] + s->velocity[0]*(16/f), s->origin[1] + s->velocity[1]*(16/f), s->origin[2] + s->mins[2]);
 				VectorSet(neworigin3, neworigin2[0], neworigin2[1], neworigin2[2] - 34);
-				if (cls.protocol == PROTOCOL_QUAKEWORLD)
-					trace = CL_TraceBox(neworigin2, s->mins, s->maxs, neworigin3, MOVE_NORMAL, s->self, SUPERCONTENTS_SOLID | SUPERCONTENTS_BODY | SUPERCONTENTS_PLAYERCLIP, 0, collision_extendmovelength.value, true, true, NULL, true);
-				else
-					trace = CL_TraceLine(neworigin2, neworigin3, MOVE_NORMAL, s->self, SUPERCONTENTS_SOLID | SUPERCONTENTS_BODY | SUPERCONTENTS_PLAYERCLIP, 0, collision_extendmovelength.value, true, true, NULL, true, false);
+				trace = CL_TraceLine(neworigin2, neworigin3, MOVE_NORMAL, s->self, SUPERCONTENTS_SOLID | SUPERCONTENTS_BODY | SUPERCONTENTS_PLAYERCLIP, 0, collision_extendmovelength.value, true, true, NULL, true, false);
 				if (trace.fraction == 1 && !trace.startsolid)
 					friction *= cl.movevars_edgefriction;
 			}
@@ -1380,8 +1375,6 @@ static void CL_ClientMovement_Physics_Walk(cl_clientmovement_state_t *s)
 			else
 				s->velocity[2] -= gravity;
 		}
-		if (cls.protocol == PROTOCOL_QUAKEWORLD)
-			s->velocity[2] = 0;
 		if (VectorLength2(s->velocity))
 			CL_ClientMovement_Move(s);
 		if(!(cl.moveflags & MOVEFLAG_NOGRAVITYONGROUND) || !s->onground)
@@ -1468,11 +1461,7 @@ static void CL_ClientMovement_PlayerMove(cl_clientmovement_state_t *s)
 extern cvar_t slowmo;
 void CL_UpdateMoveVars(void)
 {
-	if (cls.protocol == PROTOCOL_QUAKEWORLD)
-	{
-		cl.moveflags = 0;
-	}
-	else if (cl.stats[STAT_MOVEVARS_TICRATE])
+	if (cl.stats[STAT_MOVEVARS_TICRATE])
 	{
 		cl.moveflags = cl.stats[STAT_MOVEFLAGS];
 		cl.movevars_ticrate = cl.statsf[STAT_MOVEVARS_TICRATE];
@@ -1666,48 +1655,6 @@ void CL_ClientMovement_Replay(void)
 	}
 }
 
-static void QW_MSG_WriteDeltaUsercmd(sizebuf_t *buf, usercmd_t *from, usercmd_t *to)
-{
-	int bits;
-
-	bits = 0;
-	if (to->viewangles[0] != from->viewangles[0])
-		bits |= QW_CM_ANGLE1;
-	if (to->viewangles[1] != from->viewangles[1])
-		bits |= QW_CM_ANGLE2;
-	if (to->viewangles[2] != from->viewangles[2])
-		bits |= QW_CM_ANGLE3;
-	if (to->forwardmove != from->forwardmove)
-		bits |= QW_CM_FORWARD;
-	if (to->sidemove != from->sidemove)
-		bits |= QW_CM_SIDE;
-	if (to->upmove != from->upmove)
-		bits |= QW_CM_UP;
-	if (to->buttons != from->buttons)
-		bits |= QW_CM_BUTTONS;
-	if (to->impulse != from->impulse)
-		bits |= QW_CM_IMPULSE;
-
-	MSG_WriteByte(buf, bits);
-	if (bits & QW_CM_ANGLE1)
-		MSG_WriteAngle16i(buf, to->viewangles[0]);
-	if (bits & QW_CM_ANGLE2)
-		MSG_WriteAngle16i(buf, to->viewangles[1]);
-	if (bits & QW_CM_ANGLE3)
-		MSG_WriteAngle16i(buf, to->viewangles[2]);
-	if (bits & QW_CM_FORWARD)
-		MSG_WriteShort(buf, (short) to->forwardmove);
-	if (bits & QW_CM_SIDE)
-		MSG_WriteShort(buf, (short) to->sidemove);
-	if (bits & QW_CM_UP)
-		MSG_WriteShort(buf, (short) to->upmove);
-	if (bits & QW_CM_BUTTONS)
-		MSG_WriteByte(buf, to->buttons);
-	if (bits & QW_CM_IMPULSE)
-		MSG_WriteByte(buf, to->impulse);
-	MSG_WriteByte(buf, to->msec);
-}
-
 void CL_NewFrameReceived(int num)
 {
 	if (developer_networkentities.integer >= 10)
@@ -1817,10 +1764,6 @@ void CL_SendMove(void)
 
 	switch(cls.protocol)
 	{
-	case PROTOCOL_QUAKEWORLD:
-		// quakeworld uses a different cvar with opposite meaning, for compatibility
-		cl.cmd.predicted = cl_nopred.integer == 0;
-		break;
 	case PROTOCOL_DARKPLACES6:
 	case PROTOCOL_DARKPLACES7:
 		cl.cmd.predicted = cl_movement.integer != 0;
@@ -1839,19 +1782,6 @@ void CL_SendMove(void)
 	cl.cmd.crouch = 0;
 	switch (cls.protocol)
 	{
-	case PROTOCOL_QUAKEWORLD:
-	case PROTOCOL_QUAKE:
-	case PROTOCOL_QUAKEDP:
-	case PROTOCOL_NEHAHRAMOVIE:
-	case PROTOCOL_NEHAHRABJP:
-	case PROTOCOL_NEHAHRABJP2:
-	case PROTOCOL_NEHAHRABJP3:
-	case PROTOCOL_DARKPLACES1:
-	case PROTOCOL_DARKPLACES2:
-	case PROTOCOL_DARKPLACES3:
-	case PROTOCOL_DARKPLACES4:
-	case PROTOCOL_DARKPLACES5:
-		break;
 	case PROTOCOL_DARKPLACES6:
 	case PROTOCOL_DARKPLACES7:
 		// FIXME: cl.cmd.buttons & 16 is +button5, Nexuiz/Xonotic specific
@@ -1881,7 +1811,7 @@ void CL_SendMove(void)
 	}
 
 	// do not send 0ms packets because they mess up physics
-	if(cl.cmd.msec == 0 && cl.time > cl.oldtime && (cls.protocol == PROTOCOL_QUAKEWORLD || cls.signon == SIGNONS))
+	if(cl.cmd.msec == 0 && cl.time > cl.oldtime && cls.signon == SIGNONS)
 		return;
 	// always send if buttons changed or an impulse is pending
 	// even if it violates the rate limit!
@@ -1908,115 +1838,16 @@ void CL_SendMove(void)
 	buf.data = data;
 
 	// send the movement message
-	// PROTOCOL_QUAKE        clc_move = 16 bytes total
-	// PROTOCOL_QUAKEDP      clc_move = 16 bytes total
-	// PROTOCOL_NEHAHRAMOVIE clc_move = 16 bytes total
-	// PROTOCOL_DARKPLACES1  clc_move = 19 bytes total
-	// PROTOCOL_DARKPLACES2  clc_move = 25 bytes total
-	// PROTOCOL_DARKPLACES3  clc_move = 25 bytes total
-	// PROTOCOL_DARKPLACES4  clc_move = 19 bytes total
-	// PROTOCOL_DARKPLACES5  clc_move = 19 bytes total
 	// PROTOCOL_DARKPLACES6  clc_move = 52 bytes total
 	// PROTOCOL_DARKPLACES7  clc_move = 56 bytes total per move (can be up to 16 moves)
-	// PROTOCOL_QUAKEWORLD   clc_move = 34 bytes total (typically, but can reach 43 bytes, or even 49 bytes with roll)
 
 	// set prydon cursor info
 	CL_UpdatePrydonCursor();
 
-	if (cls.protocol == PROTOCOL_QUAKEWORLD || cls.signon == SIGNONS)
+	if (cls.signon == SIGNONS)
 	{
 		switch (cls.protocol)
 		{
-		case PROTOCOL_QUAKEWORLD:
-			MSG_WriteByte(&buf, qw_clc_move);
-			// save the position for a checksum byte
-			checksumindex = buf.cursize;
-			MSG_WriteByte(&buf, 0);
-			// packet loss percentage
-			for (j = 0, packetloss = 0;j < NETGRAPH_PACKETS;j++)
-				if (cls.netcon->incoming_netgraph[j].unreliablebytes == NETGRAPH_LOSTPACKET)
-					packetloss++;
-			packetloss = packetloss * 100 / NETGRAPH_PACKETS;
-			MSG_WriteByte(&buf, packetloss);
-			// write most recent 3 moves
-			QW_MSG_WriteDeltaUsercmd(&buf, &nullcmd, &cl.movecmd[2]);
-			QW_MSG_WriteDeltaUsercmd(&buf, &cl.movecmd[2], &cl.movecmd[1]);
-			QW_MSG_WriteDeltaUsercmd(&buf, &cl.movecmd[1], &cl.cmd);
-			// calculate the checksum
-			buf.data[checksumindex] = COM_BlockSequenceCRCByteQW(buf.data + checksumindex + 1, buf.cursize - checksumindex - 1, cls.netcon->outgoing_unreliable_sequence);
-			// if delta compression history overflows, request no delta
-			if (cls.netcon->outgoing_unreliable_sequence - cl.qw_validsequence >= QW_UPDATE_BACKUP-1)
-				cl.qw_validsequence = 0;
-			// request delta compression if appropriate
-			if (cl.qw_validsequence && !cl_nodelta.integer && cls.state == ca_connected && !cls.demorecording)
-			{
-				cl.qw_deltasequence[cls.netcon->outgoing_unreliable_sequence & QW_UPDATE_MASK] = cl.qw_validsequence;
-				MSG_WriteByte(&buf, qw_clc_delta);
-				MSG_WriteByte(&buf, cl.qw_validsequence & 255);
-			}
-			else
-				cl.qw_deltasequence[cls.netcon->outgoing_unreliable_sequence & QW_UPDATE_MASK] = -1;
-			break;
-		case PROTOCOL_QUAKE:
-		case PROTOCOL_QUAKEDP:
-		case PROTOCOL_NEHAHRAMOVIE:
-		case PROTOCOL_NEHAHRABJP:
-		case PROTOCOL_NEHAHRABJP2:
-		case PROTOCOL_NEHAHRABJP3:
-			// 5 bytes
-			MSG_WriteByte (&buf, clc_move);
-			MSG_WriteFloat (&buf, cl.cmd.time); // last server packet time
-			// 3 bytes (6 bytes in proquake)
-			if (cls.proquake_servermod == 1) // MOD_PROQUAKE
-			{
-				for (i = 0;i < 3;i++)
-					MSG_WriteAngle16i (&buf, cl.cmd.viewangles[i]);
-			}
-			else
-			{
-				for (i = 0;i < 3;i++)
-					MSG_WriteAngle8i (&buf, cl.cmd.viewangles[i]);
-			}
-			// 6 bytes
-			MSG_WriteCoord16i (&buf, cl.cmd.forwardmove);
-			MSG_WriteCoord16i (&buf, cl.cmd.sidemove);
-			MSG_WriteCoord16i (&buf, cl.cmd.upmove);
-			// 2 bytes
-			MSG_WriteByte (&buf, cl.cmd.buttons);
-			MSG_WriteByte (&buf, cl.cmd.impulse);
-			break;
-		case PROTOCOL_DARKPLACES2:
-		case PROTOCOL_DARKPLACES3:
-			// 5 bytes
-			MSG_WriteByte (&buf, clc_move);
-			MSG_WriteFloat (&buf, cl.cmd.time); // last server packet time
-			// 12 bytes
-			for (i = 0;i < 3;i++)
-				MSG_WriteAngle32f (&buf, cl.cmd.viewangles[i]);
-			// 6 bytes
-			MSG_WriteCoord16i (&buf, cl.cmd.forwardmove);
-			MSG_WriteCoord16i (&buf, cl.cmd.sidemove);
-			MSG_WriteCoord16i (&buf, cl.cmd.upmove);
-			// 2 bytes
-			MSG_WriteByte (&buf, cl.cmd.buttons);
-			MSG_WriteByte (&buf, cl.cmd.impulse);
-			break;
-		case PROTOCOL_DARKPLACES1:
-		case PROTOCOL_DARKPLACES4:
-		case PROTOCOL_DARKPLACES5:
-			// 5 bytes
-			MSG_WriteByte (&buf, clc_move);
-			MSG_WriteFloat (&buf, cl.cmd.time); // last server packet time
-			// 6 bytes
-			for (i = 0;i < 3;i++)
-				MSG_WriteAngle16i (&buf, cl.cmd.viewangles[i]);
-			// 6 bytes
-			MSG_WriteCoord16i (&buf, cl.cmd.forwardmove);
-			MSG_WriteCoord16i (&buf, cl.cmd.sidemove);
-			MSG_WriteCoord16i (&buf, cl.cmd.upmove);
-			// 2 bytes
-			MSG_WriteByte (&buf, cl.cmd.buttons);
-			MSG_WriteByte (&buf, cl.cmd.impulse);
 		case PROTOCOL_DARKPLACES6:
 		case PROTOCOL_DARKPLACES7:
 			// set the maxusercmds variable to limit how many should be sent
@@ -2068,7 +1899,7 @@ void CL_SendMove(void)
 		}
 	}
 
-	if (cls.protocol != PROTOCOL_QUAKEWORLD && buf.cursize)
+	if (buf.cursize)
 	{
 		// ack entity frame numbers received since the last input was sent
 		// (redundent to improve handling of client->server packet loss)

@@ -50,21 +50,6 @@ static cvar_t sv_masters [] =
 	{0, NULL, NULL, NULL}
 };
 
-#ifdef CONFIG_MENU
-static cvar_t sv_qwmasters [] =
-{
-	{CVAR_SAVE, "sv_qwmaster1", "", "user-chosen qwmaster server 1"},
-	{CVAR_SAVE, "sv_qwmaster2", "", "user-chosen qwmaster server 2"},
-	{CVAR_SAVE, "sv_qwmaster3", "", "user-chosen qwmaster server 3"},
-	{CVAR_SAVE, "sv_qwmaster4", "", "user-chosen qwmaster server 4"},
-	{0, "sv_qwmasterextra1", "master.quakeservers.net:27000", "Global master server. (admin: unknown)"},
-	{0, "sv_qwmasterextra2", "asgaard.morphos-team.net:27000", "Global master server. (admin: unknown)"},
-	{0, "sv_qwmasterextra3", "qwmaster.ocrana.de:27000", "German master server. (admin: unknown)"},
-	{0, "sv_qwmasterextra4", "qwmaster.fodquake.net:27000", "Global master server. (admin: unknown)"},
-	{0, NULL, NULL, NULL}
-};
-#endif
-
 static double nextheartbeattime = 0;
 
 sizebuf_t cl_message;
@@ -602,7 +587,7 @@ void ServerList_QueryList(qboolean resetcache, qboolean querydp, qboolean queryq
 
 	//_ServerList_Test();
 
-	NetConn_QueryMasters(querydp, queryqw);
+	NetConn_QueryMasters(querydp);
 }
 #endif
 
@@ -738,193 +723,123 @@ int NetConn_SendUnreliableMessage(netconn_t *conn, sizebuf_t *data, protocolvers
 
 	conn->outgoing_netgraph[conn->outgoing_packetcounter].cleartime = conn->cleartime;
 
-	if (protocol == PROTOCOL_QUAKEWORLD)
+	unsigned int packetLen;
+	unsigned int dataLen;
+	unsigned int eom;
+	const void *sendme;
+	size_t sendmelen;
+
+	// if a reliable message fragment has been lost, send it again
+	if (conn->sendMessageLength && (realtime - conn->lastSendTime) > 1.0)
 	{
-		int packetLen;
-		qboolean sendreliable;
-
-		// note that it is ok to send empty messages to the qw server,
-		// otherwise it won't respond to us at all
-
-		sendreliable = false;
-		// if the remote side dropped the last reliable message, resend it
-		if (conn->qw.incoming_acknowledged > conn->qw.last_reliable_sequence && conn->qw.incoming_reliable_acknowledged != conn->qw.reliable_sequence)
-			sendreliable = true;
-		// if the reliable transmit buffer is empty, copy the current message out
-		if (!conn->sendMessageLength && conn->message.cursize)
+		if (conn->sendMessageLength <= MAX_PACKETFRAGMENT)
 		{
-			memcpy (conn->sendMessage, conn->message.data, conn->message.cursize);
-			conn->sendMessageLength = conn->message.cursize;
-			SZ_Clear(&conn->message); // clear the message buffer
-			conn->qw.reliable_sequence ^= 1;
-			sendreliable = true;
+			dataLen = conn->sendMessageLength;
+			eom = NETFLAG_EOM;
 		}
-		// outgoing unreliable packet number, and outgoing reliable packet number (0 or 1)
-		StoreLittleLong(sendbuffer, conn->outgoing_unreliable_sequence | (((unsigned int)sendreliable)<<31));
-		// last received unreliable packet number, and last received reliable packet number (0 or 1)
-		StoreLittleLong(sendbuffer + 4, conn->qw.incoming_sequence | (((unsigned int)conn->qw.incoming_reliable_sequence)<<31));
-		packetLen = 8;
-		conn->outgoing_unreliable_sequence++;
-		// client sends qport in every packet
-		if (conn == cls.netcon)
+		else
 		{
-			*((short *)(sendbuffer + 8)) = LittleShort(cls.qw_qport);
-			packetLen += 2;
-			// also update cls.qw_outgoing_sequence
-			cls.qw_outgoing_sequence = conn->outgoing_unreliable_sequence;
+			dataLen = MAX_PACKETFRAGMENT;
+			eom = 0;
 		}
-		if (packetLen + (sendreliable ? conn->sendMessageLength : 0) > 1400)
+
+		packetLen = NET_HEADERSIZE + dataLen;
+
+		StoreBigLong(sendbuffer, packetLen | (NETFLAG_DATA | eom | NetConn_AddCryptoFlag(&conn->crypto)));
+		StoreBigLong(sendbuffer + 4, conn->nq.sendSequence - 1);
+		memcpy(sendbuffer + NET_HEADERSIZE, conn->sendMessage, dataLen);
+
+		conn->outgoing_netgraph[conn->outgoing_packetcounter].reliablebytes += packetLen + 28;
+
+		sendme = Crypto_EncryptPacket(&conn->crypto, &sendbuffer, packetLen, &cryptosendbuffer, &sendmelen, sizeof(cryptosendbuffer));
+		if (sendme && NetConn_Write(conn->mysocket, sendme, (int)sendmelen, &conn->peeraddress) == (int)sendmelen)
 		{
-			Con_Printf ("NetConn_SendUnreliableMessage: reliable message too big %u\n", data->cursize);
+			conn->lastSendTime = realtime;
+			conn->packetsReSent++;
+		}
+
+		totallen += (int)sendmelen + 28;
+	}
+
+	// if we have a new reliable message to send, do so
+	if (!conn->sendMessageLength && conn->message.cursize && !quakesignon_suppressreliables)
+	{
+		if (conn->message.cursize > (int)sizeof(conn->sendMessage))
+		{
+			Con_Printf("NetConn_SendUnreliableMessage: reliable message too big (%u > %u)\n", conn->message.cursize, (int)sizeof(conn->sendMessage));
+			conn->message.overflowed = true;
 			return -1;
 		}
 
+		if (developer_networking.integer && conn == cls.netcon)
+		{
+			Con_Print("client sending reliable message to server:\n");
+			SZ_HexDumpToConsole(&conn->message);
+		}
+
+		memcpy(conn->sendMessage, conn->message.data, conn->message.cursize);
+		conn->sendMessageLength = conn->message.cursize;
+		SZ_Clear(&conn->message);
+
+		if (conn->sendMessageLength <= MAX_PACKETFRAGMENT)
+		{
+			dataLen = conn->sendMessageLength;
+			eom = NETFLAG_EOM;
+		}
+		else
+		{
+			dataLen = MAX_PACKETFRAGMENT;
+			eom = 0;
+		}
+
+		packetLen = NET_HEADERSIZE + dataLen;
+
+		StoreBigLong(sendbuffer, packetLen | (NETFLAG_DATA | eom | NetConn_AddCryptoFlag(&conn->crypto)));
+		StoreBigLong(sendbuffer + 4, conn->nq.sendSequence);
+		memcpy(sendbuffer + NET_HEADERSIZE, conn->sendMessage, dataLen);
+
+		conn->nq.sendSequence++;
+
+		conn->outgoing_netgraph[conn->outgoing_packetcounter].reliablebytes += packetLen + 28;
+
+		sendme = Crypto_EncryptPacket(&conn->crypto, &sendbuffer, packetLen, &cryptosendbuffer, &sendmelen, sizeof(cryptosendbuffer));
+		if(sendme)
+			NetConn_Write(conn->mysocket, sendme, (int)sendmelen, &conn->peeraddress);
+
+		conn->lastSendTime = realtime;
+		conn->packetsSent++;
+		conn->reliableMessagesSent++;
+
+		totallen += (int)sendmelen + 28;
+	}
+
+	// if we have an unreliable message to send, do so
+	if (data->cursize)
+	{
+		packetLen = NET_HEADERSIZE + data->cursize;
+
+		if (packetLen > (int)sizeof(sendbuffer))
+		{
+			Con_Printf("NetConn_SendUnreliableMessage: message too big %u\n", data->cursize);
+			return -1;
+		}
+
+		StoreBigLong(sendbuffer, packetLen | NETFLAG_UNRELIABLE | NetConn_AddCryptoFlag(&conn->crypto));
+		StoreBigLong(sendbuffer + 4, conn->outgoing_unreliable_sequence);
+		memcpy(sendbuffer + NET_HEADERSIZE, data->data, data->cursize);
+
+		conn->outgoing_unreliable_sequence++;
+
 		conn->outgoing_netgraph[conn->outgoing_packetcounter].unreliablebytes += packetLen + 28;
 
-		// add the reliable message if there is one
-		if (sendreliable)
-		{
-			conn->outgoing_netgraph[conn->outgoing_packetcounter].reliablebytes += conn->sendMessageLength + 28;
-			memcpy(sendbuffer + packetLen, conn->sendMessage, conn->sendMessageLength);
-			packetLen += conn->sendMessageLength;
-			conn->qw.last_reliable_sequence = conn->outgoing_unreliable_sequence;
-		}
-
-		// add the unreliable message if possible
-		if (packetLen + data->cursize <= 1400)
-		{
-			conn->outgoing_netgraph[conn->outgoing_packetcounter].unreliablebytes += data->cursize + 28;
-			memcpy(sendbuffer + packetLen, data->data, data->cursize);
-			packetLen += data->cursize;
-		}
-
-		NetConn_Write(conn->mysocket, (void *)&sendbuffer, packetLen, &conn->peeraddress);
+		sendme = Crypto_EncryptPacket(&conn->crypto, &sendbuffer, packetLen, &cryptosendbuffer, &sendmelen, sizeof(cryptosendbuffer));
+		if(sendme)
+			NetConn_Write(conn->mysocket, sendme, (int)sendmelen, &conn->peeraddress);
 
 		conn->packetsSent++;
 		conn->unreliableMessagesSent++;
 
-		totallen += packetLen + 28;
-	}
-	else
-	{
-		unsigned int packetLen;
-		unsigned int dataLen;
-		unsigned int eom;
-		const void *sendme;
-		size_t sendmelen;
-
-		// if a reliable message fragment has been lost, send it again
-		if (conn->sendMessageLength && (realtime - conn->lastSendTime) > 1.0)
-		{
-			if (conn->sendMessageLength <= MAX_PACKETFRAGMENT)
-			{
-				dataLen = conn->sendMessageLength;
-				eom = NETFLAG_EOM;
-			}
-			else
-			{
-				dataLen = MAX_PACKETFRAGMENT;
-				eom = 0;
-			}
-
-			packetLen = NET_HEADERSIZE + dataLen;
-
-			StoreBigLong(sendbuffer, packetLen | (NETFLAG_DATA | eom | NetConn_AddCryptoFlag(&conn->crypto)));
-			StoreBigLong(sendbuffer + 4, conn->nq.sendSequence - 1);
-			memcpy(sendbuffer + NET_HEADERSIZE, conn->sendMessage, dataLen);
-
-			conn->outgoing_netgraph[conn->outgoing_packetcounter].reliablebytes += packetLen + 28;
-
-			sendme = Crypto_EncryptPacket(&conn->crypto, &sendbuffer, packetLen, &cryptosendbuffer, &sendmelen, sizeof(cryptosendbuffer));
-			if (sendme && NetConn_Write(conn->mysocket, sendme, (int)sendmelen, &conn->peeraddress) == (int)sendmelen)
-			{
-				conn->lastSendTime = realtime;
-				conn->packetsReSent++;
-			}
-
-			totallen += (int)sendmelen + 28;
-		}
-
-		// if we have a new reliable message to send, do so
-		if (!conn->sendMessageLength && conn->message.cursize && !quakesignon_suppressreliables)
-		{
-			if (conn->message.cursize > (int)sizeof(conn->sendMessage))
-			{
-				Con_Printf("NetConn_SendUnreliableMessage: reliable message too big (%u > %u)\n", conn->message.cursize, (int)sizeof(conn->sendMessage));
-				conn->message.overflowed = true;
-				return -1;
-			}
-
-			if (developer_networking.integer && conn == cls.netcon)
-			{
-				Con_Print("client sending reliable message to server:\n");
-				SZ_HexDumpToConsole(&conn->message);
-			}
-
-			memcpy(conn->sendMessage, conn->message.data, conn->message.cursize);
-			conn->sendMessageLength = conn->message.cursize;
-			SZ_Clear(&conn->message);
-
-			if (conn->sendMessageLength <= MAX_PACKETFRAGMENT)
-			{
-				dataLen = conn->sendMessageLength;
-				eom = NETFLAG_EOM;
-			}
-			else
-			{
-				dataLen = MAX_PACKETFRAGMENT;
-				eom = 0;
-			}
-
-			packetLen = NET_HEADERSIZE + dataLen;
-
-			StoreBigLong(sendbuffer, packetLen | (NETFLAG_DATA | eom | NetConn_AddCryptoFlag(&conn->crypto)));
-			StoreBigLong(sendbuffer + 4, conn->nq.sendSequence);
-			memcpy(sendbuffer + NET_HEADERSIZE, conn->sendMessage, dataLen);
-
-			conn->nq.sendSequence++;
-
-			conn->outgoing_netgraph[conn->outgoing_packetcounter].reliablebytes += packetLen + 28;
-
-			sendme = Crypto_EncryptPacket(&conn->crypto, &sendbuffer, packetLen, &cryptosendbuffer, &sendmelen, sizeof(cryptosendbuffer));
-			if(sendme)
-				NetConn_Write(conn->mysocket, sendme, (int)sendmelen, &conn->peeraddress);
-
-			conn->lastSendTime = realtime;
-			conn->packetsSent++;
-			conn->reliableMessagesSent++;
-
-			totallen += (int)sendmelen + 28;
-		}
-
-		// if we have an unreliable message to send, do so
-		if (data->cursize)
-		{
-			packetLen = NET_HEADERSIZE + data->cursize;
-
-			if (packetLen > (int)sizeof(sendbuffer))
-			{
-				Con_Printf("NetConn_SendUnreliableMessage: message too big %u\n", data->cursize);
-				return -1;
-			}
-
-			StoreBigLong(sendbuffer, packetLen | NETFLAG_UNRELIABLE | NetConn_AddCryptoFlag(&conn->crypto));
-			StoreBigLong(sendbuffer + 4, conn->outgoing_unreliable_sequence);
-			memcpy(sendbuffer + NET_HEADERSIZE, data->data, data->cursize);
-
-			conn->outgoing_unreliable_sequence++;
-
-			conn->outgoing_netgraph[conn->outgoing_packetcounter].unreliablebytes += packetLen + 28;
-
-			sendme = Crypto_EncryptPacket(&conn->crypto, &sendbuffer, packetLen, &cryptosendbuffer, &sendmelen, sizeof(cryptosendbuffer));
-			if(sendme)
-				NetConn_Write(conn->mysocket, sendme, (int)sendmelen, &conn->peeraddress);
-
-			conn->packetsSent++;
-			conn->unreliableMessagesSent++;
-
-			totallen += (int)sendmelen + 28;
-		}
+		totallen += (int)sendmelen + 28;
 	}
 
 	NetConn_UpdateCleartime(&conn->cleartime, rate, burstsize, totallen);
@@ -1206,302 +1121,200 @@ static int NetConn_ReceivedMessage(netconn_t *conn, const unsigned char *data, s
 	if (length < 8)
 		return 0;
 
-	if (protocol == PROTOCOL_QUAKEWORLD)
-	{
-		unsigned int sequence, sequence_ack;
-		qboolean reliable_ack, reliable_message;
-		int count;
-		//int qport;
+	unsigned int count;
+	unsigned int flags;
+	unsigned int sequence;
+	size_t qlength;
+	const void *sendme;
+	size_t sendmelen;
 
-		sequence = LittleLong(*((int *)(data + 0)));
-		sequence_ack = LittleLong(*((int *)(data + 4)));
+	originallength = (int)length;
+	data = (const unsigned char *) Crypto_DecryptPacket(&conn->crypto, data, length, cryptoreadbuffer, &length, sizeof(cryptoreadbuffer));
+	if(!data)
+		return 0;
+	if(length < 8)
+		return 0;
+
+	qlength = (unsigned int)BuffBigLong(data);
+	flags = qlength & ~NETFLAG_LENGTH_MASK;
+	qlength &= NETFLAG_LENGTH_MASK;
+	// control packets were already handled
+	if (!(flags & NETFLAG_CTL) && qlength == length)
+	{
+		sequence = BuffBigLong(data + 4);
+		conn->packetsReceived++;
 		data += 8;
 		length -= 8;
-
-		if (conn != cls.netcon)
+		if (flags & NETFLAG_UNRELIABLE)
 		{
-			// server only
-			if (length < 2)
-				return 0;
-			// TODO: use qport to identify that this client really is who they say they are?  (and elsewhere in the code to identify the connection without a port match?)
-			//qport = LittleShort(*((int *)(data + 8)));
-			data += 2;
-			length -= 2;
-		}
-
-		conn->packetsReceived++;
-		reliable_message = (sequence >> 31) != 0;
-		reliable_ack = (sequence_ack >> 31) != 0;
-		sequence &= ~(1<<31);
-		sequence_ack &= ~(1<<31);
-		if (sequence <= conn->qw.incoming_sequence)
-		{
-			//Con_DPrint("Got a stale datagram\n");
-			return 0;
-		}
-		count = sequence - (conn->qw.incoming_sequence + 1);
-		if (count > 0)
-		{
-			conn->droppedDatagrams += count;
-			//Con_DPrintf("Dropped %u datagram(s)\n", count);
-			// If too may packets have been dropped, only write the
-			// last NETGRAPH_PACKETS ones to the netgraph. Why?
-			// Because there's no point in writing more than
-			// these as the netgraph is going to be full anyway.
-			if (count > NETGRAPH_PACKETS)
-				count = NETGRAPH_PACKETS;
-			while (count--)
+			if (sequence >= conn->nq.unreliableReceiveSequence)
 			{
+				if (sequence > conn->nq.unreliableReceiveSequence)
+				{
+					count = sequence - conn->nq.unreliableReceiveSequence;
+					conn->droppedDatagrams += count;
+					//Con_DPrintf("Dropped %u datagram(s)\n", count);
+					// If too may packets have been dropped, only write the
+					// last NETGRAPH_PACKETS ones to the netgraph. Why?
+					// Because there's no point in writing more than
+					// these as the netgraph is going to be full anyway.
+					if (count > NETGRAPH_PACKETS)
+						count = NETGRAPH_PACKETS;
+					while (count--)
+					{
+						conn->incoming_packetcounter = (conn->incoming_packetcounter + 1) % NETGRAPH_PACKETS;
+						conn->incoming_netgraph[conn->incoming_packetcounter].time            = realtime;
+						conn->incoming_netgraph[conn->incoming_packetcounter].cleartime       = conn->incoming_cleartime;
+						conn->incoming_netgraph[conn->incoming_packetcounter].unreliablebytes = NETGRAPH_LOSTPACKET;
+						conn->incoming_netgraph[conn->incoming_packetcounter].reliablebytes   = NETGRAPH_NOPACKET;
+						conn->incoming_netgraph[conn->incoming_packetcounter].ackbytes        = NETGRAPH_NOPACKET;
+					}
+				}
 				conn->incoming_packetcounter = (conn->incoming_packetcounter + 1) % NETGRAPH_PACKETS;
 				conn->incoming_netgraph[conn->incoming_packetcounter].time            = realtime;
 				conn->incoming_netgraph[conn->incoming_packetcounter].cleartime       = conn->incoming_cleartime;
-				conn->incoming_netgraph[conn->incoming_packetcounter].unreliablebytes = NETGRAPH_LOSTPACKET;
+				conn->incoming_netgraph[conn->incoming_packetcounter].unreliablebytes = originallength + 28;
 				conn->incoming_netgraph[conn->incoming_packetcounter].reliablebytes   = NETGRAPH_NOPACKET;
 				conn->incoming_netgraph[conn->incoming_packetcounter].ackbytes        = NETGRAPH_NOPACKET;
-			}
-		}
-		conn->incoming_packetcounter = (conn->incoming_packetcounter + 1) % NETGRAPH_PACKETS;
-		conn->incoming_netgraph[conn->incoming_packetcounter].time            = realtime;
-		conn->incoming_netgraph[conn->incoming_packetcounter].cleartime       = conn->incoming_cleartime;
-		conn->incoming_netgraph[conn->incoming_packetcounter].unreliablebytes = originallength + 28;
-		conn->incoming_netgraph[conn->incoming_packetcounter].reliablebytes   = NETGRAPH_NOPACKET;
-		conn->incoming_netgraph[conn->incoming_packetcounter].ackbytes        = NETGRAPH_NOPACKET;
-		NetConn_UpdateCleartime(&conn->incoming_cleartime, cl_rate.integer, cl_rate_burstsize.integer, originallength + 28);
+				NetConn_UpdateCleartime(&conn->incoming_cleartime, cl_rate.integer, cl_rate_burstsize.integer, originallength + 28);
 
-		// limit bursts to one packet in size ("dialup mode" emulating old behaviour)
-		if (net_test.integer)
-		{
-			if (conn->cleartime < realtime)
-				conn->cleartime = realtime;
-		}
-
-		if (reliable_ack == conn->qw.reliable_sequence)
-		{
-			// received, now we will be able to send another reliable message
-			conn->sendMessageLength = 0;
-			conn->reliableMessagesReceived++;
-		}
-		conn->qw.incoming_sequence = sequence;
-		if (conn == cls.netcon)
-			cls.qw_incoming_sequence = conn->qw.incoming_sequence;
-		conn->qw.incoming_acknowledged = sequence_ack;
-		conn->qw.incoming_reliable_acknowledged = reliable_ack;
-		if (reliable_message)
-			conn->qw.incoming_reliable_sequence ^= 1;
-		conn->lastMessageTime = realtime;
-		conn->timeout = realtime + newtimeout;
-		conn->unreliableMessagesReceived++;
-		if (conn == cls.netcon)
-		{
-			SZ_Clear(&cl_message);
-			SZ_Write(&cl_message, data, (int)length);
-			MSG_BeginReading(&cl_message);
-		}
-		else
-		{
-			SZ_Clear(&sv_message);
-			SZ_Write(&sv_message, data, (int)length);
-			MSG_BeginReading(&sv_message);
-		}
-		return 2;
-	}
-	else
-	{
-		unsigned int count;
-		unsigned int flags;
-		unsigned int sequence;
-		size_t qlength;
-		const void *sendme;
-		size_t sendmelen;
-
-		originallength = (int)length;
-		data = (const unsigned char *) Crypto_DecryptPacket(&conn->crypto, data, length, cryptoreadbuffer, &length, sizeof(cryptoreadbuffer));
-		if(!data)
-			return 0;
-		if(length < 8)
-			return 0;
-
-		qlength = (unsigned int)BuffBigLong(data);
-		flags = qlength & ~NETFLAG_LENGTH_MASK;
-		qlength &= NETFLAG_LENGTH_MASK;
-		// control packets were already handled
-		if (!(flags & NETFLAG_CTL) && qlength == length)
-		{
-			sequence = BuffBigLong(data + 4);
-			conn->packetsReceived++;
-			data += 8;
-			length -= 8;
-			if (flags & NETFLAG_UNRELIABLE)
-			{
-				if (sequence >= conn->nq.unreliableReceiveSequence)
+				conn->nq.unreliableReceiveSequence = sequence + 1;
+				conn->lastMessageTime = realtime;
+				conn->timeout = realtime + newtimeout;
+				conn->unreliableMessagesReceived++;
+				if (length > 0)
 				{
-					if (sequence > conn->nq.unreliableReceiveSequence)
+					if (conn == cls.netcon)
 					{
-						count = sequence - conn->nq.unreliableReceiveSequence;
-						conn->droppedDatagrams += count;
-						//Con_DPrintf("Dropped %u datagram(s)\n", count);
-						// If too may packets have been dropped, only write the
-						// last NETGRAPH_PACKETS ones to the netgraph. Why?
-						// Because there's no point in writing more than
-						// these as the netgraph is going to be full anyway.
-						if (count > NETGRAPH_PACKETS)
-							count = NETGRAPH_PACKETS;
-						while (count--)
-						{
-							conn->incoming_packetcounter = (conn->incoming_packetcounter + 1) % NETGRAPH_PACKETS;
-							conn->incoming_netgraph[conn->incoming_packetcounter].time            = realtime;
-							conn->incoming_netgraph[conn->incoming_packetcounter].cleartime       = conn->incoming_cleartime;
-							conn->incoming_netgraph[conn->incoming_packetcounter].unreliablebytes = NETGRAPH_LOSTPACKET;
-							conn->incoming_netgraph[conn->incoming_packetcounter].reliablebytes   = NETGRAPH_NOPACKET;
-							conn->incoming_netgraph[conn->incoming_packetcounter].ackbytes        = NETGRAPH_NOPACKET;
-						}
+						SZ_Clear(&cl_message);
+						SZ_Write(&cl_message, data, (int)length);
+						MSG_BeginReading(&cl_message);
 					}
-					conn->incoming_packetcounter = (conn->incoming_packetcounter + 1) % NETGRAPH_PACKETS;
-					conn->incoming_netgraph[conn->incoming_packetcounter].time            = realtime;
-					conn->incoming_netgraph[conn->incoming_packetcounter].cleartime       = conn->incoming_cleartime;
-					conn->incoming_netgraph[conn->incoming_packetcounter].unreliablebytes = originallength + 28;
-					conn->incoming_netgraph[conn->incoming_packetcounter].reliablebytes   = NETGRAPH_NOPACKET;
-					conn->incoming_netgraph[conn->incoming_packetcounter].ackbytes        = NETGRAPH_NOPACKET;
-					NetConn_UpdateCleartime(&conn->incoming_cleartime, cl_rate.integer, cl_rate_burstsize.integer, originallength + 28);
+					else
+					{
+						SZ_Clear(&sv_message);
+						SZ_Write(&sv_message, data, (int)length);
+						MSG_BeginReading(&sv_message);
+					}
+					return 2;
+				}
+			}
+			//else
+			//	Con_DPrint("Got a stale datagram\n");
+			return 1;
+		}
+		else if (flags & NETFLAG_ACK)
+		{
+			conn->incoming_netgraph[conn->incoming_packetcounter].ackbytes += originallength + 28;
+			NetConn_UpdateCleartime(&conn->incoming_cleartime, cl_rate.integer, cl_rate_burstsize.integer, originallength + 28);
 
-					conn->nq.unreliableReceiveSequence = sequence + 1;
+			if (sequence == (conn->nq.sendSequence - 1))
+			{
+				if (sequence == conn->nq.ackSequence)
+				{
+					conn->nq.ackSequence++;
+					if (conn->nq.ackSequence != conn->nq.sendSequence)
+						Con_DPrint("ack sequencing error\n");
 					conn->lastMessageTime = realtime;
 					conn->timeout = realtime + newtimeout;
-					conn->unreliableMessagesReceived++;
+					if (conn->sendMessageLength > MAX_PACKETFRAGMENT)
+					{
+						unsigned int packetLen;
+						unsigned int dataLen;
+						unsigned int eom;
+
+						conn->sendMessageLength -= MAX_PACKETFRAGMENT;
+						memmove(conn->sendMessage, conn->sendMessage+MAX_PACKETFRAGMENT, conn->sendMessageLength);
+
+						if (conn->sendMessageLength <= MAX_PACKETFRAGMENT)
+						{
+							dataLen = conn->sendMessageLength;
+							eom = NETFLAG_EOM;
+						}
+						else
+						{
+							dataLen = MAX_PACKETFRAGMENT;
+							eom = 0;
+						}
+
+						packetLen = NET_HEADERSIZE + dataLen;
+
+						StoreBigLong(sendbuffer, packetLen | (NETFLAG_DATA | eom | NetConn_AddCryptoFlag(&conn->crypto)));
+						StoreBigLong(sendbuffer + 4, conn->nq.sendSequence);
+						memcpy(sendbuffer + NET_HEADERSIZE, conn->sendMessage, dataLen);
+
+						conn->nq.sendSequence++;
+
+						sendme = Crypto_EncryptPacket(&conn->crypto, &sendbuffer, packetLen, &cryptosendbuffer, &sendmelen, sizeof(cryptosendbuffer));
+						if (sendme && NetConn_Write(conn->mysocket, sendme, (int)sendmelen, &conn->peeraddress) == (int)sendmelen)
+						{
+							conn->lastSendTime = realtime;
+							conn->packetsSent++;
+						}
+					}
+					else
+						conn->sendMessageLength = 0;
+				}
+				//else
+				//	Con_DPrint("Duplicate ACK received\n");
+			}
+			//else
+			//	Con_DPrint("Stale ACK received\n");
+			return 1;
+		}
+		else if (flags & NETFLAG_DATA)
+		{
+			unsigned char temppacket[8];
+			conn->incoming_netgraph[conn->incoming_packetcounter].reliablebytes   += originallength + 28;
+			NetConn_UpdateCleartime(&conn->incoming_cleartime, cl_rate.integer, cl_rate_burstsize.integer, originallength + 28);
+
+			conn->outgoing_netgraph[conn->outgoing_packetcounter].ackbytes        += 8 + 28;
+
+			StoreBigLong(temppacket, 8 | NETFLAG_ACK | NetConn_AddCryptoFlag(&conn->crypto));
+			StoreBigLong(temppacket + 4, sequence);
+			sendme = Crypto_EncryptPacket(&conn->crypto, temppacket, 8, &cryptosendbuffer, &sendmelen, sizeof(cryptosendbuffer));
+			if(sendme)
+				NetConn_Write(conn->mysocket, sendme, (int)sendmelen, &conn->peeraddress);
+			if (sequence == conn->nq.receiveSequence)
+			{
+				conn->lastMessageTime = realtime;
+				conn->timeout = realtime + newtimeout;
+				conn->nq.receiveSequence++;
+				if( conn->receiveMessageLength + length <= (int)sizeof( conn->receiveMessage ) ) {
+					memcpy(conn->receiveMessage + conn->receiveMessageLength, data, length);
+					conn->receiveMessageLength += (int)length;
+				} else {
+					Con_Printf( "Reliable message (seq: %i) too big for message buffer!\n"
+								"Dropping the message!\n", sequence );
+					conn->receiveMessageLength = 0;
+					return 1;
+				}
+				if (flags & NETFLAG_EOM)
+				{
+					conn->reliableMessagesReceived++;
+					length = conn->receiveMessageLength;
+					conn->receiveMessageLength = 0;
 					if (length > 0)
 					{
 						if (conn == cls.netcon)
 						{
 							SZ_Clear(&cl_message);
-							SZ_Write(&cl_message, data, (int)length);
+							SZ_Write(&cl_message, conn->receiveMessage, (int)length);
 							MSG_BeginReading(&cl_message);
 						}
 						else
 						{
 							SZ_Clear(&sv_message);
-							SZ_Write(&sv_message, data, (int)length);
+							SZ_Write(&sv_message, conn->receiveMessage, (int)length);
 							MSG_BeginReading(&sv_message);
 						}
 						return 2;
 					}
 				}
-				//else
-				//	Con_DPrint("Got a stale datagram\n");
-				return 1;
 			}
-			else if (flags & NETFLAG_ACK)
-			{
-				conn->incoming_netgraph[conn->incoming_packetcounter].ackbytes += originallength + 28;
-				NetConn_UpdateCleartime(&conn->incoming_cleartime, cl_rate.integer, cl_rate_burstsize.integer, originallength + 28);
-
-				if (sequence == (conn->nq.sendSequence - 1))
-				{
-					if (sequence == conn->nq.ackSequence)
-					{
-						conn->nq.ackSequence++;
-						if (conn->nq.ackSequence != conn->nq.sendSequence)
-							Con_DPrint("ack sequencing error\n");
-						conn->lastMessageTime = realtime;
-						conn->timeout = realtime + newtimeout;
-						if (conn->sendMessageLength > MAX_PACKETFRAGMENT)
-						{
-							unsigned int packetLen;
-							unsigned int dataLen;
-							unsigned int eom;
-
-							conn->sendMessageLength -= MAX_PACKETFRAGMENT;
-							memmove(conn->sendMessage, conn->sendMessage+MAX_PACKETFRAGMENT, conn->sendMessageLength);
-
-							if (conn->sendMessageLength <= MAX_PACKETFRAGMENT)
-							{
-								dataLen = conn->sendMessageLength;
-								eom = NETFLAG_EOM;
-							}
-							else
-							{
-								dataLen = MAX_PACKETFRAGMENT;
-								eom = 0;
-							}
-
-							packetLen = NET_HEADERSIZE + dataLen;
-
-							StoreBigLong(sendbuffer, packetLen | (NETFLAG_DATA | eom | NetConn_AddCryptoFlag(&conn->crypto)));
-							StoreBigLong(sendbuffer + 4, conn->nq.sendSequence);
-							memcpy(sendbuffer + NET_HEADERSIZE, conn->sendMessage, dataLen);
-
-							conn->nq.sendSequence++;
-
-							sendme = Crypto_EncryptPacket(&conn->crypto, &sendbuffer, packetLen, &cryptosendbuffer, &sendmelen, sizeof(cryptosendbuffer));
-							if (sendme && NetConn_Write(conn->mysocket, sendme, (int)sendmelen, &conn->peeraddress) == (int)sendmelen)
-							{
-								conn->lastSendTime = realtime;
-								conn->packetsSent++;
-							}
-						}
-						else
-							conn->sendMessageLength = 0;
-					}
-					//else
-					//	Con_DPrint("Duplicate ACK received\n");
-				}
-				//else
-				//	Con_DPrint("Stale ACK received\n");
-				return 1;
-			}
-			else if (flags & NETFLAG_DATA)
-			{
-				unsigned char temppacket[8];
-				conn->incoming_netgraph[conn->incoming_packetcounter].reliablebytes   += originallength + 28;
-				NetConn_UpdateCleartime(&conn->incoming_cleartime, cl_rate.integer, cl_rate_burstsize.integer, originallength + 28);
-
-				conn->outgoing_netgraph[conn->outgoing_packetcounter].ackbytes        += 8 + 28;
-
-				StoreBigLong(temppacket, 8 | NETFLAG_ACK | NetConn_AddCryptoFlag(&conn->crypto));
-				StoreBigLong(temppacket + 4, sequence);
-				sendme = Crypto_EncryptPacket(&conn->crypto, temppacket, 8, &cryptosendbuffer, &sendmelen, sizeof(cryptosendbuffer));
-				if(sendme)
-					NetConn_Write(conn->mysocket, sendme, (int)sendmelen, &conn->peeraddress);
-				if (sequence == conn->nq.receiveSequence)
-				{
-					conn->lastMessageTime = realtime;
-					conn->timeout = realtime + newtimeout;
-					conn->nq.receiveSequence++;
-					if( conn->receiveMessageLength + length <= (int)sizeof( conn->receiveMessage ) ) {
-						memcpy(conn->receiveMessage + conn->receiveMessageLength, data, length);
-						conn->receiveMessageLength += (int)length;
-					} else {
-						Con_Printf( "Reliable message (seq: %i) too big for message buffer!\n"
-									"Dropping the message!\n", sequence );
-						conn->receiveMessageLength = 0;
-						return 1;
-					}
-					if (flags & NETFLAG_EOM)
-					{
-						conn->reliableMessagesReceived++;
-						length = conn->receiveMessageLength;
-						conn->receiveMessageLength = 0;
-						if (length > 0)
-						{
-							if (conn == cls.netcon)
-							{
-								SZ_Clear(&cl_message);
-								SZ_Write(&cl_message, conn->receiveMessage, (int)length);
-								MSG_BeginReading(&cl_message);
-							}
-							else
-							{
-								SZ_Clear(&sv_message);
-								SZ_Write(&sv_message, conn->receiveMessage, (int)length);
-								MSG_BeginReading(&sv_message);
-							}
-							return 2;
-						}
-					}
-				}
-				else
-					conn->receivedDuplicateCount++;
-				return 1;
-			}
+			else
+				conn->receivedDuplicateCount++;
+			return 1;
 		}
 	}
 	return 0;
@@ -1551,20 +1364,6 @@ static void NetConn_ConnectionEstablished(lhnetsocket_t *mysocket, lhnetaddress_
 	cls.protocol = initialprotocol;
 	// reset move sequence numbering on this new connection
 	cls.servermovesequence = 0;
-	if (cls.protocol == PROTOCOL_QUAKEWORLD)
-		Cmd_ForwardStringToServer("new");
-	if (cls.protocol == PROTOCOL_QUAKE)
-	{
-		// write a keepalive (clc_nop) as it seems to greatly improve the
-		// chances of connecting to a netquake server
-		sizebuf_t msg;
-		unsigned char buf[4];
-		memset(&msg, 0, sizeof(msg));
-		msg.data = buf;
-		msg.maxsize = sizeof(buf);
-		MSG_WriteChar(&msg, clc_nop);
-		NetConn_SendUnreliableMessage(cls.netcon, &msg, cls.protocol, 10000, 0, false);
-	}
 }
 
 int NetConn_IsLocalGame(void)
@@ -2061,33 +1860,6 @@ static int NetConn_ClientParsePacket(lhnetsocket_t *mysocket, unsigned char *dat
 			NetConn_ClientParsePacket_ServerList_ParseDPList(peeraddress, data, length, true);
 			return true;
 		}
-		if (!memcmp(string, "d\n", 2) && serverlist_cachecount < SERVERLIST_TOTALSIZE)
-		{
-			// Extract the IP addresses
-			data += 2;
-			length -= 2;
-			masterreplycount++;
-			if (serverlist_consoleoutput)
-				Con_Printf("received QuakeWorld server list from %s...\n", addressstring2);
-			while (length >= 6 && (data[0] != 0xFF || data[1] != 0xFF || data[2] != 0xFF || data[3] != 0xFF) && data[4] * 256 + data[5] != 0)
-			{
-				dpsnprintf (ipstring, sizeof (ipstring), "%u.%u.%u.%u:%u", data[0], data[1], data[2], data[3], data[4] * 256 + data[5]);
-				if (serverlist_consoleoutput && developer_networking.integer)
-					Con_Printf("Requesting info from QuakeWorld server %s\n", ipstring);
-				
-				if( !NetConn_ClientParsePacket_ServerList_PrepareQuery( PROTOCOL_QUAKEWORLD, ipstring, false ) ) {
-					break;
-				}
-
-				// move on to next address in packet
-				data += 6;
-				length -= 6;
-			}
-			// begin or resume serverlist queries
-			serverlist_querysleep = false;
-			serverlist_querywaittime = realtime + 3;
-			return true;
-		}
 #endif
 		if (!strncmp(string, "extResponse ", 12))
 		{
@@ -2107,88 +1879,6 @@ static int NetConn_ClientParsePacket(lhnetsocket_t *mysocket, unsigned char *dat
 		}
 		if (!strncmp(string, "ack", 3))
 			return true;
-		// QuakeWorld compatibility
-		if (length > 1 && string[0] == 'c' && (string[1] == '-' || (string[1] >= '0' && string[1] <= '9')) && cls.connect_trying)
-		{
-			// challenge message
-			if (net_sourceaddresscheck.integer && LHNETADDRESS_Compare(peeraddress, &cls.connect_address)) {
-				Con_DPrintf("c message from wrong server %s\n", addressstring2);
-				return true;
-			}
-			Con_Printf("challenge %s received, sending QuakeWorld connect request back to %s\n", string + 1, addressstring2);
-#ifdef CONFIG_MENU
-			M_Update_Return_Reason("Got QuakeWorld challenge response");
-#endif
-			cls.qw_qport = qport.integer;
-			// update the server IP in the userinfo (QW servers expect this, and it is used by the reconnect command)
-			InfoString_SetValue(cls.userinfo, sizeof(cls.userinfo), "*ip", addressstring2);
-			memcpy(senddata, "\377\377\377\377", 4);
-			dpsnprintf(senddata+4, sizeof(senddata)-4, "connect %i %i %i \"%s%s\"\n", 28, cls.qw_qport, atoi(string + 1), cls.userinfo, cls.connect_userinfo);
-			NetConn_WriteString(mysocket, senddata, peeraddress);
-			return true;
-		}
-		if (length >= 1 && string[0] == 'j' && cls.connect_trying)
-		{
-			// accept message
-			if (net_sourceaddresscheck.integer && LHNETADDRESS_Compare(peeraddress, &cls.connect_address)) {
-				Con_DPrintf("j message from wrong server %s\n", addressstring2);
-				return true;
-			}
-#ifdef CONFIG_MENU
-			M_Update_Return_Reason("QuakeWorld Accepted");
-#endif
-			NetConn_ConnectionEstablished(mysocket, peeraddress, PROTOCOL_QUAKEWORLD);
-			return true;
-		}
-		if (length > 2 && !memcmp(string, "n\\", 2))
-		{
-#ifdef CONFIG_MENU
-			serverlist_info_t *info;
-			int n;
-
-			// qw server status
-			if (serverlist_consoleoutput && developer_networking.integer >= 2)
-				Con_Printf("QW server status from server at %s:\n%s\n", addressstring2, string + 1);
-
-			string += 1;
-			// search the cache for this server and update it
-			n = NetConn_ClientParsePacket_ServerList_ProcessReply(addressstring2);
-			if (n < 0)
-				return true;
-
-			info = &serverlist_cache[n].info;
-			strlcpy(info->game, "QuakeWorld", sizeof(info->game));
-			if ((s = InfoString_GetValue(string, "*gamedir"     , infostringvalue, sizeof(infostringvalue))) != NULL) strlcpy(info->mod , s, sizeof (info->mod ));else info->mod[0]  = 0;
-			if ((s = InfoString_GetValue(string, "map"          , infostringvalue, sizeof(infostringvalue))) != NULL) strlcpy(info->map , s, sizeof (info->map ));else info->map[0]  = 0;
-			if ((s = InfoString_GetValue(string, "hostname"     , infostringvalue, sizeof(infostringvalue))) != NULL) strlcpy(info->name, s, sizeof (info->name));else info->name[0] = 0;
-			info->protocol = 0;
-			info->numplayers = 0; // updated below
-			info->numhumans = 0; // updated below
-			if ((s = InfoString_GetValue(string, "maxclients"   , infostringvalue, sizeof(infostringvalue))) != NULL) info->maxplayers = atoi(s);else info->maxplayers  = 0;
-			if ((s = InfoString_GetValue(string, "gameversion"  , infostringvalue, sizeof(infostringvalue))) != NULL) info->gameversion = atoi(s);else info->gameversion = 0;
-
-			// count active players on server
-			// (we could gather more info, but we're just after the number)
-			s = strchr(string, '\n');
-			if (s)
-			{
-				s++;
-				while (s < string + length)
-				{
-					for (;s < string + length && *s != '\n';s++)
-						;
-					if (s >= string + length)
-						break;
-					info->numplayers++;
-					info->numhumans++;
-					s++;
-				}
-			}
-
-			NetConn_ClientParsePacket_ServerList_UpdateCache(n);
-#endif
-			return true;
-		}
 		if (string[0] == 'n')
 		{
 			// qw print command, used by rcon replies too
@@ -2200,128 +1890,6 @@ static int NetConn_ClientParsePacket(lhnetsocket_t *mysocket, unsigned char *dat
 		}
 		// we may not have liked the packet, but it was a command packet, so
 		// we're done processing this packet now
-		return true;
-	}
-	// quakeworld ingame packet
-	if (fromserver && cls.protocol == PROTOCOL_QUAKEWORLD && length >= 8 && (ret = NetConn_ReceivedMessage(cls.netcon, data, length, cls.protocol, net_messagetimeout.value)) == 2)
-	{
-		ret = 0;
-		CL_ParseServerMessage();
-		return ret;
-	}
-	// netquake control packets, supported for compatibility only
-	if (length >= 5 && BuffBigLong(data) == ((int)NETFLAG_CTL | length) && !ENCRYPTION_REQUIRED)
-	{
-#ifdef CONFIG_MENU
-		int n;
-		serverlist_info_t *info;
-#endif
-
-		data += 4;
-		length -= 4;
-		SZ_Clear(&cl_message);
-		SZ_Write(&cl_message, data, length);
-		MSG_BeginReading(&cl_message);
-		c = MSG_ReadByte(&cl_message);
-		switch (c)
-		{
-		case CCREP_ACCEPT:
-			if (developer_extra.integer)
-				Con_DPrintf("Datagram_ParseConnectionless: received CCREP_ACCEPT from %s.\n", addressstring2);
-			if (cls.connect_trying)
-			{
-				lhnetaddress_t clientportaddress;
-				if (net_sourceaddresscheck.integer && LHNETADDRESS_Compare(peeraddress, &cls.connect_address)) {
-					Con_DPrintf("CCREP_ACCEPT message from wrong server %s\n", addressstring2);
-					break;
-				}
-				clientportaddress = *peeraddress;
-				LHNETADDRESS_SetPort(&clientportaddress, MSG_ReadLong(&cl_message));
-				// extra ProQuake stuff
-				if (length >= 6)
-					cls.proquake_servermod = MSG_ReadByte(&cl_message); // MOD_PROQUAKE
-				else
-					cls.proquake_servermod = 0;
-				if (length >= 7)
-					cls.proquake_serverversion = MSG_ReadByte(&cl_message); // version * 10
-				else
-					cls.proquake_serverversion = 0;
-				if (length >= 8)
-					cls.proquake_serverflags = MSG_ReadByte(&cl_message); // flags (mainly PQF_CHEATFREE)
-				else
-					cls.proquake_serverflags = 0;
-				if (cls.proquake_servermod == 1)
-					Con_Printf("Connected to ProQuake %.1f server, enabling precise aim\n", cls.proquake_serverversion / 10.0f);
-				// update the server IP in the userinfo (QW servers expect this, and it is used by the reconnect command)
-				InfoString_SetValue(cls.userinfo, sizeof(cls.userinfo), "*ip", addressstring2);
-#ifdef CONFIG_MENU
-				M_Update_Return_Reason("Accepted");
-#endif
-				NetConn_ConnectionEstablished(mysocket, &clientportaddress, PROTOCOL_QUAKE);
-			}
-			break;
-		case CCREP_REJECT:
-			if (developer_extra.integer) {
-				Con_DPrintf("CCREP_REJECT message from wrong server %s\n", addressstring2);
-				break;
-			}
-			if (net_sourceaddresscheck.integer && LHNETADDRESS_Compare(peeraddress, &cls.connect_address))
-				break;
-			cls.connect_trying = false;
-#ifdef CONFIG_MENU
-			M_Update_Return_Reason((char *)MSG_ReadString(&cl_message, cl_readstring, sizeof(cl_readstring)));
-#endif
-			break;
-		case CCREP_SERVER_INFO:
-			if (developer_extra.integer)
-				Con_DPrintf("Datagram_ParseConnectionless: received CCREP_SERVER_INFO from %s.\n", addressstring2);
-#ifdef CONFIG_MENU
-			// LordHavoc: because the quake server may report weird addresses
-			// we just ignore it and keep the real address
-			MSG_ReadString(&cl_message, cl_readstring, sizeof(cl_readstring));
-			// search the cache for this server and update it
-			n = NetConn_ClientParsePacket_ServerList_ProcessReply(addressstring2);
-			if (n < 0)
-				break;
-
-			info = &serverlist_cache[n].info;
-			strlcpy(info->game, "Quake", sizeof(info->game));
-			strlcpy(info->mod , "", sizeof(info->mod)); // mod name is not specified
-			strlcpy(info->name, MSG_ReadString(&cl_message, cl_readstring, sizeof(cl_readstring)), sizeof(info->name));
-			strlcpy(info->map , MSG_ReadString(&cl_message, cl_readstring, sizeof(cl_readstring)), sizeof(info->map));
-			info->numplayers = MSG_ReadByte(&cl_message);
-			info->maxplayers = MSG_ReadByte(&cl_message);
-			info->protocol = MSG_ReadByte(&cl_message);
-
-			NetConn_ClientParsePacket_ServerList_UpdateCache(n);
-#endif
-			break;
-		case CCREP_RCON: // RocketGuy: ProQuake rcon support
-			if (net_sourceaddresscheck.integer && LHNETADDRESS_Compare(peeraddress, &cls.rcon_address)) {
-				Con_DPrintf("CCREP_RCON message from wrong server %s\n", addressstring2);
-				break;
-			}
-			if (developer_extra.integer)
-				Con_DPrintf("Datagram_ParseConnectionless: received CCREP_RCON from %s.\n", addressstring2);
-
-			Con_Printf("%s\n", MSG_ReadString(&cl_message, cl_readstring, sizeof(cl_readstring)));
-			break;
-		case CCREP_PLAYER_INFO:
-			// we got a CCREP_PLAYER_INFO??
-			//if (developer_extra.integer)
-				Con_Printf("Datagram_ParseConnectionless: received CCREP_PLAYER_INFO from %s.\n", addressstring2);
-			break;
-		case CCREP_RULE_INFO:
-			// we got a CCREP_RULE_INFO??
-			//if (developer_extra.integer)
-				Con_Printf("Datagram_ParseConnectionless: received CCREP_RULE_INFO from %s.\n", addressstring2);
-			break;
-		default:
-			break;
-		}
-		SZ_Clear(&cl_message);
-		// we may not have liked the packet, but it was a valid control
-		// packet, so we're done processing this packet now
 		return true;
 	}
 	ret = 0;
@@ -2385,16 +1953,8 @@ void NetConn_QueryQueueFrame(void)
 			int socket;
 
 			LHNETADDRESS_FromString(&address, entry->info.cname, 0);
-			if	(entry->protocol == PROTOCOL_QUAKEWORLD)
-			{
-				for (socket	= 0; socket	< cl_numsockets ;	socket++)
-					NetConn_WriteString(cl_sockets[socket], "\377\377\377\377status\n", &address);
-			}
-			else
-			{
-				for (socket	= 0; socket	< cl_numsockets ;	socket++)
-					NetConn_WriteString(cl_sockets[socket], "\377\377\377\377getstatus", &address);
-			}
+			for (socket	= 0; socket	< cl_numsockets ;	socket++)
+				NetConn_WriteString(cl_sockets[socket], "\377\377\377\377getstatus", &address);
 
 			//	update the entry fields
 			entry->querytime = realtime;
@@ -2445,24 +2005,6 @@ void NetConn_ClientFrame(void)
 		}
 		// try challenge first (newer DP server or QW)
 		NetConn_WriteString(cls.connect_mysocket, "\377\377\377\377getchallenge", &cls.connect_address);
-		// then try netquake as a fallback (old server, or netquake)
-		SZ_Clear(&cl_message);
-		// save space for the header, filled in later
-		MSG_WriteLong(&cl_message, 0);
-		MSG_WriteByte(&cl_message, CCREQ_CONNECT);
-		MSG_WriteString(&cl_message, "QUAKE");
-		MSG_WriteByte(&cl_message, NET_PROTOCOL_VERSION);
-		// extended proquake stuff
-		MSG_WriteByte(&cl_message, 1); // mod = MOD_PROQUAKE
-		// this version matches ProQuake 3.40, the first version to support
-		// the NAT fix, and it only supports the NAT fix for ProQuake 3.40 or
-		// higher clients, so we pretend we are that version...
-		MSG_WriteByte(&cl_message, 34); // version * 10
-		MSG_WriteByte(&cl_message, 0); // flags
-		MSG_WriteLong(&cl_message, 0); // password
-		// write the packetsize now...
-		StoreBigLong(cl_message.data, NETFLAG_CTL | (cl_message.cursize & NETFLAG_LENGTH_MASK));
-		NetConn_Write(cls.connect_mysocket, cl_message.data, cl_message.cursize, &cls.connect_address);
 		SZ_Clear(&cl_message);
 	}
 	for (i = 0;i < cl_numsockets;i++)
@@ -3297,284 +2839,6 @@ static int NetConn_ServerParsePacket(lhnetsocket_t *mysocket, unsigned char *dat
 		// we're done processing this packet now
 		return true;
 	}
-	// netquake control packets, supported for compatibility only, and only
-	// when running game protocols that are normally served via this connection
-	// protocol
-	// (this protects more modern protocols against being used for
-	//  Quake packet flood Denial Of Service attacks)
-	if (length >= 5 && (i = BuffBigLong(data)) && (i & (~NETFLAG_LENGTH_MASK)) == (int)NETFLAG_CTL && (i & NETFLAG_LENGTH_MASK) == length && (sv.protocol == PROTOCOL_QUAKE || sv.protocol == PROTOCOL_QUAKEDP || sv.protocol == PROTOCOL_NEHAHRAMOVIE || sv.protocol == PROTOCOL_NEHAHRABJP || sv.protocol == PROTOCOL_NEHAHRABJP2 || sv.protocol == PROTOCOL_NEHAHRABJP3 || sv.protocol == PROTOCOL_DARKPLACES1 || sv.protocol == PROTOCOL_DARKPLACES2 || sv.protocol == PROTOCOL_DARKPLACES3) && !ENCRYPTION_REQUIRED)
-	{
-		int c;
-		int protocolnumber;
-		const char *protocolname;
-		client_t *knownclient;
-		client_t *newclient;
-		data += 4;
-		length -= 4;
-		SZ_Clear(&sv_message);
-		SZ_Write(&sv_message, data, length);
-		MSG_BeginReading(&sv_message);
-		c = MSG_ReadByte(&sv_message);
-		switch (c)
-		{
-		case CCREQ_CONNECT:
-			if (developer_extra.integer)
-				Con_DPrintf("Datagram_ParseConnectionless: received CCREQ_CONNECT from %s.\n", addressstring2);
-			if(!(islocal || sv_public.integer > -2))
-			{
-				if (developer_extra.integer)
-					Con_DPrintf("Datagram_ParseConnectionless: sending CCREP_REJECT \"%s\" to %s.\n", sv_public_rejectreason.string, addressstring2);
-				SZ_Clear(&sv_message);
-				// save space for the header, filled in later
-				MSG_WriteLong(&sv_message, 0);
-				MSG_WriteByte(&sv_message, CCREP_REJECT);
-				MSG_WriteUnterminatedString(&sv_message, sv_public_rejectreason.string);
-				MSG_WriteString(&sv_message, "\n");
-				StoreBigLong(sv_message.data, NETFLAG_CTL | (sv_message.cursize & NETFLAG_LENGTH_MASK));
-				NetConn_Write(mysocket, sv_message.data, sv_message.cursize, peeraddress);
-				SZ_Clear(&sv_message);
-				break;
-			}
-
-			protocolname = MSG_ReadString(&sv_message, sv_readstring, sizeof(sv_readstring));
-			protocolnumber = MSG_ReadByte(&sv_message);
-			if (strcmp(protocolname, "QUAKE") || protocolnumber != NET_PROTOCOL_VERSION)
-			{
-				if (developer_extra.integer)
-					Con_DPrintf("Datagram_ParseConnectionless: sending CCREP_REJECT \"Incompatible version.\" to %s.\n", addressstring2);
-				SZ_Clear(&sv_message);
-				// save space for the header, filled in later
-				MSG_WriteLong(&sv_message, 0);
-				MSG_WriteByte(&sv_message, CCREP_REJECT);
-				MSG_WriteString(&sv_message, "Incompatible version.\n");
-				StoreBigLong(sv_message.data, NETFLAG_CTL | (sv_message.cursize & NETFLAG_LENGTH_MASK));
-				NetConn_Write(mysocket, sv_message.data, sv_message.cursize, peeraddress);
-				SZ_Clear(&sv_message);
-				break;
-			}
-
-			// see if this connect request comes from a known client
-			for (clientnum = 0, knownclient = svs.clients;clientnum < svs.maxclients;clientnum++, knownclient++)
-			{
-				if (knownclient->netconnection && LHNETADDRESS_Compare(peeraddress, &knownclient->netconnection->peeraddress) == 0)
-				{
-					// this is either a duplicate connection request
-					// or coming back from a timeout
-					// (if so, keep their stuff intact)
-
-					crypto_t *crypto = Crypto_ServerGetInstance(peeraddress);
-					if((crypto && crypto->authenticated) || knownclient->netconnection->crypto.authenticated)
-					{
-						if (developer_extra.integer)
-							Con_Printf("Datagram_ParseConnectionless: sending CCREP_REJECT \"Attempt to downgrade crypto.\" to %s.\n", addressstring2);
-						SZ_Clear(&sv_message);
-						// save space for the header, filled in later
-						MSG_WriteLong(&sv_message, 0);
-						MSG_WriteByte(&sv_message, CCREP_REJECT);
-						MSG_WriteString(&sv_message, "Attempt to downgrade crypto.\n");
-						StoreBigLong(sv_message.data, NETFLAG_CTL | (sv_message.cursize & NETFLAG_LENGTH_MASK));
-						NetConn_Write(mysocket, sv_message.data, sv_message.cursize, peeraddress);
-						SZ_Clear(&sv_message);
-						return true;
-					}
-
-					// send a reply
-					if (developer_extra.integer)
-						Con_DPrintf("Datagram_ParseConnectionless: sending duplicate CCREP_ACCEPT to %s.\n", addressstring2);
-					SZ_Clear(&sv_message);
-					// save space for the header, filled in later
-					MSG_WriteLong(&sv_message, 0);
-					MSG_WriteByte(&sv_message, CCREP_ACCEPT);
-					MSG_WriteLong(&sv_message, LHNETADDRESS_GetPort(LHNET_AddressFromSocket(knownclient->netconnection->mysocket)));
-					StoreBigLong(sv_message.data, NETFLAG_CTL | (sv_message.cursize & NETFLAG_LENGTH_MASK));
-					NetConn_Write(mysocket, sv_message.data, sv_message.cursize, peeraddress);
-					SZ_Clear(&sv_message);
-
-					// if client is already spawned, re-send the
-					// serverinfo message as they'll need it to play
-					if (knownclient->begun)
-						SV_SendServerinfo(knownclient);
-					return true;
-				}
-			}
-
-			// this is a new client, check for connection flood
-			if (NetConn_PreventFlood(peeraddress, sv.connectfloodaddresses, sizeof(sv.connectfloodaddresses) / sizeof(sv.connectfloodaddresses[0]), net_connectfloodblockingtimeout.value, true))
-				break;
-
-			// find a slot for the new client
-			for (clientnum = 0, newclient = svs.clients;clientnum < svs.maxclients;clientnum++, newclient++)
-			{
-				netconn_t *conn;
-				if (!newclient->active && (newclient->netconnection = conn = NetConn_Open(mysocket, peeraddress)) != NULL)
-				{
-					// connect to the client
-					// everything is allocated, just fill in the details
-					strlcpy (conn->address, addressstring2, sizeof (conn->address));
-					if (developer_extra.integer)
-						Con_DPrintf("Datagram_ParseConnectionless: sending CCREP_ACCEPT to %s.\n", addressstring2);
-					// send back the info about the server connection
-					SZ_Clear(&sv_message);
-					// save space for the header, filled in later
-					MSG_WriteLong(&sv_message, 0);
-					MSG_WriteByte(&sv_message, CCREP_ACCEPT);
-					MSG_WriteLong(&sv_message, LHNETADDRESS_GetPort(LHNET_AddressFromSocket(conn->mysocket)));
-					StoreBigLong(sv_message.data, NETFLAG_CTL | (sv_message.cursize & NETFLAG_LENGTH_MASK));
-					NetConn_Write(mysocket, sv_message.data, sv_message.cursize, peeraddress);
-					SZ_Clear(&sv_message);
-					// now set up the client struct
-					SV_ConnectClient(clientnum, conn);
-					NetConn_Heartbeat(1);
-					return true;
-				}
-			}
-
-			if (developer_extra.integer)
-				Con_DPrintf("Datagram_ParseConnectionless: sending CCREP_REJECT \"Server is full.\" to %s.\n", addressstring2);
-			// no room; try to let player know
-			SZ_Clear(&sv_message);
-			// save space for the header, filled in later
-			MSG_WriteLong(&sv_message, 0);
-			MSG_WriteByte(&sv_message, CCREP_REJECT);
-			MSG_WriteString(&sv_message, "Server is full.\n");
-			StoreBigLong(sv_message.data, NETFLAG_CTL | (sv_message.cursize & NETFLAG_LENGTH_MASK));
-			NetConn_Write(mysocket, sv_message.data, sv_message.cursize, peeraddress);
-			SZ_Clear(&sv_message);
-			break;
-		case CCREQ_SERVER_INFO:
-			if (developer_extra.integer)
-				Con_DPrintf("Datagram_ParseConnectionless: received CCREQ_SERVER_INFO from %s.\n", addressstring2);
-			if(!(islocal || sv_public.integer > -1))
-				break;
-
-			if (NetConn_PreventFlood(peeraddress, sv.getstatusfloodaddresses, sizeof(sv.getstatusfloodaddresses) / sizeof(sv.getstatusfloodaddresses[0]), net_getstatusfloodblockingtimeout.value, false))
-				break;
-
-			if (sv.active && !strcmp(MSG_ReadString(&sv_message, sv_readstring, sizeof(sv_readstring)), "QUAKE"))
-			{
-				int numclients;
-				char myaddressstring[128];
-				if (developer_extra.integer)
-					Con_DPrintf("Datagram_ParseConnectionless: sending CCREP_SERVER_INFO to %s.\n", addressstring2);
-				SZ_Clear(&sv_message);
-				// save space for the header, filled in later
-				MSG_WriteLong(&sv_message, 0);
-				MSG_WriteByte(&sv_message, CCREP_SERVER_INFO);
-				LHNETADDRESS_ToString(LHNET_AddressFromSocket(mysocket), myaddressstring, sizeof(myaddressstring), true);
-				MSG_WriteString(&sv_message, myaddressstring);
-				MSG_WriteString(&sv_message, hostname.string);
-				MSG_WriteString(&sv_message, sv.name);
-				// How many clients are there?
-				for (i = 0, numclients = 0;i < svs.maxclients;i++)
-					if (svs.clients[i].active)
-						numclients++;
-				MSG_WriteByte(&sv_message, numclients);
-				MSG_WriteByte(&sv_message, svs.maxclients);
-				MSG_WriteByte(&sv_message, NET_PROTOCOL_VERSION);
-				StoreBigLong(sv_message.data, NETFLAG_CTL | (sv_message.cursize & NETFLAG_LENGTH_MASK));
-				NetConn_Write(mysocket, sv_message.data, sv_message.cursize, peeraddress);
-				SZ_Clear(&sv_message);
-			}
-			break;
-		case CCREQ_PLAYER_INFO:
-			if (developer_extra.integer)
-				Con_DPrintf("Datagram_ParseConnectionless: received CCREQ_PLAYER_INFO from %s.\n", addressstring2);
-			if(!(islocal || sv_public.integer > -1))
-				break;
-
-			if (NetConn_PreventFlood(peeraddress, sv.getstatusfloodaddresses, sizeof(sv.getstatusfloodaddresses) / sizeof(sv.getstatusfloodaddresses[0]), net_getstatusfloodblockingtimeout.value, false))
-				break;
-
-			if (sv.active)
-			{
-				int playerNumber, activeNumber, clientNumber;
-				client_t *client;
-
-				playerNumber = MSG_ReadByte(&sv_message);
-				activeNumber = -1;
-				for (clientNumber = 0, client = svs.clients; clientNumber < svs.maxclients; clientNumber++, client++)
-					if (client->active && ++activeNumber == playerNumber)
-						break;
-				if (clientNumber != svs.maxclients)
-				{
-					SZ_Clear(&sv_message);
-					// save space for the header, filled in later
-					MSG_WriteLong(&sv_message, 0);
-					MSG_WriteByte(&sv_message, CCREP_PLAYER_INFO);
-					MSG_WriteByte(&sv_message, playerNumber);
-					MSG_WriteString(&sv_message, client->name);
-					MSG_WriteLong(&sv_message, client->colors);
-					MSG_WriteLong(&sv_message, client->frags);
-					MSG_WriteLong(&sv_message, (int)(realtime - client->connecttime));
-					if(sv_status_privacy.integer)
-						MSG_WriteString(&sv_message, client->netconnection ? "hidden" : "botclient");
-					else
-						MSG_WriteString(&sv_message, client->netconnection ? client->netconnection->address : "botclient");
-					StoreBigLong(sv_message.data, NETFLAG_CTL | (sv_message.cursize & NETFLAG_LENGTH_MASK));
-					NetConn_Write(mysocket, sv_message.data, sv_message.cursize, peeraddress);
-					SZ_Clear(&sv_message);
-				}
-			}
-			break;
-		case CCREQ_RULE_INFO:
-			if (developer_extra.integer)
-				Con_DPrintf("Datagram_ParseConnectionless: received CCREQ_RULE_INFO from %s.\n", addressstring2);
-			if(!(islocal || sv_public.integer > -1))
-				break;
-
-			// no flood check here, as it only returns one cvar for one cvar and clients may iterate quickly
-
-			if (sv.active)
-			{
-				char *prevCvarName;
-				cvar_t *var;
-
-				// find the search start location
-				prevCvarName = MSG_ReadString(&sv_message, sv_readstring, sizeof(sv_readstring));
-				var = Cvar_FindVarAfter(prevCvarName, CVAR_NOTIFY);
-
-				// send the response
-				SZ_Clear(&sv_message);
-				// save space for the header, filled in later
-				MSG_WriteLong(&sv_message, 0);
-				MSG_WriteByte(&sv_message, CCREP_RULE_INFO);
-				if (var)
-				{
-					MSG_WriteString(&sv_message, var->name);
-					MSG_WriteString(&sv_message, var->string);
-				}
-				StoreBigLong(sv_message.data, NETFLAG_CTL | (sv_message.cursize & NETFLAG_LENGTH_MASK));
-				NetConn_Write(mysocket, sv_message.data, sv_message.cursize, peeraddress);
-				SZ_Clear(&sv_message);
-			}
-			break;
-		case CCREQ_RCON:
-			if (developer_extra.integer)
-				Con_DPrintf("Datagram_ParseConnectionless: received CCREQ_RCON from %s.\n", addressstring2);
-			if (sv.active && !rcon_secure.integer)
-			{
-				char password[2048];
-				char cmd[2048];
-				char *s;
-				char *endpos;
-				const char *userlevel;
-				strlcpy(password, MSG_ReadString(&sv_message, sv_readstring, sizeof(sv_readstring)), sizeof(password));
-				strlcpy(cmd, MSG_ReadString(&sv_message, sv_readstring, sizeof(sv_readstring)), sizeof(cmd));
-				s = cmd;
-				endpos = cmd + strlen(cmd) + 1; // one behind the NUL, so adding strlen+1 will eventually reach it
-				userlevel = RCon_Authenticate(peeraddress, password, s, endpos, plaintext_matching, NULL, 0);
-				RCon_Execute(mysocket, peeraddress, addressstring2, userlevel, s, endpos, true);
-				return true;
-			}
-			break;
-		default:
-			break;
-		}
-		SZ_Clear(&sv_message);
-		// we may not have liked the packet, but it was a valid control
-		// packet, so we're done processing this packet now
-		return true;
-	}
 	if (host_client)
 	{
 		if ((ret = NetConn_ReceivedMessage(host_client->netconnection, data, length, sv.protocol, host_client->begun ? net_messagetimeout.value : net_connecttimeout.value)) == 2)
@@ -3611,7 +2875,7 @@ void NetConn_SleepMicroseconds(int microseconds)
 }
 
 #ifdef CONFIG_MENU
-void NetConn_QueryMasters(qboolean querydp, qboolean queryqw)
+void NetConn_QueryMasters(qboolean querydp)
 {
 	int i, j;
 	int masternum;
@@ -3638,18 +2902,8 @@ void NetConn_QueryMasters(qboolean querydp, qboolean queryqw)
 
 				if(LHNETADDRESS_GetAddressType(&broadcastaddress) == af)
 				{
-					// search LAN for Quake servers
-					SZ_Clear(&cl_message);
-					// save space for the header, filled in later
-					MSG_WriteLong(&cl_message, 0);
-					MSG_WriteByte(&cl_message, CCREQ_SERVER_INFO);
-					MSG_WriteString(&cl_message, "QUAKE");
-					MSG_WriteByte(&cl_message, NET_PROTOCOL_VERSION);
-					StoreBigLong(cl_message.data, NETFLAG_CTL | (cl_message.cursize & NETFLAG_LENGTH_MASK));
-					NetConn_Write(cl_sockets[i], cl_message.data, cl_message.cursize, &broadcastaddress);
-					SZ_Clear(&cl_message);
-
 					// search LAN for DarkPlaces servers
+					SZ_Clear(&cl_message);
 					NetConn_WriteString(cl_sockets[i], "\377\377\377\377getstatus", &broadcastaddress);
 				}
 
@@ -3690,56 +2944,6 @@ void NetConn_QueryMasters(qboolean querydp, qboolean queryqw)
 		}
 	}
 
-	// only query QuakeWorld servers when the user wants to
-	if (queryqw)
-	{
-		for (i = 0;i < cl_numsockets;i++)
-		{
-			if (cl_sockets[i])
-			{
-				int af = LHNETADDRESS_GetAddressType(LHNET_AddressFromSocket(cl_sockets[i]));
-
-				if(LHNETADDRESS_GetAddressType(&broadcastaddress) == af)
-				{
-					// search LAN for QuakeWorld servers
-					NetConn_WriteString(cl_sockets[i], "\377\377\377\377status\n", &broadcastaddress);
-
-					// build the getservers message to send to the qwmaster master servers
-					// note this has no -1 prefix, and the trailing nul byte is sent
-					dpsnprintf(request, sizeof(request), "c\n");
-				}
-
-				// search internet
-				for (masternum = 0;sv_qwmasters[masternum].name;masternum++)
-				{
-					if (sv_qwmasters[masternum].string && LHNETADDRESS_FromString(&masteraddress, sv_qwmasters[masternum].string, QWMASTER_PORT) && LHNETADDRESS_GetAddressType(&masteraddress) == LHNETADDRESS_GetAddressType(LHNET_AddressFromSocket(cl_sockets[i])))
-					{
-						if (m_state != m_slist)
-						{
-							char lookupstring[128];
-							LHNETADDRESS_ToString(&masteraddress, lookupstring, sizeof(lookupstring), true);
-							Con_Printf("Querying master %s (resolved from %s)\n", lookupstring, sv_qwmasters[masternum].string);
-						}
-						masterquerycount++;
-						NetConn_Write(cl_sockets[i], request, (int)strlen(request) + 1, &masteraddress);
-					}
-				}
-
-				// search favorite servers
-				for(j = 0; j < nFavorites; ++j)
-				{
-					if(LHNETADDRESS_GetAddressType(&favorites[j]) == af)
-					{
-						if(LHNETADDRESS_ToString(&favorites[j], request, sizeof(request), true))
-						{
-							NetConn_WriteString(cl_sockets[i], "\377\377\377\377status\n", &favorites[j]);
-							NetConn_ClientParsePacket_ServerList_PrepareQuery( PROTOCOL_QUAKEWORLD, request, true );
-						}
-					}
-				}
-			}
-		}
-	}
 	if (!masterquerycount)
 	{
 		Con_Print("Unable to query master servers, no suitable network sockets active.\n");
@@ -3789,10 +2993,7 @@ static void Net_Heartbeat_f(void)
 
 static void PrintStats(netconn_t *conn)
 {
-	if ((cls.state == ca_connected && cls.protocol == PROTOCOL_QUAKEWORLD) || (sv.active && sv.protocol == PROTOCOL_QUAKEWORLD))
-		Con_Printf("address=%21s canSend=%u sendSeq=%6u recvSeq=%6u\n", conn->address, !conn->sendMessageLength, conn->outgoing_unreliable_sequence, conn->qw.incoming_sequence);
-	else
-		Con_Printf("address=%21s canSend=%u sendSeq=%6u recvSeq=%6u\n", conn->address, !conn->sendMessageLength, conn->nq.sendSequence, conn->nq.receiveSequence);
+	Con_Printf("address=%21s canSend=%u sendSeq=%6u recvSeq=%6u\n", conn->address, !conn->sendMessageLength, conn->nq.sendSequence, conn->nq.receiveSequence);
 	Con_Printf("unreliable messages sent   = %i\n", conn->unreliableMessagesSent);
 	Con_Printf("unreliable messages recv   = %i\n", conn->unreliableMessagesReceived);
 	Con_Printf("reliable messages sent     = %i\n", conn->reliableMessagesSent);
@@ -3836,19 +3037,6 @@ void Net_Slist_f(void)
 		ServerList_QueryList(true, true, false, false);
 }
 
-void Net_SlistQW_f(void)
-{
-	ServerList_ResetMasks();
-	serverlist_sortbyfield = SLIF_PING;
-	serverlist_sortflags = 0;
-    if (m_state != m_slist) {
-		Con_Print("Sending requests to master servers\n");
-		ServerList_QueryList(true, false, true, true);
-		serverlist_consoleoutput = true;
-		Con_Print("Listening for replies...\n");
-	} else
-		ServerList_QueryList(true, false, true, false);
-}
 #endif
 
 void NetConn_Init(void)
@@ -3859,7 +3047,6 @@ void NetConn_Init(void)
 	Cmd_AddCommand("net_stats", Net_Stats_f, "print network statistics");
 #ifdef CONFIG_MENU
 	Cmd_AddCommand("net_slist", Net_Slist_f, "query dp master servers and print all server information");
-	Cmd_AddCommand("net_slistqw", Net_SlistQW_f, "query qw master servers and print all server information");
 	Cmd_AddCommand("net_refresh", Net_Refresh_f, "query dp master servers and refresh all server information");
 #endif
 	Cmd_AddCommand("heartbeat", Net_Heartbeat_f, "send a heartbeat to the master server (updates your server information)");

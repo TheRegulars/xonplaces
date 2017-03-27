@@ -367,42 +367,7 @@ void M_Menu_Main_f (void)
 	const char *s;
 	s = "gfx/mainmenu";
 
-	if (gamemode == GAME_NEHAHRA)
-	{
-		if (FS_FileExists("maps/neh1m4.bsp"))
-		{
-			if (FS_FileExists("hearing.dem"))
-			{
-				Con_DPrint("Main menu: Nehahra movie and game detected.\n");
-				NehGameType = TYPE_BOTH;
-			}
-			else
-			{
-				Con_DPrint("Nehahra game detected.\n");
-				NehGameType = TYPE_GAME;
-			}
-		}
-		else
-		{
-			if (FS_FileExists("hearing.dem"))
-			{
-				Con_DPrint("Nehahra movie detected.\n");
-				NehGameType = TYPE_DEMO;
-			}
-			else
-			{
-				Con_DPrint("Nehahra not found.\n");
-				NehGameType = TYPE_GAME; // could just complain, but...
-			}
-		}
-		if (NehGameType == TYPE_DEMO)
-			MAIN_ITEMS = 4;
-		else if (NehGameType == TYPE_GAME)
-			MAIN_ITEMS = 5;
-		else
-			MAIN_ITEMS = 6;
-	}
-	else if (gamemode == GAME_TRANSFUSION)
+	if (gamemode == GAME_TRANSFUSION)
 	{
 		s = "gfx/menu/mainmenu1";
 		if (sv.active && !cl.intermission && cl.islocalgame)
@@ -4404,10 +4369,9 @@ void M_Menu_ServerList_f (void)
 	m_entersound = true;
 	slist_cursor = 0;
 	M_Update_Return_Reason("");
-	if (lanConfig_cursor == 2)
-		Net_SlistQW_f();
-	else
+	if (lanConfig_cursor != 2) {
 		Net_Slist_f();
+	}
 }
 
 
@@ -4473,10 +4437,9 @@ static void M_ServerList_Key(int k, int ascii)
 		break;
 
 	case K_SPACE:
-		if (lanConfig_cursor == 2)
-			Net_SlistQW_f();
-		else
+		if (lanConfig_cursor != 2) {
 			Net_Slist_f();
+		}
 		break;
 
 	case K_UPARROW:

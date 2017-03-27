@@ -401,7 +401,7 @@ qboolean CSQC_AddRenderEdict(prvm_edict_t *ed, int edictnum)
 	 &&  (entrender->alpha >= 1)
 	 && !(renderflags & RF_NOSHADOW)
 	 && !(entrender->flags & RENDER_VIEWMODEL)
-	 && (!(entrender->flags & RENDER_EXTERIORMODEL) || (!cl.intermission && cls.protocol != PROTOCOL_NEHAHRAMOVIE && !cl_noplayershadow.integer)))
+	 && (!(entrender->flags & RENDER_EXTERIORMODEL) || (!cl.intermission && !cl_noplayershadow.integer)))
 		entrender->flags |= RENDER_SHADOW;
 	if (entrender->flags & RENDER_VIEWMODEL)
 		entrender->flags |= RENDER_NOSELFSHADOW;
@@ -944,9 +944,6 @@ qboolean MakeDownloadPacket(const char *filename, unsigned char *data, size_t le
 	int packetsize = buf->maxsize - 7; // byte short long
 	int npackets = ((int)len + packetsize - 1) / (packetsize);
 	char vabuf[1024];
-
-	if(protocol == PROTOCOL_QUAKEWORLD)
-		return false; // CSQC can't run in QW anyway
 
 	SZ_Clear(buf);
 	if(cnt == 0)
