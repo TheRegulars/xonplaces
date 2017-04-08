@@ -14,6 +14,7 @@ ENDFUNCTION(PREPEND)
 
 option(COMPILE_CLIENT "Build client code" ON)
 option(COMPILE_SERVER "Build dedicated server" ON)
+option(COMPILE_MENU   "Enable game menu" ON)
 
 # detect client type
 SET(DP_CLIENT_GLX OFF)
@@ -117,11 +118,13 @@ set(SOURCE_SERVER)
 set(SOURCE_CLIENT_COMMON)
 set(SOURCE_CLIENT_GLX)
 set(SOURCE_CLIENT_SDL)
+set(COMPILE_DEFS "-DLINK_TO_ZLIB -DLINK_TO_LIBJPEG")
+set(COMPILE_DEFS_CLIENT)
 
 
-if (DP_MENU)
-    list(APPEND DP_DEFS -DCONFIG_MENU)
-    list(APPEND SOURCE_COMMON menu.c menu.h mprogdefs.h mvm_cmds.c)
+if (COMPILE_MENU)
+	list(APPEND COMPILE_DEFS_CLIENT "-DCONFIG_MENU")
+	list(APPEND SOURCE_CLIENT_COMMON menu.c menu.h mprogdefs.h mvm_cmds.c)
 endif ()
 
 if (DP_CD)
@@ -189,7 +192,7 @@ find_package(JPEG REQUIRED)
 
 if (COMPILE_SERVER)
 	add_executable(darkplaces-dedicated ${ABS_SOURCE_SERVER} ${ABS_SOURCE_COMMON})
-	target_compile_definitions(darkplaces-dedicated PRIVATE "-DLINK_TO_ZLIB -DLINK_TO_LIBJPEG")
+	target_compile_definitions(darkplaces-dedicated PRIVATE ${COMPILE_DEFS})
 	target_include_directories(darkplaces-dedicated PRIVATE
 		${ZLIB_INCLUDE_DIRS}
 		${JPEG_INLUDE_DIR}
@@ -212,7 +215,10 @@ if (COMPILE_CLIENT)
 			${ABS_SOURCE_CLIENT_COMMON}
 			${ABS_SOURCE_CLIENT_GLX}
 		)
-		target_compile_definitions(darkplaces-glx PRIVATE "-DLINK_TO_ZLIB -DLINK_TO_LIBJPEG")
+		target_compile_definitions(darkplaces-glx PRIVATE
+			${COMPILE_DEFS}
+			${COMPILE_DEFS_CLIENT}
+		)
 		target_include_directories(darkplaces-glx PRIVATE
 			${ZLIB_INCLUDE_DIRS}
 			${JPEG_INLUDE_DIR}
@@ -238,7 +244,10 @@ if (COMPILE_CLIENT)
 			${ABS_SOURCE_CLIENT_COMMON}
 			${ABS_SOURCE_CLIENT_SDL}
 		)
-		target_compile_definitions(darkplaces-sdl PRIVATE "-DLINK_TO_ZLIB -DLINK_TO_LIBJPEG")
+		target_compile_definitions(darkplaces-sdl PRIVATE
+			${COMPILE_DEFS}
+			${COMPILE_DEFS_CLIENT}
+		)
 		target_include_directories(darkplaces-sdl PRIVATE
 			${ZLIB_INCLUDE_DIRS}
 			${JPEG_INLUDE_DIR}
