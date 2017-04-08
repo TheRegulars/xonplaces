@@ -1,0 +1,3 @@
+[submodule "d0_blind_id"]
+	path = d0_blind_id
+	url = https://github.com/xonotic/d0_blind_id.git

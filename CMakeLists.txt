@@ -2,12 +2,13 @@ cmake_minimum_required(VERSION 3.2)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 project(darkplaces C)
 set(SOURCE_ROOT "${PROJECT_SOURCE_DIR}/src")
+include(ExternalProject)
 
 # change optimizations for gcc
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-	set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -fno-strict-aliasing
-	-fno-math-errno -ffinite-math-only -fno-rounding-math -fno-signaling-nans
-	-fno-trapping-math")
+	set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -fno-strict-aliasing \
+	-fno-math-errno -ffinite-math-only -fno-rounding-math  \
+	-fno-signaling-nans -fno-trapping-math")
 endif()
 
 FUNCTION(PREPEND var prefix)
@@ -17,6 +18,33 @@ FUNCTION(PREPEND var prefix)
    ENDFOREACH(f)
    SET(${var} "${listVar}" PARENT_SCOPE)
 ENDFUNCTION(PREPEND)
+
+ExternalProject_Add(d0_blindid
+	GIT_SUBMODULES	  "d0_blind_id"
+    SOURCE_DIR        "${CMAKE_SOURCE_DIR}/d0_blind_id/"
+	CONFIGURE_COMMAND ${CMAKE_SOURCE_DIR}/d0_blind_id/configure --prefix=<INSTALL_DIR>
+	BUILD_COMMAND	  "${MAKE}"
+	BUILD_IN_SOURCE   1
+	LOG_BUILD         1
+)
+
+ExternalProject_Add_Step(d0_blindid autoconf
+  COMMAND autoreconf -i
+  COMMENT "Generate configure and make files with autotools"
+  DEPENDERS configure
+  DEPENDS "${CMAKE_SOURCE_DIR}/d0_blind_id/configure.ac"
+  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/d0_blind_id/"
+  LOG 1
+)
+
+ExternalProject_Get_Property(d0_blindid install_dir)
+set(D0_BLINID_LIB_RIJDAEL "${install_dir}/lib/libd0_rijndael.so")
+set(D0_BLINID_ID_LIB "${install_dir}/lib/libd0_blind_id.so")
+set(D0_BLINID_LIBS ${D0_BLINID_LIB_RIJDAEL} ${D0_BLINID_ID_LIB})
+set(D0_BLINID_LIB_RIJDAEL_STATIC "${install_dir}/lib/libd0_rijndael.a")
+set(D0_BLINID_ID_LIB_STATIC "${install_dir}/lib/libd0_blind_id.a")
+set(D0_BLINID_LIBS_STATIC ${D0_BLINID_LIB_RIJDAEL_STATIC} ${D0_BLINID_ID_LIB_STATIC})
+set(D0_BLINDID_INCLUDE "${CMAKE_SOURCE_DIR}")
 
 
 option(COMPILE_CLIENT        "Build client code" ON)
@@ -127,7 +155,9 @@ set(SOURCE_SERVER)
 set(SOURCE_CLIENT_COMMON)
 set(SOURCE_CLIENT_GLX)
 set(SOURCE_CLIENT_SDL)
-set(COMPILE_DEFS "-DLINK_TO_ZLIB -DLINK_TO_LIBJPEG")
+# TODO: Support definitions for other compilers
+set(COMPILE_DEFS "-DLINK_TO_ZLIB -DLINK_TO_LIBJPEG -DLINK_TO_CRYPTO \
+				  -DLINK_TO_CRYPTO_RIJNDAEL")
 set(COMPILE_DEFS_CLIENT)
 
 
@@ -198,16 +228,20 @@ PREPEND(ABS_SOURCE_CLIENT_GLX ${SOURCE_ROOT} ${SOURCE_CLIENT_GLX})
 # load common libraries
 find_package(ZLIB REQUIRED)
 find_package(JPEG REQUIRED)
+# TODO: Use static version of d0_blindid
 
 if (COMPILE_SERVER)
 	add_executable(darkplaces-dedicated ${ABS_SOURCE_SERVER} ${ABS_SOURCE_COMMON})
+	add_dependencies(darkplaces-dedicated d0_blindid)
 	target_compile_definitions(darkplaces-dedicated PRIVATE ${COMPILE_DEFS})
 	target_include_directories(darkplaces-dedicated PRIVATE
+			${D0_BLINDID_INCLUDE}
 		${ZLIB_INCLUDE_DIRS}
 		${JPEG_INLUDE_DIR}
 	)
     target_link_libraries(darkplaces-dedicated PRIVATE
 		${LIBS_COMMON}
+		${D0_BLINID_LIBS}
 		${ZLIB_LIBRARIES}
 		${JPEG_LIBRARIES}
 	)
@@ -224,11 +258,13 @@ if (COMPILE_CLIENT)
 			${ABS_SOURCE_CLIENT_COMMON}
 			${ABS_SOURCE_CLIENT_GLX}
 		)
+		add_dependencies(darkplaces-glx d0_blindid)
 		target_compile_definitions(darkplaces-glx PRIVATE
 			${COMPILE_DEFS}
 			${COMPILE_DEFS_CLIENT}
 		)
 		target_include_directories(darkplaces-glx PRIVATE
+			${D0_BLINDID_INCLUDE}
 			${ZLIB_INCLUDE_DIRS}
 			${JPEG_INLUDE_DIR}
 			${X11_X11_INCLUDE_DIR}
@@ -236,6 +272,7 @@ if (COMPILE_CLIENT)
 		)
 		target_link_libraries(darkplaces-glx PRIVATE
 			${LIBS_COMMON}
+			${D0_BLINID_LIBS}
 			${ZLIB_LIBRARIES}
 			${JPEG_LIBRARIES}
 			${X11_X11_LIB}
@@ -253,17 +290,21 @@ if (COMPILE_CLIENT)
 			${ABS_SOURCE_CLIENT_COMMON}
 			${ABS_SOURCE_CLIENT_SDL}
 		)
+		add_dependencies(darkplaces-sdl d0_blindid)
 		target_compile_definitions(darkplaces-sdl PRIVATE
 			${COMPILE_DEFS}
 			${COMPILE_DEFS_CLIENT}
 		)
 		target_include_directories(darkplaces-sdl PRIVATE
+			${D0_BLINDID_INCLUDE}
 			${ZLIB_INCLUDE_DIRS}
 			${JPEG_INLUDE_DIR}
 			${SDL2_INCLUDE_DIR}
 		)
 		target_link_libraries(darkplaces-sdl PRIVATE
 			${LIBS_COMMON}
+			${D0_BLINID_LIBS}
+			${ZLIB_LIBRARIES}
 			${ZLIB_LIBRARIES}
 			${JPEG_LIBRARIES}
 			${SDL2_LIBRARY}
