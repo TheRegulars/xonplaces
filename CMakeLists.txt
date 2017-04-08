@@ -12,9 +12,11 @@ FUNCTION(PREPEND var prefix)
 ENDFUNCTION(PREPEND)
 
 
-option(COMPILE_CLIENT "Build client code" ON)
-option(COMPILE_SERVER "Build dedicated server" ON)
-option(COMPILE_MENU   "Enable game menu" ON)
+option(COMPILE_CLIENT        "Build client code" ON)
+option(COMPILE_SERVER        "Build dedicated server" ON)
+option(COMPILE_MENU          "Enable game menu" ON)
+option(COMPILE_CD            "Enable CD player support" ON)
+option(COMPILE_VIDEO_CAPTURE "Enable video capture" ON)
 
 # detect client type
 SET(DP_CLIENT_GLX OFF)
@@ -127,8 +129,8 @@ if (COMPILE_MENU)
 	list(APPEND SOURCE_CLIENT_COMMON menu.c menu.h mprogdefs.h mvm_cmds.c)
 endif ()
 
-if (DP_CD)
-    list(APPEND DP_DEFS_CLIENT -DCONFIG_CD)
+if (COMPILE_CD)
+	list(APPEND COMPILE_DEFS_CLIENT "-DCONFIG_CD")
 	list(APPEND SOURCE_CLIENT_COMMON cd_shared.c cdaudio.h)
 	list(APPEND SOURCE_CLIENT_SDL cd_sdl.c)
 	if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -138,8 +140,8 @@ if (DP_CD)
 	endif()
 endif ()
 
-if (DP_VIDEO_CAPTURE)
-    list(APPEND DP_DEFS_CLIENT -DCONFIG_VIDEO_CAPTURE)
+if (COMPILE_VIDEO_CAPTURE)
+	list(APPEND COMPILE_DEFS_CLIENT -DCONFIG_VIDEO_CAPTURE)
 	list(APPEND SOURCE_CLIENT_COMMON cap_avi.c cap_avi.h cap_ogg.c cap_ogg.h)
 endif ()
 
