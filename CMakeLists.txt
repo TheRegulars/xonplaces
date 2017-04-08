@@ -3,6 +3,13 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 project(darkplaces C)
 set(SOURCE_ROOT "${PROJECT_SOURCE_DIR}/src")
 
+# change optimizations for gcc
+if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+	set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -fno-strict-aliasing
+	-fno-math-errno -ffinite-math-only -fno-rounding-math -fno-signaling-nans
+	-fno-trapping-math")
+endif()
+
 FUNCTION(PREPEND var prefix)
    SET(listVar "")
    FOREACH(f ${ARGN})
