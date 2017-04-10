@@ -38,30 +38,30 @@ rendering process:
 // header for the entire file
 typedef struct dpmheader_s
 {
-	char id[16]; // "DARKPLACESMODEL\0", length 16
-	unsigned int type; // 2 (hierarchical skeletal pose)
-	unsigned int filesize; // size of entire model file
-	float mins[3], maxs[3], yawradius, allradius; // for clipping uses
-	// these offsets are relative to the file
-	unsigned int num_bones;
-	unsigned int num_meshs;
-	unsigned int num_frames;
-	unsigned int ofs_bones; // dpmbone_t bone[num_bones];
-	unsigned int ofs_meshs; // dpmmesh_t mesh[num_meshs];
-	unsigned int ofs_frames; // dpmframe_t frame[num_frames];
+    char id[16]; // "DARKPLACESMODEL\0", length 16
+    unsigned int type; // 2 (hierarchical skeletal pose)
+    unsigned int filesize; // size of entire model file
+    float mins[3], maxs[3], yawradius, allradius; // for clipping uses
+    // these offsets are relative to the file
+    unsigned int num_bones;
+    unsigned int num_meshs;
+    unsigned int num_frames;
+    unsigned int ofs_bones; // dpmbone_t bone[num_bones];
+    unsigned int ofs_meshs; // dpmmesh_t mesh[num_meshs];
+    unsigned int ofs_frames; // dpmframe_t frame[num_frames];
 }
 dpmheader_t;
 // there may be more than one of these
 typedef struct dpmmesh_s
 {
-	// these offsets are relative to the file
-	char shadername[32]; // name of the shader to use
-	unsigned int num_verts;
-	unsigned int num_tris;
-	unsigned int ofs_verts; // dpmvertex_t vert[numvertices]; // see vertex struct
-	unsigned int ofs_texcoords; // float texcoords[numvertices][2];
-	unsigned int ofs_indices; // unsigned int indices[numtris*3]; // designed for glDrawElements (each triangle is 3 unsigned int indices)
-	unsigned int ofs_groupids; // unsigned int groupids[numtris]; // the meaning of these values is entirely up to the gamecode and modeler
+    // these offsets are relative to the file
+    char shadername[32]; // name of the shader to use
+    unsigned int num_verts;
+    unsigned int num_tris;
+    unsigned int ofs_verts; // dpmvertex_t vert[numvertices]; // see vertex struct
+    unsigned int ofs_texcoords; // float texcoords[numvertices][2];
+    unsigned int ofs_indices; // unsigned int indices[numtris*3]; // designed for glDrawElements (each triangle is 3 unsigned int indices)
+    unsigned int ofs_groupids; // unsigned int groupids[numtris]; // the meaning of these values is entirely up to the gamecode and modeler
 }
 dpmmesh_t;
 // if set on a bone, it must be protected from removal
@@ -69,12 +69,12 @@ dpmmesh_t;
 // one per bone
 typedef struct dpmbone_s
 {
-	// name examples: upperleftarm leftfinger1 leftfinger2 hand, etc
-	char name[32];
-	// parent bone number
-	signed int parent;
-	// flags for the bone
-	unsigned int flags;
+    // name examples: upperleftarm leftfinger1 leftfinger2 hand, etc
+    char name[32];
+    // parent bone number
+    signed int parent;
+    // flags for the bone
+    unsigned int flags;
 }
 dpmbone_t;
 // a bonepose matrix is intended to be used like this:
@@ -84,38 +84,38 @@ dpmbone_t;
 // n[2] = v[0] * m[2][0] + v[1] * m[2][1] + v[2] * m[2][2] + f * m[2][3];
 typedef struct dpmbonepose_s
 {
-	float matrix[3][4];
+    float matrix[3][4];
 }
 dpmbonepose_t;
 // immediately followed by bone positions for the frame
 typedef struct dpmframe_s
 {
-	// name examples: idle_1 idle_2 idle_3 shoot_1 shoot_2 shoot_3, etc
-	char name[32];
-	float mins[3], maxs[3], yawradius, allradius;
-	int ofs_bonepositions; // dpmbonepose_t bonepositions[bones];
+    // name examples: idle_1 idle_2 idle_3 shoot_1 shoot_2 shoot_3, etc
+    char name[32];
+    float mins[3], maxs[3], yawradius, allradius;
+    int ofs_bonepositions; // dpmbonepose_t bonepositions[bones];
 }
 dpmframe_t;
 // one or more of these per vertex
 typedef struct dpmbonevert_s
 {
-	// this pairing of origin and influence is intentional
-	// (in SSE or 3DNow! assembly it can be done as a quad vector op
-	//  (or two dual vector ops) very easily)
-	float origin[3]; // vertex location (these blend)
-	float influence; // influence fraction (these must add up to 1)
-	// this pairing of normal and bonenum is intentional
-	// (in SSE or 3DNow! assembly it can be done as a quad vector op
-	//  (or two dual vector ops) very easily, the bonenum is ignored)
-	float normal[3]; // surface normal (these blend)
-	unsigned int bonenum; // number of the bone
+    // this pairing of origin and influence is intentional
+    // (in SSE or 3DNow! assembly it can be done as a quad vector op
+    //  (or two dual vector ops) very easily)
+    float origin[3]; // vertex location (these blend)
+    float influence; // influence fraction (these must add up to 1)
+    // this pairing of normal and bonenum is intentional
+    // (in SSE or 3DNow! assembly it can be done as a quad vector op
+    //  (or two dual vector ops) very easily, the bonenum is ignored)
+    float normal[3]; // surface normal (these blend)
+    unsigned int bonenum; // number of the bone
 }
 dpmbonevert_t;
 // variable size, parsed sequentially
 typedef struct dpmvertex_s
 {
-	unsigned int numbones;
-	// immediately followed by 1 or more dpmbonevert_t structures
+    unsigned int numbones;
+    // immediately followed by 1 or more dpmbonevert_t structures
 }
 dpmvertex_t;
 

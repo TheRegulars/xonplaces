@@ -69,23 +69,23 @@ extern svbsp_t r_svbsp;
 
 typedef struct rmesh_s
 {
-	// vertices of this mesh
-	int maxvertices;
-	int numvertices;
-	float *vertex3f;
-	float *svector3f;
-	float *tvector3f;
-	float *normal3f;
-	float *texcoord2f;
-	float *texcoordlightmap2f;
-	float *color4f;
-	// triangles of this mesh
-	int maxtriangles;
-	int numtriangles;
-	int *element3i;
-	int *neighbor3i;
-	// snapping epsilon
-	float epsilon2;
+    // vertices of this mesh
+    int maxvertices;
+    int numvertices;
+    float *vertex3f;
+    float *svector3f;
+    float *tvector3f;
+    float *normal3f;
+    float *texcoord2f;
+    float *texcoordlightmap2f;
+    float *color4f;
+    // triangles of this mesh
+    int maxtriangles;
+    int numtriangles;
+    int *element3i;
+    int *neighbor3i;
+    // snapping epsilon
+    float epsilon2;
 }
 rmesh_t;
 
@@ -96,8 +96,8 @@ int R_Mesh_AddVertex3f(rmesh_t *mesh, const float *v);
 void R_Mesh_AddPolygon3f(rmesh_t *mesh, int numvertices, float *vertex3f);
 void R_Mesh_AddBrushMeshFromPlanes(rmesh_t *mesh, int numplanes, mplane_t *planes);
 
-#define	TOP_RANGE		16			// soldier uniform colors
-#define	BOTTOM_RANGE	96
+#define    TOP_RANGE        16            // soldier uniform colors
+#define    BOTTOM_RANGE    96
 
 //=============================================================================
 
@@ -130,9 +130,9 @@ void R_RenderView(void); // must set r_refdef and call R_UpdateVariables first
 void R_RenderView_UpdateViewVectors(void); // just updates r_refdef.view.{forward,left,up,origin,right,inverse_matrix}
 
 typedef enum r_refdef_scene_type_s {
-	RST_CLIENT,
-	RST_MENU,
-	RST_COUNT
+    RST_CLIENT,
+    RST_MENU,
+    RST_COUNT
 } r_refdef_scene_type_t;
 
 void R_SelectScene( r_refdef_scene_type_t scenetype );
@@ -184,11 +184,11 @@ void R_FrameData_ReturnToMark(void);
 /// note that the r_buffermegs[] array must be maintained to match this
 typedef enum r_bufferdata_type_e
 {
-	R_BUFFERDATA_VERTEX, /// vertex buffer
-	R_BUFFERDATA_INDEX16, /// index buffer - 16bit (because D3D cares)
-	R_BUFFERDATA_INDEX32, /// index buffer - 32bit (because D3D cares)
-	R_BUFFERDATA_UNIFORM, /// uniform buffer
-	R_BUFFERDATA_COUNT /// how many kinds of buffer we have
+    R_BUFFERDATA_VERTEX, /// vertex buffer
+    R_BUFFERDATA_INDEX16, /// index buffer - 16bit (because D3D cares)
+    R_BUFFERDATA_INDEX32, /// index buffer - 32bit (because D3D cares)
+    R_BUFFERDATA_UNIFORM, /// uniform buffer
+    R_BUFFERDATA_COUNT /// how many kinds of buffer we have
 }
 r_bufferdata_type_t;
 
@@ -260,200 +260,200 @@ extern mempool_t *r_main_mempool;
 
 typedef struct rsurfacestate_s
 {
-	// current model array pointers
-	// these may point to processing buffers if model is animated,
-	// otherwise they point to static data.
-	// these are not directly used for rendering, they are just another level
-	// of processing
-	//
-	// these either point at array_model* buffers (if the model is animated)
-	// or the model->surfmesh.data_* buffers (if the model is not animated)
-	//
-	// these are only set when an entity render begins, they do not change on
-	// a per surface basis.
-	//
-	// this indicates the model* arrays are pointed at array_model* buffers
-	// (in other words, the model has been animated in software)
-	qboolean                    forcecurrenttextureupdate; // set for RSurf_ActiveCustomEntity to force R_GetCurrentTexture to recalculate the texture parameters (such as entity alpha)
-	qboolean                    modelgeneratedvertex;
-	// skeletal animation can be done by entity (animcache) or per batch,
-	// batch may be non-skeletal even if entity is skeletal, indicating that
-	// the dynamicvertex code path had to apply skeletal manually for a case
-	// where gpu-skinning is not possible, for this reason batch has its own
-	// variables
-	int                         entityskeletalnumtransforms; // how many transforms are used for this mesh
-	float                      *entityskeletaltransform3x4; // use gpu-skinning shader on this mesh
-	const r_meshbuffer_t       *entityskeletaltransform3x4buffer; // uniform buffer
-	int                         entityskeletaltransform3x4offset;
-	int                         entityskeletaltransform3x4size;
-	float                      *modelvertex3f;
-	const r_meshbuffer_t       *modelvertex3f_vertexbuffer;
-	int                         modelvertex3f_bufferoffset;
-	float                      *modelsvector3f;
-	const r_meshbuffer_t       *modelsvector3f_vertexbuffer;
-	int                         modelsvector3f_bufferoffset;
-	float                      *modeltvector3f;
-	const r_meshbuffer_t       *modeltvector3f_vertexbuffer;
-	int                         modeltvector3f_bufferoffset;
-	float                      *modelnormal3f;
-	const r_meshbuffer_t       *modelnormal3f_vertexbuffer;
-	int                         modelnormal3f_bufferoffset;
-	float                      *modellightmapcolor4f;
-	const r_meshbuffer_t       *modellightmapcolor4f_vertexbuffer;
-	int                         modellightmapcolor4f_bufferoffset;
-	float                      *modeltexcoordtexture2f;
-	const r_meshbuffer_t       *modeltexcoordtexture2f_vertexbuffer;
-	int                         modeltexcoordtexture2f_bufferoffset;
-	float                      *modeltexcoordlightmap2f;
-	const r_meshbuffer_t       *modeltexcoordlightmap2f_vertexbuffer;
-	int                         modeltexcoordlightmap2f_bufferoffset;
-	unsigned char              *modelskeletalindex4ub;
-	const r_meshbuffer_t       *modelskeletalindex4ub_vertexbuffer;
-	int                         modelskeletalindex4ub_bufferoffset;
-	unsigned char              *modelskeletalweight4ub;
-	const r_meshbuffer_t       *modelskeletalweight4ub_vertexbuffer;
-	int                         modelskeletalweight4ub_bufferoffset;
-	r_vertexmesh_t             *modelvertexmesh;
-	const r_meshbuffer_t       *modelvertexmesh_vertexbuffer;
-	int                         modelvertexmesh_bufferoffset;
-	int                        *modelelement3i;
-	const r_meshbuffer_t       *modelelement3i_indexbuffer;
-	int                         modelelement3i_bufferoffset;
-	unsigned short             *modelelement3s;
-	const r_meshbuffer_t       *modelelement3s_indexbuffer;
-	int                         modelelement3s_bufferoffset;
-	int                        *modellightmapoffsets;
-	int                         modelnumvertices;
-	int                         modelnumtriangles;
-	const msurface_t           *modelsurfaces;
-	// current rendering array pointers
-	// these may point to any of several different buffers depending on how
-	// much processing was needed to prepare this model for rendering
-	// these usually equal the model* pointers, they only differ if
-	// deformvertexes is used in a q3 shader, and consequently these can
-	// change on a per-surface basis (according to rsurface.texture)
-	qboolean                    batchgeneratedvertex;
-	qboolean                    batchmultidraw;
-	int                         batchmultidrawnumsurfaces;
-	const msurface_t          **batchmultidrawsurfacelist;
-	int                         batchfirstvertex;
-	int                         batchnumvertices;
-	int                         batchfirsttriangle;
-	int                         batchnumtriangles;
-	r_vertexmesh_t             *batchvertexmesh;
-	const r_meshbuffer_t       *batchvertexmesh_vertexbuffer;
-	int                         batchvertexmesh_bufferoffset;
-	float                      *batchvertex3f;
-	const r_meshbuffer_t       *batchvertex3f_vertexbuffer;
-	int                         batchvertex3f_bufferoffset;
-	float                      *batchsvector3f;
-	const r_meshbuffer_t       *batchsvector3f_vertexbuffer;
-	int                         batchsvector3f_bufferoffset;
-	float                      *batchtvector3f;
-	const r_meshbuffer_t       *batchtvector3f_vertexbuffer;
-	int                         batchtvector3f_bufferoffset;
-	float                      *batchnormal3f;
-	const r_meshbuffer_t       *batchnormal3f_vertexbuffer;
-	int                         batchnormal3f_bufferoffset;
-	float                      *batchlightmapcolor4f;
-	const r_meshbuffer_t       *batchlightmapcolor4f_vertexbuffer;
-	int                         batchlightmapcolor4f_bufferoffset;
-	float                      *batchtexcoordtexture2f;
-	const r_meshbuffer_t       *batchtexcoordtexture2f_vertexbuffer;
-	int                         batchtexcoordtexture2f_bufferoffset;
-	float                      *batchtexcoordlightmap2f;
-	const r_meshbuffer_t       *batchtexcoordlightmap2f_vertexbuffer;
-	int                         batchtexcoordlightmap2f_bufferoffset;
-	unsigned char              *batchskeletalindex4ub;
-	const r_meshbuffer_t       *batchskeletalindex4ub_vertexbuffer;
-	int                         batchskeletalindex4ub_bufferoffset;
-	unsigned char              *batchskeletalweight4ub;
-	const r_meshbuffer_t       *batchskeletalweight4ub_vertexbuffer;
-	int                         batchskeletalweight4ub_bufferoffset;
-	int                        *batchelement3i;
-	const r_meshbuffer_t       *batchelement3i_indexbuffer;
-	int                         batchelement3i_bufferoffset;
-	unsigned short             *batchelement3s;
-	const r_meshbuffer_t       *batchelement3s_indexbuffer;
-	int                         batchelement3s_bufferoffset;
-	int                         batchskeletalnumtransforms;
-	float                      *batchskeletaltransform3x4;
-	const r_meshbuffer_t       *batchskeletaltransform3x4buffer; // uniform buffer
-	int                         batchskeletaltransform3x4offset;
-	int                         batchskeletaltransform3x4size;
-	// rendering pass processing arrays in GL11 and GL13 paths
-	float                      *passcolor4f;
-	const r_meshbuffer_t       *passcolor4f_vertexbuffer;
-	int                         passcolor4f_bufferoffset;
+    // current model array pointers
+    // these may point to processing buffers if model is animated,
+    // otherwise they point to static data.
+    // these are not directly used for rendering, they are just another level
+    // of processing
+    //
+    // these either point at array_model* buffers (if the model is animated)
+    // or the model->surfmesh.data_* buffers (if the model is not animated)
+    //
+    // these are only set when an entity render begins, they do not change on
+    // a per surface basis.
+    //
+    // this indicates the model* arrays are pointed at array_model* buffers
+    // (in other words, the model has been animated in software)
+    qboolean                    forcecurrenttextureupdate; // set for RSurf_ActiveCustomEntity to force R_GetCurrentTexture to recalculate the texture parameters (such as entity alpha)
+    qboolean                    modelgeneratedvertex;
+    // skeletal animation can be done by entity (animcache) or per batch,
+    // batch may be non-skeletal even if entity is skeletal, indicating that
+    // the dynamicvertex code path had to apply skeletal manually for a case
+    // where gpu-skinning is not possible, for this reason batch has its own
+    // variables
+    int                         entityskeletalnumtransforms; // how many transforms are used for this mesh
+    float                      *entityskeletaltransform3x4; // use gpu-skinning shader on this mesh
+    const r_meshbuffer_t       *entityskeletaltransform3x4buffer; // uniform buffer
+    int                         entityskeletaltransform3x4offset;
+    int                         entityskeletaltransform3x4size;
+    float                      *modelvertex3f;
+    const r_meshbuffer_t       *modelvertex3f_vertexbuffer;
+    int                         modelvertex3f_bufferoffset;
+    float                      *modelsvector3f;
+    const r_meshbuffer_t       *modelsvector3f_vertexbuffer;
+    int                         modelsvector3f_bufferoffset;
+    float                      *modeltvector3f;
+    const r_meshbuffer_t       *modeltvector3f_vertexbuffer;
+    int                         modeltvector3f_bufferoffset;
+    float                      *modelnormal3f;
+    const r_meshbuffer_t       *modelnormal3f_vertexbuffer;
+    int                         modelnormal3f_bufferoffset;
+    float                      *modellightmapcolor4f;
+    const r_meshbuffer_t       *modellightmapcolor4f_vertexbuffer;
+    int                         modellightmapcolor4f_bufferoffset;
+    float                      *modeltexcoordtexture2f;
+    const r_meshbuffer_t       *modeltexcoordtexture2f_vertexbuffer;
+    int                         modeltexcoordtexture2f_bufferoffset;
+    float                      *modeltexcoordlightmap2f;
+    const r_meshbuffer_t       *modeltexcoordlightmap2f_vertexbuffer;
+    int                         modeltexcoordlightmap2f_bufferoffset;
+    unsigned char              *modelskeletalindex4ub;
+    const r_meshbuffer_t       *modelskeletalindex4ub_vertexbuffer;
+    int                         modelskeletalindex4ub_bufferoffset;
+    unsigned char              *modelskeletalweight4ub;
+    const r_meshbuffer_t       *modelskeletalweight4ub_vertexbuffer;
+    int                         modelskeletalweight4ub_bufferoffset;
+    r_vertexmesh_t             *modelvertexmesh;
+    const r_meshbuffer_t       *modelvertexmesh_vertexbuffer;
+    int                         modelvertexmesh_bufferoffset;
+    int                        *modelelement3i;
+    const r_meshbuffer_t       *modelelement3i_indexbuffer;
+    int                         modelelement3i_bufferoffset;
+    unsigned short             *modelelement3s;
+    const r_meshbuffer_t       *modelelement3s_indexbuffer;
+    int                         modelelement3s_bufferoffset;
+    int                        *modellightmapoffsets;
+    int                         modelnumvertices;
+    int                         modelnumtriangles;
+    const msurface_t           *modelsurfaces;
+    // current rendering array pointers
+    // these may point to any of several different buffers depending on how
+    // much processing was needed to prepare this model for rendering
+    // these usually equal the model* pointers, they only differ if
+    // deformvertexes is used in a q3 shader, and consequently these can
+    // change on a per-surface basis (according to rsurface.texture)
+    qboolean                    batchgeneratedvertex;
+    qboolean                    batchmultidraw;
+    int                         batchmultidrawnumsurfaces;
+    const msurface_t          **batchmultidrawsurfacelist;
+    int                         batchfirstvertex;
+    int                         batchnumvertices;
+    int                         batchfirsttriangle;
+    int                         batchnumtriangles;
+    r_vertexmesh_t             *batchvertexmesh;
+    const r_meshbuffer_t       *batchvertexmesh_vertexbuffer;
+    int                         batchvertexmesh_bufferoffset;
+    float                      *batchvertex3f;
+    const r_meshbuffer_t       *batchvertex3f_vertexbuffer;
+    int                         batchvertex3f_bufferoffset;
+    float                      *batchsvector3f;
+    const r_meshbuffer_t       *batchsvector3f_vertexbuffer;
+    int                         batchsvector3f_bufferoffset;
+    float                      *batchtvector3f;
+    const r_meshbuffer_t       *batchtvector3f_vertexbuffer;
+    int                         batchtvector3f_bufferoffset;
+    float                      *batchnormal3f;
+    const r_meshbuffer_t       *batchnormal3f_vertexbuffer;
+    int                         batchnormal3f_bufferoffset;
+    float                      *batchlightmapcolor4f;
+    const r_meshbuffer_t       *batchlightmapcolor4f_vertexbuffer;
+    int                         batchlightmapcolor4f_bufferoffset;
+    float                      *batchtexcoordtexture2f;
+    const r_meshbuffer_t       *batchtexcoordtexture2f_vertexbuffer;
+    int                         batchtexcoordtexture2f_bufferoffset;
+    float                      *batchtexcoordlightmap2f;
+    const r_meshbuffer_t       *batchtexcoordlightmap2f_vertexbuffer;
+    int                         batchtexcoordlightmap2f_bufferoffset;
+    unsigned char              *batchskeletalindex4ub;
+    const r_meshbuffer_t       *batchskeletalindex4ub_vertexbuffer;
+    int                         batchskeletalindex4ub_bufferoffset;
+    unsigned char              *batchskeletalweight4ub;
+    const r_meshbuffer_t       *batchskeletalweight4ub_vertexbuffer;
+    int                         batchskeletalweight4ub_bufferoffset;
+    int                        *batchelement3i;
+    const r_meshbuffer_t       *batchelement3i_indexbuffer;
+    int                         batchelement3i_bufferoffset;
+    unsigned short             *batchelement3s;
+    const r_meshbuffer_t       *batchelement3s_indexbuffer;
+    int                         batchelement3s_bufferoffset;
+    int                         batchskeletalnumtransforms;
+    float                      *batchskeletaltransform3x4;
+    const r_meshbuffer_t       *batchskeletaltransform3x4buffer; // uniform buffer
+    int                         batchskeletaltransform3x4offset;
+    int                         batchskeletaltransform3x4size;
+    // rendering pass processing arrays in GL11 and GL13 paths
+    float                      *passcolor4f;
+    const r_meshbuffer_t       *passcolor4f_vertexbuffer;
+    int                         passcolor4f_bufferoffset;
 
-	// some important fields from the entity
-	int ent_skinnum;
-	int ent_qwskin;
-	int ent_flags;
-	int ent_alttextures; // used by q1bsp animated textures (pressed buttons)
-	double shadertime; // r_refdef.scene.time - ent->shadertime
-	// transform matrices to render this entity and effects on this entity
-	matrix4x4_t matrix;
-	matrix4x4_t inversematrix;
-	// scale factors for transforming lengths into/out of entity space
-	float matrixscale;
-	float inversematrixscale;
-	// animation blending state from entity
-	frameblend_t frameblend[MAX_FRAMEBLENDS];
-	skeleton_t *skeleton;
-	// directional model shading state from entity
-	vec3_t modellight_ambient;
-	vec3_t modellight_diffuse;
-	vec3_t modellight_lightdir;
-	// colormapping state from entity (these are black if colormapping is off)
-	vec3_t colormap_pantscolor;
-	vec3_t colormap_shirtcolor;
-	// special coloring of ambient/diffuse textures (gloss not affected)
-	// colormod[3] is the alpha of the entity
-	float colormod[4];
-	// special coloring of glow textures
-	float glowmod[3];
-	// view location in model space
-	vec3_t localvieworigin;
-	// polygon offset data for submodels
-	float basepolygonfactor;
-	float basepolygonoffset;
-	// current textures in batching code
-	texture_t *texture;
-	rtexture_t *lightmaptexture;
-	rtexture_t *deluxemaptexture;
-	// whether lightmapping is active on this batch
-	// (otherwise vertex colored)
-	qboolean uselightmaptexture;
-	// fog plane in model space for direct application to vertices
-	float fograngerecip;
-	float fogmasktabledistmultiplier;
-	float fogplane[4];
-	float fogheightfade;
-	float fogplaneviewdist;
+    // some important fields from the entity
+    int ent_skinnum;
+    int ent_qwskin;
+    int ent_flags;
+    int ent_alttextures; // used by q1bsp animated textures (pressed buttons)
+    double shadertime; // r_refdef.scene.time - ent->shadertime
+    // transform matrices to render this entity and effects on this entity
+    matrix4x4_t matrix;
+    matrix4x4_t inversematrix;
+    // scale factors for transforming lengths into/out of entity space
+    float matrixscale;
+    float inversematrixscale;
+    // animation blending state from entity
+    frameblend_t frameblend[MAX_FRAMEBLENDS];
+    skeleton_t *skeleton;
+    // directional model shading state from entity
+    vec3_t modellight_ambient;
+    vec3_t modellight_diffuse;
+    vec3_t modellight_lightdir;
+    // colormapping state from entity (these are black if colormapping is off)
+    vec3_t colormap_pantscolor;
+    vec3_t colormap_shirtcolor;
+    // special coloring of ambient/diffuse textures (gloss not affected)
+    // colormod[3] is the alpha of the entity
+    float colormod[4];
+    // special coloring of glow textures
+    float glowmod[3];
+    // view location in model space
+    vec3_t localvieworigin;
+    // polygon offset data for submodels
+    float basepolygonfactor;
+    float basepolygonoffset;
+    // current textures in batching code
+    texture_t *texture;
+    rtexture_t *lightmaptexture;
+    rtexture_t *deluxemaptexture;
+    // whether lightmapping is active on this batch
+    // (otherwise vertex colored)
+    qboolean uselightmaptexture;
+    // fog plane in model space for direct application to vertices
+    float fograngerecip;
+    float fogmasktabledistmultiplier;
+    float fogplane[4];
+    float fogheightfade;
+    float fogplaneviewdist;
 
-	// rtlight rendering
-	// light currently being rendered
-	const rtlight_t *rtlight;
+    // rtlight rendering
+    // light currently being rendered
+    const rtlight_t *rtlight;
 
-	// this is the location of the light in entity space
-	vec3_t entitylightorigin;
-	// this transforms entity coordinates to light filter cubemap coordinates
-	// (also often used for other purposes)
-	matrix4x4_t entitytolight;
-	// based on entitytolight this transforms -1 to +1 to 0 to 1 for purposes
-	// of attenuation texturing in full 3D (Z result often ignored)
-	matrix4x4_t entitytoattenuationxyz;
-	// this transforms only the Z to S, and T is always 0.5
-	matrix4x4_t entitytoattenuationz;
+    // this is the location of the light in entity space
+    vec3_t entitylightorigin;
+    // this transforms entity coordinates to light filter cubemap coordinates
+    // (also often used for other purposes)
+    matrix4x4_t entitytolight;
+    // based on entitytolight this transforms -1 to +1 to 0 to 1 for purposes
+    // of attenuation texturing in full 3D (Z result often ignored)
+    matrix4x4_t entitytoattenuationxyz;
+    // this transforms only the Z to S, and T is always 0.5
+    matrix4x4_t entitytoattenuationz;
 
-	// user wavefunc parameters (from csqc)
-	float userwavefunc_param[Q3WAVEFUNC_USER_COUNT];
+    // user wavefunc parameters (from csqc)
+    float userwavefunc_param[Q3WAVEFUNC_USER_COUNT];
 
-	// pointer to an entity_render_t used only by R_GetCurrentTexture and
-	// RSurf_ActiveWorldEntity/RSurf_ActiveModelEntity as a unique id within
-	// each frame (see r_frame also)
-	entity_render_t *entity;
+    // pointer to an entity_render_t used only by R_GetCurrentTexture and
+    // RSurf_ActiveWorldEntity/RSurf_ActiveModelEntity as a unique id within
+    // each frame (see r_frame also)
+    entity_render_t *entity;
 }
 rsurfacestate_t;
 
@@ -498,10 +498,10 @@ void R_DecalSystem_SplatEntities(const vec3_t org, const vec3_t normal, float r,
 
 typedef enum rsurfacepass_e
 {
-	RSURFPASS_BASE,
-	RSURFPASS_BACKGROUND,
-	RSURFPASS_RTLIGHT,
-	RSURFPASS_DEFERREDGEOMETRY
+    RSURFPASS_BASE,
+    RSURFPASS_BACKGROUND,
+    RSURFPASS_RTLIGHT,
+    RSURFPASS_DEFERREDGEOMETRY
 }
 rsurfacepass_t;
 
@@ -513,69 +513,69 @@ void R_SetupShader_DeferredLight(const rtlight_t *rtlight);
 
 typedef struct r_waterstate_waterplane_s
 {
-	rtexture_t *texture_refraction; // MATERIALFLAG_WATERSHADER or MATERIALFLAG_REFRACTION
-	rtexture_t *texture_reflection; // MATERIALFLAG_WATERSHADER or MATERIALFLAG_REFLECTION
-	rtexture_t *texture_camera; // MATERIALFLAG_CAMERA
-	int fbo_refraction;
-	int fbo_reflection;
-	int fbo_camera;
-	mplane_t plane;
-	int materialflags; // combined flags of all water surfaces on this plane
-	unsigned char pvsbits[(MAX_MAP_LEAFS+7)>>3]; // FIXME: buffer overflow on huge maps
-	qboolean pvsvalid;
-	int camera_entity;
-	vec3_t mins, maxs;
+    rtexture_t *texture_refraction; // MATERIALFLAG_WATERSHADER or MATERIALFLAG_REFRACTION
+    rtexture_t *texture_reflection; // MATERIALFLAG_WATERSHADER or MATERIALFLAG_REFLECTION
+    rtexture_t *texture_camera; // MATERIALFLAG_CAMERA
+    int fbo_refraction;
+    int fbo_reflection;
+    int fbo_camera;
+    mplane_t plane;
+    int materialflags; // combined flags of all water surfaces on this plane
+    unsigned char pvsbits[(MAX_MAP_LEAFS+7)>>3]; // FIXME: buffer overflow on huge maps
+    qboolean pvsvalid;
+    int camera_entity;
+    vec3_t mins, maxs;
 }
 r_waterstate_waterplane_t;
 
 typedef struct r_waterstate_s
 {
-	int waterwidth, waterheight;
-	int texturewidth, textureheight;
-	int camerawidth, cameraheight;
-	rtexture_t *depthtexture;
+    int waterwidth, waterheight;
+    int texturewidth, textureheight;
+    int camerawidth, cameraheight;
+    rtexture_t *depthtexture;
 
-	int maxwaterplanes; // same as MAX_WATERPLANES
-	int numwaterplanes;
-	r_waterstate_waterplane_t waterplanes[MAX_WATERPLANES];
+    int maxwaterplanes; // same as MAX_WATERPLANES
+    int numwaterplanes;
+    r_waterstate_waterplane_t waterplanes[MAX_WATERPLANES];
 
-	float screenscale[2];
-	float screencenter[2];
+    float screenscale[2];
+    float screencenter[2];
 
-	qboolean enabled;
+    qboolean enabled;
 
-	qboolean renderingscene; // true while rendering a refraction or reflection texture, disables water surfaces
-	qboolean hideplayer;
+    qboolean renderingscene; // true while rendering a refraction or reflection texture, disables water surfaces
+    qboolean hideplayer;
 }
 r_waterstate_t;
 
 typedef struct r_framebufferstate_s
 {
-	textype_t textype; // type of color buffer we're using (dependent on r_viewfbo cvar)
-	int fbo; // non-zero if r_viewfbo is enabled and working
-	int screentexturewidth, screentextureheight; // dimensions of texture
+    textype_t textype; // type of color buffer we're using (dependent on r_viewfbo cvar)
+    int fbo; // non-zero if r_viewfbo is enabled and working
+    int screentexturewidth, screentextureheight; // dimensions of texture
 
-	rtexture_t *colortexture; // non-NULL if fbo is non-zero
-	rtexture_t *depthtexture; // non-NULL if fbo is non-zero
-	rtexture_t *ghosttexture; // for r_motionblur (not recommended on multi-GPU hardware!)
-	rtexture_t *bloomtexture[2]; // for r_bloom, multi-stage processing
-	int bloomfbo[2]; // fbos for rendering into bloomtexture[]
-	int bloomindex; // which bloomtexture[] contains the final image
+    rtexture_t *colortexture; // non-NULL if fbo is non-zero
+    rtexture_t *depthtexture; // non-NULL if fbo is non-zero
+    rtexture_t *ghosttexture; // for r_motionblur (not recommended on multi-GPU hardware!)
+    rtexture_t *bloomtexture[2]; // for r_bloom, multi-stage processing
+    int bloomfbo[2]; // fbos for rendering into bloomtexture[]
+    int bloomindex; // which bloomtexture[] contains the final image
 
-	int bloomwidth, bloomheight;
-	int bloomtexturewidth, bloomtextureheight;
+    int bloomwidth, bloomheight;
+    int bloomtexturewidth, bloomtextureheight;
 
-	// arrays for rendering the screen passes
-	float screentexcoord2f[8]; // texcoords for colortexture or ghosttexture
-	float bloomtexcoord2f[8]; // texcoords for bloomtexture[]
-	float offsettexcoord2f[8]; // temporary use while updating bloomtexture[]
+    // arrays for rendering the screen passes
+    float screentexcoord2f[8]; // texcoords for colortexture or ghosttexture
+    float bloomtexcoord2f[8]; // texcoords for bloomtexture[]
+    float offsettexcoord2f[8]; // temporary use while updating bloomtexture[]
 
-	r_viewport_t bloomviewport;
+    r_viewport_t bloomviewport;
 
-	r_waterstate_t water;
+    r_waterstate_t water;
 
-	qboolean ghosttexture_valid; // don't draw garbage on first frame with motionblur
-	qboolean usedepthtextures; // use depth texture instead of depth renderbuffer (faster if you need to read it later anyway)
+    qboolean ghosttexture_valid; // don't draw garbage on first frame with motionblur
+    qboolean usedepthtextures; // use depth texture instead of depth renderbuffer (faster if you need to read it later anyway)
 }
 r_framebufferstate_t;
 

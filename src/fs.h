@@ -1,25 +1,25 @@
 /*
-	DarkPlaces file system
+    DarkPlaces file system
 
-	Copyright (C) 2003-2005 Mathieu Olivier
+    Copyright (C) 2003-2005 Mathieu Olivier
 
-	This program is free software; you can redistribute it and/or
-	modify it under the terms of the GNU General Public License
-	as published by the Free Software Foundation; either version 2
-	of the License, or (at your option) any later version.
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-	See the GNU General Public License for more details.
+    See the GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to:
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to:
 
-		Free Software Foundation, Inc.
-		59 Temple Place - Suite 330
-		Boston, MA  02111-1307, USA
+        Free Software Foundation, Inc.
+        59 Temple Place - Suite 330
+        Boston, MA  02111-1307, USA
 */
 
 #ifndef FS_H
@@ -86,8 +86,8 @@ const char *FS_CheckGameDir(const char *gamedir); // returns NULL if nasty, fs_c
 
 typedef struct
 {
-	char name[MAX_OSPATH];
-	char description[8192];
+    char name[MAX_OSPATH];
+    char description[8192];
 }
 gamedir_t;
 extern gamedir_t *fs_all_gamedirs; // terminated by entry with empty name
@@ -100,10 +100,10 @@ void FS_Rescan(void);
 
 typedef struct fssearch_s
 {
-	int numfilenames;
-	char **filenames;
-	// array of filenames
-	char *filenamesbuffer;
+    int numfilenames;
+    char **filenames;
+    // array of filenames
+    char *filenamesbuffer;
 }
 fssearch_t;
 
@@ -124,11 +124,11 @@ void FS_DefaultExtension (char *path, const char *extension, size_t size_path);
 #define FS_FILETYPE_NONE 0
 #define FS_FILETYPE_FILE 1
 #define FS_FILETYPE_DIRECTORY 2
-int FS_FileType (const char *filename);		// the file can be into a package
-int FS_SysFileType (const char *filename);		// only look for files outside of packages
+int FS_FileType (const char *filename);        // the file can be into a package
+int FS_SysFileType (const char *filename);        // only look for files outside of packages
 
-qboolean FS_FileExists (const char *filename);		// the file can be into a package
-qboolean FS_SysFileExists (const char *filename);	// only look for files outside of packages
+qboolean FS_FileExists (const char *filename);        // the file can be into a package
+qboolean FS_SysFileExists (const char *filename);    // only look for files outside of packages
 
 unsigned char *FS_Deflate(const unsigned char *data, size_t size, size_t *deflated_size, int level, mempool_t *mempool);
 unsigned char *FS_Inflate(const unsigned char *data, size_t size, size_t *inflated_size, mempool_t *mempool);

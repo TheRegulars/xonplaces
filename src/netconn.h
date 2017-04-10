@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "lhnet.h"
 
-#define NET_HEADERSIZE		(2 * sizeof(unsigned int))
+#define NET_HEADERSIZE        (2 * sizeof(unsigned int))
 
 // NetHeader flags
 #define NETFLAG_LENGTH_MASK 0x0000ffff
@@ -39,7 +39,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define NETFLAG_CTL         0x80000000
 
 
-#define NET_PROTOCOL_VERSION	3
+#define NET_PROTOCOL_VERSION    3
 #define NET_EXTRESPONSE_MAX 16
 
 /// \page netconn The network info/connection protocol.
@@ -49,193 +49,193 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 ///
 ///
 /// General notes:\code
-///	game_name is currently always "QUAKE", but is there so this same protocol
-///		can be used for future games as well; can you say Quake2?
+///    game_name is currently always "QUAKE", but is there so this same protocol
+///        can be used for future games as well; can you say Quake2?
 ///
 /// CCREQ_CONNECT
-///		string	game_name				"QUAKE"
-///		byte	net_protocol_version	NET_PROTOCOL_VERSION
+///        string    game_name                "QUAKE"
+///        byte    net_protocol_version    NET_PROTOCOL_VERSION
 ///
 /// CCREQ_SERVER_INFO
-///		string	game_name				"QUAKE"
-///		byte	net_protocol_version	NET_PROTOCOL_VERSION
+///        string    game_name                "QUAKE"
+///        byte    net_protocol_version    NET_PROTOCOL_VERSION
 ///
 /// CCREQ_PLAYER_INFO
-///		byte	player_number
+///        byte    player_number
 ///
 /// CCREQ_RULE_INFO
-///		string	rule
+///        string    rule
 ///
 /// CCREQ_RCON
-///		string	password
-///		string	command
+///        string    password
+///        string    command
 ///
 ///
 ///
 /// CCREP_ACCEPT
-///		long	port
+///        long    port
 ///
 /// CCREP_REJECT
-///		string	reason
+///        string    reason
 ///
 /// CCREP_SERVER_INFO
-///		string	server_address
-///		string	host_name
-///		string	level_name
-///		byte	current_players
-///		byte	max_players
-///		byte	protocol_version	NET_PROTOCOL_VERSION
+///        string    server_address
+///        string    host_name
+///        string    level_name
+///        byte    current_players
+///        byte    max_players
+///        byte    protocol_version    NET_PROTOCOL_VERSION
 ///
 /// CCREP_PLAYER_INFO
-///		byte	player_number
-///		string	name
-///		long	colors
-///		long	frags
-///		long	connect_time
-///		string	address
+///        byte    player_number
+///        string    name
+///        long    colors
+///        long    frags
+///        long    connect_time
+///        string    address
 ///
 /// CCREP_RULE_INFO
-///		string	rule
-///		string	value
+///        string    rule
+///        string    value
 ///
 /// CCREP_RCON
-///		string	reply
+///        string    reply
 /// \endcode
-///	\note
-///		There are two address forms used above.  The short form is just a
-///		port number.  The address that goes along with the port is defined as
-///		"whatever address you receive this reponse from".  This lets us use
-///		the host OS to solve the problem of multiple host addresses (possibly
-///		with no routing between them); the host will use the right address
-///		when we reply to the inbound connection request.  The long from is
-///		a full address and port in a string.  It is used for returning the
-///		address of a server that is not running locally.
+///    \note
+///        There are two address forms used above.  The short form is just a
+///        port number.  The address that goes along with the port is defined as
+///        "whatever address you receive this reponse from".  This lets us use
+///        the host OS to solve the problem of multiple host addresses (possibly
+///        with no routing between them); the host will use the right address
+///        when we reply to the inbound connection request.  The long from is
+///        a full address and port in a string.  It is used for returning the
+///        address of a server that is not running locally.
 
-#define CCREQ_CONNECT		0x01
-#define CCREQ_SERVER_INFO	0x02
-#define CCREQ_PLAYER_INFO	0x03
-#define CCREQ_RULE_INFO		0x04
-#define CCREQ_RCON		0x05 // RocketGuy: ProQuake rcon support
+#define CCREQ_CONNECT        0x01
+#define CCREQ_SERVER_INFO    0x02
+#define CCREQ_PLAYER_INFO    0x03
+#define CCREQ_RULE_INFO        0x04
+#define CCREQ_RCON        0x05 // RocketGuy: ProQuake rcon support
 
-#define CCREP_ACCEPT		0x81
-#define CCREP_REJECT		0x82
-#define CCREP_SERVER_INFO	0x83
-#define CCREP_PLAYER_INFO	0x84
-#define CCREP_RULE_INFO		0x85
-#define CCREP_RCON		0x86 // RocketGuy: ProQuake rcon support
+#define CCREP_ACCEPT        0x81
+#define CCREP_REJECT        0x82
+#define CCREP_SERVER_INFO    0x83
+#define CCREP_PLAYER_INFO    0x84
+#define CCREP_RULE_INFO        0x85
+#define CCREP_RCON        0x86 // RocketGuy: ProQuake rcon support
 
 typedef struct netgraphitem_s
 {
-	double time;
-	int reliablebytes;
-	int unreliablebytes;
-	int ackbytes;
-	double cleartime;
+    double time;
+    int reliablebytes;
+    int unreliablebytes;
+    int ackbytes;
+    double cleartime;
 }
 netgraphitem_t;
 
 typedef struct netconn_s
 {
-	struct netconn_s *next;
+    struct netconn_s *next;
 
-	lhnetsocket_t *mysocket;
-	lhnetaddress_t peeraddress;
+    lhnetsocket_t *mysocket;
+    lhnetaddress_t peeraddress;
 
-	// this is mostly identical to qsocket_t from quake
+    // this is mostly identical to qsocket_t from quake
 
-	/// if this time is reached, kick off peer
-	double connecttime;
-	double timeout;
-	double lastMessageTime;
-	double lastSendTime;
+    /// if this time is reached, kick off peer
+    double connecttime;
+    double timeout;
+    double lastMessageTime;
+    double lastSendTime;
 
-	/// writing buffer to send to peer as the next reliable message
-	/// can be added to at any time, copied into sendMessage buffer when it is
-	/// possible to send a reliable message and then cleared
-	/// @{
-	sizebuf_t message;
-	unsigned char messagedata[NET_MAXMESSAGE];
-	/// @}
+    /// writing buffer to send to peer as the next reliable message
+    /// can be added to at any time, copied into sendMessage buffer when it is
+    /// possible to send a reliable message and then cleared
+    /// @{
+    sizebuf_t message;
+    unsigned char messagedata[NET_MAXMESSAGE];
+    /// @}
 
-	/// reliable message that is currently sending
-	/// (for building fragments)
-	int sendMessageLength;
-	unsigned char sendMessage[NET_MAXMESSAGE];
+    /// reliable message that is currently sending
+    /// (for building fragments)
+    int sendMessageLength;
+    unsigned char sendMessage[NET_MAXMESSAGE];
 
-	/// reliable message that is currently being received
-	/// (for putting together fragments)
-	int receiveMessageLength;
-	unsigned char receiveMessage[NET_MAXMESSAGE];
+    /// reliable message that is currently being received
+    /// (for putting together fragments)
+    int receiveMessageLength;
+    unsigned char receiveMessage[NET_MAXMESSAGE];
 
-	/// used by both NQ and QW protocols
-	unsigned int outgoing_unreliable_sequence;
+    /// used by both NQ and QW protocols
+    unsigned int outgoing_unreliable_sequence;
 
-	struct netconn_nq_s
-	{
-		unsigned int ackSequence;
-		unsigned int sendSequence;
+    struct netconn_nq_s
+    {
+        unsigned int ackSequence;
+        unsigned int sendSequence;
 
-		unsigned int receiveSequence;
-		unsigned int unreliableReceiveSequence;
-	}
-	nq;
-	struct netconn_qw_s
-	{
-		// QW protocol
-		qboolean	fatal_error;
+        unsigned int receiveSequence;
+        unsigned int unreliableReceiveSequence;
+    }
+    nq;
+    struct netconn_qw_s
+    {
+        // QW protocol
+        qboolean    fatal_error;
 
-		float		last_received;		// for timeouts
+        float        last_received;        // for timeouts
 
-	// the statistics are cleared at each client begin, because
-	// the server connecting process gives a bogus picture of the data
-		float		frame_latency;		// rolling average
-		float		frame_rate;
+    // the statistics are cleared at each client begin, because
+    // the server connecting process gives a bogus picture of the data
+        float        frame_latency;        // rolling average
+        float        frame_rate;
 
-		int			drop_count;			///< dropped packets, cleared each level
-		int			good_count;			///< cleared each level
+        int            drop_count;            ///< dropped packets, cleared each level
+        int            good_count;            ///< cleared each level
 
-		int			qport;
+        int            qport;
 
-	// sequencing variables
-		unsigned int		incoming_sequence;
-		unsigned int		incoming_acknowledged;
-		qboolean		incoming_reliable_acknowledged;	///< single bit
+    // sequencing variables
+        unsigned int        incoming_sequence;
+        unsigned int        incoming_acknowledged;
+        qboolean        incoming_reliable_acknowledged;    ///< single bit
 
-		qboolean		incoming_reliable_sequence;		///< single bit, maintained local
+        qboolean        incoming_reliable_sequence;        ///< single bit, maintained local
 
-		qboolean		reliable_sequence;			///< single bit
-		unsigned int		last_reliable_sequence;		///< sequence number of last send
-	}
-	qw;
+        qboolean        reliable_sequence;            ///< single bit
+        unsigned int        last_reliable_sequence;        ///< sequence number of last send
+    }
+    qw;
 
-	// bandwidth estimator
-	double		cleartime;			// if realtime > nc->cleartime, free to go
-	double		incoming_cleartime;		// if realtime > nc->cleartime, free to go (netgraph cleartime simulation only)
+    // bandwidth estimator
+    double        cleartime;            // if realtime > nc->cleartime, free to go
+    double        incoming_cleartime;        // if realtime > nc->cleartime, free to go (netgraph cleartime simulation only)
 
-	// this tracks packet loss and packet sizes on the most recent packets
-	// used by shownetgraph feature
+    // this tracks packet loss and packet sizes on the most recent packets
+    // used by shownetgraph feature
 #define NETGRAPH_PACKETS 256
 #define NETGRAPH_NOPACKET 0
 #define NETGRAPH_LOSTPACKET -1
 #define NETGRAPH_CHOKEDPACKET -2
-	int incoming_packetcounter;
-	netgraphitem_t incoming_netgraph[NETGRAPH_PACKETS];
-	int outgoing_packetcounter;
-	netgraphitem_t outgoing_netgraph[NETGRAPH_PACKETS];
+    int incoming_packetcounter;
+    netgraphitem_t incoming_netgraph[NETGRAPH_PACKETS];
+    int outgoing_packetcounter;
+    netgraphitem_t outgoing_netgraph[NETGRAPH_PACKETS];
 
-	char address[128];
-	crypto_t crypto;
+    char address[128];
+    crypto_t crypto;
 
-	// statistic counters
-	int packetsSent;
-	int packetsReSent;
-	int packetsReceived;
-	int receivedDuplicateCount;
-	int droppedDatagrams;
-	int unreliableMessagesSent;
-	int unreliableMessagesReceived;
-	int reliableMessagesSent;
-	int reliableMessagesReceived;
+    // statistic counters
+    int packetsSent;
+    int packetsReSent;
+    int packetsReceived;
+    int receivedDuplicateCount;
+    int droppedDatagrams;
+    int unreliableMessagesSent;
+    int unreliableMessagesReceived;
+    int reliableMessagesSent;
+    int reliableMessagesReceived;
 } netconn_t;
 
 extern netconn_t *netconn_list;
@@ -245,127 +245,127 @@ extern cvar_t hostname;
 extern cvar_t developer_networking;
 
 #ifdef CONFIG_MENU
-#define SERVERLIST_VIEWLISTSIZE		SERVERLIST_TOTALSIZE
+#define SERVERLIST_VIEWLISTSIZE        SERVERLIST_TOTALSIZE
 
 typedef enum serverlist_maskop_e
 {
-	// SLMO_CONTAINS is the default for strings
-	// SLMO_GREATEREQUAL is the default for numbers (also used when OP == CONTAINS or NOTCONTAINS
-	SLMO_CONTAINS,
-	SLMO_NOTCONTAIN,
+    // SLMO_CONTAINS is the default for strings
+    // SLMO_GREATEREQUAL is the default for numbers (also used when OP == CONTAINS or NOTCONTAINS
+    SLMO_CONTAINS,
+    SLMO_NOTCONTAIN,
 
-	SLMO_LESSEQUAL,
-	SLMO_LESS,
-	SLMO_EQUAL,
-	SLMO_GREATER,
-	SLMO_GREATEREQUAL,
-	SLMO_NOTEQUAL,
-	SLMO_STARTSWITH,
-	SLMO_NOTSTARTSWITH
+    SLMO_LESSEQUAL,
+    SLMO_LESS,
+    SLMO_EQUAL,
+    SLMO_GREATER,
+    SLMO_GREATEREQUAL,
+    SLMO_NOTEQUAL,
+    SLMO_STARTSWITH,
+    SLMO_NOTSTARTSWITH
 } serverlist_maskop_t;
 
 /// struct with all fields that you can search for or sort by
 typedef struct serverlist_info_s
 {
-	/// address for connecting
-	char cname[128];
-	/// ping time for sorting servers
-	int ping;
-	/// name of the game
-	char game[32];
-	/// name of the mod
-	char mod[32];
-	/// name of the map
-	char map[32];
-	/// name of the session
-	char name[128];
-	/// qc-defined short status string
-	char qcstatus[128];
-	/// frags/ping/name list (if they fit in the packet)
-	char players[1400];
-	/// max client number
-	int maxplayers;
-	/// number of currently connected players (including bots)
-	int numplayers;
-	/// number of currently connected players that are bots
-	int numbots;
-	/// number of currently connected players that are not bots
-	int numhumans;
-	/// number of free slots
-	int freeslots;
-	/// protocol version
-	int protocol;
-	/// game data version
-	/// (an integer that is used for filtering incompatible servers,
-	///  not filterable by QC)
-	int gameversion;
+    /// address for connecting
+    char cname[128];
+    /// ping time for sorting servers
+    int ping;
+    /// name of the game
+    char game[32];
+    /// name of the mod
+    char mod[32];
+    /// name of the map
+    char map[32];
+    /// name of the session
+    char name[128];
+    /// qc-defined short status string
+    char qcstatus[128];
+    /// frags/ping/name list (if they fit in the packet)
+    char players[1400];
+    /// max client number
+    int maxplayers;
+    /// number of currently connected players (including bots)
+    int numplayers;
+    /// number of currently connected players that are bots
+    int numbots;
+    /// number of currently connected players that are not bots
+    int numhumans;
+    /// number of free slots
+    int freeslots;
+    /// protocol version
+    int protocol;
+    /// game data version
+    /// (an integer that is used for filtering incompatible servers,
+    ///  not filterable by QC)
+    int gameversion;
 
-	// categorized sorting
-	int category;
-	/// favorite server flag
-	qboolean isfavorite;
+    // categorized sorting
+    int category;
+    /// favorite server flag
+    qboolean isfavorite;
 } serverlist_info_t;
 
 typedef enum
 {
-	SLIF_CNAME,
-	SLIF_PING,
-	SLIF_GAME,
-	SLIF_MOD,
-	SLIF_MAP,
-	SLIF_NAME,
-	SLIF_MAXPLAYERS,
-	SLIF_NUMPLAYERS,
-	SLIF_PROTOCOL,
-	SLIF_NUMBOTS,
-	SLIF_NUMHUMANS,
-	SLIF_FREESLOTS,
-	SLIF_QCSTATUS,
-	SLIF_PLAYERS,
-	SLIF_CATEGORY,
-	SLIF_ISFAVORITE,
-	SLIF_COUNT
+    SLIF_CNAME,
+    SLIF_PING,
+    SLIF_GAME,
+    SLIF_MOD,
+    SLIF_MAP,
+    SLIF_NAME,
+    SLIF_MAXPLAYERS,
+    SLIF_NUMPLAYERS,
+    SLIF_PROTOCOL,
+    SLIF_NUMBOTS,
+    SLIF_NUMHUMANS,
+    SLIF_FREESLOTS,
+    SLIF_QCSTATUS,
+    SLIF_PLAYERS,
+    SLIF_CATEGORY,
+    SLIF_ISFAVORITE,
+    SLIF_COUNT
 } serverlist_infofield_t;
 
 typedef enum
 {
-	SLSF_DESCENDING = 1,
-	SLSF_FAVORITES = 2,
-	SLSF_CATEGORIES = 4
+    SLSF_DESCENDING = 1,
+    SLSF_FAVORITES = 2,
+    SLSF_CATEGORIES = 4
 } serverlist_sortflags_t;
 
 typedef enum
 {
-	SQS_NONE = 0,
-	SQS_QUERYING,
-	SQS_QUERIED,
-	SQS_TIMEDOUT,
-	SQS_REFRESHING
+    SQS_NONE = 0,
+    SQS_QUERYING,
+    SQS_QUERIED,
+    SQS_TIMEDOUT,
+    SQS_REFRESHING
 } serverlist_query_state;
 
 typedef struct serverlist_entry_s
 {
-	/// used to determine whether this entry should be included into the final view
-	serverlist_query_state query;
-	/// used to count the number of times the host has tried to query this server already
-	unsigned querycounter;
-	/// used to calculate ping when update comes in
-	double querytime;
-	/// query protocol to use on this server, may be PROTOCOL_QUAKEWORLD or PROTOCOL_DARKPLACES7
-	int protocol;
+    /// used to determine whether this entry should be included into the final view
+    serverlist_query_state query;
+    /// used to count the number of times the host has tried to query this server already
+    unsigned querycounter;
+    /// used to calculate ping when update comes in
+    double querytime;
+    /// query protocol to use on this server, may be PROTOCOL_QUAKEWORLD or PROTOCOL_DARKPLACES7
+    int protocol;
 
-	serverlist_info_t info;
+    serverlist_info_t info;
 
-	// legacy stuff
-	char line1[128];
-	char line2[128];
+    // legacy stuff
+    char line1[128];
+    char line2[128];
 } serverlist_entry_t;
 
 typedef struct serverlist_mask_s
 {
-	qboolean			active;
-	serverlist_maskop_t  tests[SLIF_COUNT];
-	serverlist_info_t info;
+    qboolean            active;
+    serverlist_maskop_t  tests[SLIF_COUNT];
+    serverlist_info_t info;
 } serverlist_mask_t;
 
 #define ServerList_GetCacheEntry(x) (&serverlist_cache[(x)])
@@ -475,9 +475,9 @@ void NetConn_UpdateFavorites(void);
 #define MAX_CHALLENGES 128
 typedef struct challenge_s
 {
-	lhnetaddress_t address;
-	double time;
-	char string[12];
+    lhnetaddress_t address;
+    double time;
+    char string[12];
 }
 challenge_t;
 

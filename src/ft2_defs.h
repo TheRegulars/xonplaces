@@ -45,36 +45,36 @@ typedef struct FT_Slot_InternalRec_* FT_Slot_Internal;
 typedef signed long FT_Pos;
 typedef struct FT_Vector_
 {
-	FT_Pos x;
-	FT_Pos y;
+    FT_Pos x;
+    FT_Pos y;
 } FT_Vector;
 
 typedef struct  FT_BBox_
 {
-	FT_Pos  xMin, yMin;
-	FT_Pos  xMax, yMax;
+    FT_Pos  xMin, yMin;
+    FT_Pos  xMax, yMax;
 } FT_BBox;
 
 typedef enum  FT_Pixel_Mode_
 {
-	FT_PIXEL_MODE_NONE = 0,
-	FT_PIXEL_MODE_MONO,
-	FT_PIXEL_MODE_GRAY,
-	FT_PIXEL_MODE_GRAY2,
-	FT_PIXEL_MODE_GRAY4,
-	FT_PIXEL_MODE_LCD,
-	FT_PIXEL_MODE_LCD_V,
-	FT_PIXEL_MODE_MAX      /* do not remove */
+    FT_PIXEL_MODE_NONE = 0,
+    FT_PIXEL_MODE_MONO,
+    FT_PIXEL_MODE_GRAY,
+    FT_PIXEL_MODE_GRAY2,
+    FT_PIXEL_MODE_GRAY4,
+    FT_PIXEL_MODE_LCD,
+    FT_PIXEL_MODE_LCD_V,
+    FT_PIXEL_MODE_MAX      /* do not remove */
 } FT_Pixel_Mode;
 typedef enum  FT_Render_Mode_
 {
-	FT_RENDER_MODE_NORMAL = 0,
-	FT_RENDER_MODE_LIGHT,
-	FT_RENDER_MODE_MONO,
-	FT_RENDER_MODE_LCD,
-	FT_RENDER_MODE_LCD_V,
+    FT_RENDER_MODE_NORMAL = 0,
+    FT_RENDER_MODE_LIGHT,
+    FT_RENDER_MODE_MONO,
+    FT_RENDER_MODE_LCD,
+    FT_RENDER_MODE_LCD_V,
 
-	FT_RENDER_MODE_MAX
+    FT_RENDER_MODE_MAX
 } FT_Render_Mode;
 
 #define ft_pixel_mode_none   FT_PIXEL_MODE_NONE
@@ -85,26 +85,26 @@ typedef enum  FT_Render_Mode_
 
 typedef struct  FT_Bitmap_
 {
-	int             rows;
-	int             width;
-	int             pitch;
-	unsigned char*  buffer;
-	short           num_grays;
-	char            pixel_mode;
-	char            palette_mode;
-	void*           palette;
+    int             rows;
+    int             width;
+    int             pitch;
+    unsigned char*  buffer;
+    short           num_grays;
+    char            pixel_mode;
+    char            palette_mode;
+    void*           palette;
 } FT_Bitmap;
 
 typedef struct  FT_Outline_
 {
-	short       n_contours;      /* number of contours in glyph        */
-	short       n_points;        /* number of points in the glyph      */
+    short       n_contours;      /* number of contours in glyph        */
+    short       n_points;        /* number of points in the glyph      */
 
-	FT_Vector*  points;          /* the outline's points               */
-	char*       tags;            /* the points flags                   */
-	short*      contours;        /* the contour end points             */
+    FT_Vector*  points;          /* the outline's points               */
+    char*       tags;            /* the points flags                   */
+    short*      contours;        /* the contour end points             */
 
-	int         flags;           /* outline masks                      */
+    int         flags;           /* outline masks                      */
 } FT_Outline;
 
 #define FT_OUTLINE_NONE             0x0
@@ -146,36 +146,36 @@ typedef struct  FT_Outline_
 
 typedef int
 (*FT_Outline_MoveToFunc)( const FT_Vector*  to,
-			  void*             user );
+              void*             user );
 #define FT_Outline_MoveTo_Func  FT_Outline_MoveToFunc
 
 typedef int
 (*FT_Outline_LineToFunc)( const FT_Vector*  to,
-			  void*             user );
+              void*             user );
 #define FT_Outline_LineTo_Func  FT_Outline_LineToFunc
 
 typedef int
 (*FT_Outline_ConicToFunc)( const FT_Vector*  control,
-			   const FT_Vector*  to,
-			   void*             user );
+               const FT_Vector*  to,
+               void*             user );
 #define FT_Outline_ConicTo_Func  FT_Outline_ConicToFunc
 
 typedef int
 (*FT_Outline_CubicToFunc)( const FT_Vector*  control1,
-			   const FT_Vector*  control2,
-			   const FT_Vector*  to,
-			   void*             user );
+               const FT_Vector*  control2,
+               const FT_Vector*  to,
+               void*             user );
 #define FT_Outline_CubicTo_Func  FT_Outline_CubicToFunc
 
 typedef struct  FT_Outline_Funcs_
 {
-	FT_Outline_MoveToFunc   move_to;
-	FT_Outline_LineToFunc   line_to;
-	FT_Outline_ConicToFunc  conic_to;
-	FT_Outline_CubicToFunc  cubic_to;
+    FT_Outline_MoveToFunc   move_to;
+    FT_Outline_LineToFunc   line_to;
+    FT_Outline_ConicToFunc  conic_to;
+    FT_Outline_CubicToFunc  cubic_to;
 
-	int                     shift;
-	FT_Pos                  delta;
+    int                     shift;
+    FT_Pos                  delta;
 } FT_Outline_Funcs;
 
 #ifndef FT_IMAGE_TAG
@@ -188,12 +188,12 @@ typedef struct  FT_Outline_Funcs_
 
 typedef enum  FT_Glyph_Format_
 {
-	FT_IMAGE_TAG( FT_GLYPH_FORMAT_NONE, 0, 0, 0, 0 ),
+    FT_IMAGE_TAG( FT_GLYPH_FORMAT_NONE, 0, 0, 0, 0 ),
 
-	FT_IMAGE_TAG( FT_GLYPH_FORMAT_COMPOSITE, 'c', 'o', 'm', 'p' ),
-	FT_IMAGE_TAG( FT_GLYPH_FORMAT_BITMAP,    'b', 'i', 't', 's' ),
-	FT_IMAGE_TAG( FT_GLYPH_FORMAT_OUTLINE,   'o', 'u', 't', 'l' ),
-	FT_IMAGE_TAG( FT_GLYPH_FORMAT_PLOTTER,   'p', 'l', 'o', 't' )
+    FT_IMAGE_TAG( FT_GLYPH_FORMAT_COMPOSITE, 'c', 'o', 'm', 'p' ),
+    FT_IMAGE_TAG( FT_GLYPH_FORMAT_BITMAP,    'b', 'i', 't', 's' ),
+    FT_IMAGE_TAG( FT_GLYPH_FORMAT_OUTLINE,   'o', 'u', 't', 'l' ),
+    FT_IMAGE_TAG( FT_GLYPH_FORMAT_PLOTTER,   'p', 'l', 'o', 't' )
 } FT_Glyph_Format;
 #define ft_glyph_format_none       FT_GLYPH_FORMAT_NONE
 #define ft_glyph_format_composite  FT_GLYPH_FORMAT_COMPOSITE
@@ -203,16 +203,16 @@ typedef enum  FT_Glyph_Format_
 
 typedef struct  FT_Glyph_Metrics_
 {
-	FT_Pos  width;
-	FT_Pos  height;
+    FT_Pos  width;
+    FT_Pos  height;
 
-	FT_Pos  horiBearingX;
-	FT_Pos  horiBearingY;
-	FT_Pos  horiAdvance;
+    FT_Pos  horiBearingX;
+    FT_Pos  horiBearingY;
+    FT_Pos  horiAdvance;
 
-	FT_Pos  vertBearingX;
-	FT_Pos  vertBearingY;
-	FT_Pos  vertAdvance;
+    FT_Pos  vertBearingX;
+    FT_Pos  vertBearingY;
+    FT_Pos  vertAdvance;
 } FT_Glyph_Metrics;
 
 #define FT_EXPORT( x )  x
@@ -225,39 +225,39 @@ typedef struct  FT_Glyph_Metrics_
 
 typedef struct  FT_Parameter_
 {
-	FT_ULong    tag;
-	FT_Pointer  data;
+    FT_ULong    tag;
+    FT_Pointer  data;
 } FT_Parameter;
 
 typedef struct  FT_Open_Args_
 {
-	FT_UInt         flags;
-	const FT_Byte*  memory_base;
-	FT_Long         memory_size;
-	FT_String*      pathname;
-	FT_Stream       stream;
-	FT_Module       driver;
-	FT_Int          num_params;
-	FT_Parameter*   params;
+    FT_UInt         flags;
+    const FT_Byte*  memory_base;
+    FT_Long         memory_size;
+    FT_String*      pathname;
+    FT_Stream       stream;
+    FT_Module       driver;
+    FT_Int          num_params;
+    FT_Parameter*   params;
 } FT_Open_Args;
 typedef enum  FT_Size_Request_Type_
 {
-	FT_SIZE_REQUEST_TYPE_NOMINAL,
-	FT_SIZE_REQUEST_TYPE_REAL_DIM,
-	FT_SIZE_REQUEST_TYPE_BBOX,
-	FT_SIZE_REQUEST_TYPE_CELL,
-	FT_SIZE_REQUEST_TYPE_SCALES,
+    FT_SIZE_REQUEST_TYPE_NOMINAL,
+    FT_SIZE_REQUEST_TYPE_REAL_DIM,
+    FT_SIZE_REQUEST_TYPE_BBOX,
+    FT_SIZE_REQUEST_TYPE_CELL,
+    FT_SIZE_REQUEST_TYPE_SCALES,
 
-	FT_SIZE_REQUEST_TYPE_MAX
+    FT_SIZE_REQUEST_TYPE_MAX
 
 } FT_Size_Request_Type;
 typedef struct  FT_Size_RequestRec_
 {
-	FT_Size_Request_Type  type;
-	FT_Long               width;
-	FT_Long               height;
-	FT_UInt               horiResolution;
-	FT_UInt               vertResolution;
+    FT_Size_Request_Type  type;
+    FT_Long               width;
+    FT_Long               height;
+    FT_UInt               horiResolution;
+    FT_UInt               vertResolution;
 } FT_Size_RequestRec;
 typedef struct FT_Size_RequestRec_  *FT_Size_Request;
 
@@ -285,40 +285,40 @@ typedef struct FT_Size_RequestRec_  *FT_Size_Request;
 #define FT_LOAD_TARGET_LCD     FT_LOAD_TARGET_( FT_RENDER_MODE_LCD    )
 #define FT_LOAD_TARGET_LCD_V   FT_LOAD_TARGET_( FT_RENDER_MODE_LCD_V  )
 
-#define FT_ENC_TAG( value, a, b, c, d )	      \
-	value = ( ( (FT_UInt32)(a) << 24 ) |			  \
-		  ( (FT_UInt32)(b) << 16 ) |				\
-		  ( (FT_UInt32)(c) <<  8 ) |				\
-		  (FT_UInt32)(d)         )
+#define FT_ENC_TAG( value, a, b, c, d )          \
+    value = ( ( (FT_UInt32)(a) << 24 ) |              \
+          ( (FT_UInt32)(b) << 16 ) |                \
+          ( (FT_UInt32)(c) <<  8 ) |                \
+          (FT_UInt32)(d)         )
 
 typedef enum  FT_Encoding_
 {
-	FT_ENC_TAG( FT_ENCODING_NONE, 0, 0, 0, 0 ),
+    FT_ENC_TAG( FT_ENCODING_NONE, 0, 0, 0, 0 ),
 
-	FT_ENC_TAG( FT_ENCODING_MS_SYMBOL, 's', 'y', 'm', 'b' ),
-	FT_ENC_TAG( FT_ENCODING_UNICODE,   'u', 'n', 'i', 'c' ),
+    FT_ENC_TAG( FT_ENCODING_MS_SYMBOL, 's', 'y', 'm', 'b' ),
+    FT_ENC_TAG( FT_ENCODING_UNICODE,   'u', 'n', 'i', 'c' ),
 
-	FT_ENC_TAG( FT_ENCODING_SJIS,    's', 'j', 'i', 's' ),
-	FT_ENC_TAG( FT_ENCODING_GB2312,  'g', 'b', ' ', ' ' ),
-	FT_ENC_TAG( FT_ENCODING_BIG5,    'b', 'i', 'g', '5' ),
-	FT_ENC_TAG( FT_ENCODING_WANSUNG, 'w', 'a', 'n', 's' ),
-	FT_ENC_TAG( FT_ENCODING_JOHAB,   'j', 'o', 'h', 'a' ),
+    FT_ENC_TAG( FT_ENCODING_SJIS,    's', 'j', 'i', 's' ),
+    FT_ENC_TAG( FT_ENCODING_GB2312,  'g', 'b', ' ', ' ' ),
+    FT_ENC_TAG( FT_ENCODING_BIG5,    'b', 'i', 'g', '5' ),
+    FT_ENC_TAG( FT_ENCODING_WANSUNG, 'w', 'a', 'n', 's' ),
+    FT_ENC_TAG( FT_ENCODING_JOHAB,   'j', 'o', 'h', 'a' ),
 
-	/* for backwards compatibility */
-	FT_ENCODING_MS_SJIS    = FT_ENCODING_SJIS,
-	FT_ENCODING_MS_GB2312  = FT_ENCODING_GB2312,
-	FT_ENCODING_MS_BIG5    = FT_ENCODING_BIG5,
-	FT_ENCODING_MS_WANSUNG = FT_ENCODING_WANSUNG,
-	FT_ENCODING_MS_JOHAB   = FT_ENCODING_JOHAB,
+    /* for backwards compatibility */
+    FT_ENCODING_MS_SJIS    = FT_ENCODING_SJIS,
+    FT_ENCODING_MS_GB2312  = FT_ENCODING_GB2312,
+    FT_ENCODING_MS_BIG5    = FT_ENCODING_BIG5,
+    FT_ENCODING_MS_WANSUNG = FT_ENCODING_WANSUNG,
+    FT_ENCODING_MS_JOHAB   = FT_ENCODING_JOHAB,
 
-	FT_ENC_TAG( FT_ENCODING_ADOBE_STANDARD, 'A', 'D', 'O', 'B' ),
-	FT_ENC_TAG( FT_ENCODING_ADOBE_EXPERT,   'A', 'D', 'B', 'E' ),
-	FT_ENC_TAG( FT_ENCODING_ADOBE_CUSTOM,   'A', 'D', 'B', 'C' ),
-	FT_ENC_TAG( FT_ENCODING_ADOBE_LATIN_1,  'l', 'a', 't', '1' ),
+    FT_ENC_TAG( FT_ENCODING_ADOBE_STANDARD, 'A', 'D', 'O', 'B' ),
+    FT_ENC_TAG( FT_ENCODING_ADOBE_EXPERT,   'A', 'D', 'B', 'E' ),
+    FT_ENC_TAG( FT_ENCODING_ADOBE_CUSTOM,   'A', 'D', 'B', 'C' ),
+    FT_ENC_TAG( FT_ENCODING_ADOBE_LATIN_1,  'l', 'a', 't', '1' ),
 
-	FT_ENC_TAG( FT_ENCODING_OLD_LATIN_2, 'l', 'a', 't', '2' ),
+    FT_ENC_TAG( FT_ENCODING_OLD_LATIN_2, 'l', 'a', 't', '2' ),
 
-	FT_ENC_TAG( FT_ENCODING_APPLE_ROMAN, 'a', 'r', 'm', 'n' )
+    FT_ENC_TAG( FT_ENCODING_APPLE_ROMAN, 'a', 'r', 'm', 'n' )
 } FT_Encoding;
 
 #define ft_encoding_none            FT_ENCODING_NONE
@@ -339,140 +339,140 @@ typedef enum  FT_Encoding_
 
 typedef struct  FT_Bitmap_Size_
 {
-	FT_Short  height;
-	FT_Short  width;
+    FT_Short  height;
+    FT_Short  width;
 
-	FT_Pos    size;
+    FT_Pos    size;
 
-	FT_Pos    x_ppem;
-	FT_Pos    y_ppem;
+    FT_Pos    x_ppem;
+    FT_Pos    y_ppem;
 } FT_Bitmap_Size;
 
 typedef struct  FT_CharMapRec_
 {
-	FT_Face      face;
-	FT_Encoding  encoding;
-	FT_UShort    platform_id;
-	FT_UShort    encoding_id;
+    FT_Face      face;
+    FT_Encoding  encoding;
+    FT_UShort    platform_id;
+    FT_UShort    encoding_id;
 } FT_CharMapRec;
 
 typedef void  (*FT_Generic_Finalizer)(void*  object);
 typedef struct  FT_Generic_
 {
-	void*                 data;
-	FT_Generic_Finalizer  finalizer;
+    void*                 data;
+    FT_Generic_Finalizer  finalizer;
 } FT_Generic;
 
 typedef struct  FT_Size_Metrics_
 {
-	FT_UShort  x_ppem;      /* horizontal pixels per EM               */
-	FT_UShort  y_ppem;      /* vertical pixels per EM                 */
+    FT_UShort  x_ppem;      /* horizontal pixels per EM               */
+    FT_UShort  y_ppem;      /* vertical pixels per EM                 */
 
-	FT_Fixed   x_scale;     /* scaling values used to convert font    */
-	FT_Fixed   y_scale;     /* units to 26.6 fractional pixels        */
+    FT_Fixed   x_scale;     /* scaling values used to convert font    */
+    FT_Fixed   y_scale;     /* units to 26.6 fractional pixels        */
 
-	FT_Pos     ascender;    /* ascender in 26.6 frac. pixels          */
-	FT_Pos     descender;   /* descender in 26.6 frac. pixels         */
-	FT_Pos     height;      /* text height in 26.6 frac. pixels       */
-	FT_Pos     max_advance; /* max horizontal advance, in 26.6 pixels */
+    FT_Pos     ascender;    /* ascender in 26.6 frac. pixels          */
+    FT_Pos     descender;   /* descender in 26.6 frac. pixels         */
+    FT_Pos     height;      /* text height in 26.6 frac. pixels       */
+    FT_Pos     max_advance; /* max horizontal advance, in 26.6 pixels */
 } FT_Size_Metrics;
 
 typedef struct  FT_SizeRec_
 {
-	FT_Face           face;      /* parent face object              */
-	FT_Generic        generic;   /* generic pointer for client uses */
-	FT_Size_Metrics   metrics;   /* size metrics                    */
-	FT_Size_Internal  internal;
+    FT_Face           face;      /* parent face object              */
+    FT_Generic        generic;   /* generic pointer for client uses */
+    FT_Size_Metrics   metrics;   /* size metrics                    */
+    FT_Size_Internal  internal;
 } FT_SizeRec;
 
 typedef struct  FT_FaceRec_
 {
-	FT_Long           num_faces;
-	FT_Long           face_index;
+    FT_Long           num_faces;
+    FT_Long           face_index;
 
-	FT_Long           face_flags;
-	FT_Long           style_flags;
+    FT_Long           face_flags;
+    FT_Long           style_flags;
 
-	FT_Long           num_glyphs;
+    FT_Long           num_glyphs;
 
-	FT_String*        family_name;
-	FT_String*        style_name;
+    FT_String*        family_name;
+    FT_String*        style_name;
 
-	FT_Int            num_fixed_sizes;
-	FT_Bitmap_Size*   available_sizes;
+    FT_Int            num_fixed_sizes;
+    FT_Bitmap_Size*   available_sizes;
 
-	FT_Int            num_charmaps;
-	FT_CharMap*       charmaps;
+    FT_Int            num_charmaps;
+    FT_CharMap*       charmaps;
 
-	FT_Generic        generic;
+    FT_Generic        generic;
 
-	/*# The following member variables (down to `underline_thickness') */
-	/*# are only relevant to scalable outlines; cf. @FT_Bitmap_Size    */
-	/*# for bitmap fonts.                                              */
-	FT_BBox           bbox;
+    /*# The following member variables (down to `underline_thickness') */
+    /*# are only relevant to scalable outlines; cf. @FT_Bitmap_Size    */
+    /*# for bitmap fonts.                                              */
+    FT_BBox           bbox;
 
-	FT_UShort         units_per_EM;
-	FT_Short          ascender;
-	FT_Short          descender;
-	FT_Short          height;
+    FT_UShort         units_per_EM;
+    FT_Short          ascender;
+    FT_Short          descender;
+    FT_Short          height;
 
-	FT_Short          max_advance_width;
-	FT_Short          max_advance_height;
+    FT_Short          max_advance_width;
+    FT_Short          max_advance_height;
 
-	FT_Short          underline_position;
-	FT_Short          underline_thickness;
+    FT_Short          underline_position;
+    FT_Short          underline_thickness;
 
-	FT_GlyphSlot      glyph;
-	FT_Size           size;
-	FT_CharMap        charmap;
+    FT_GlyphSlot      glyph;
+    FT_Size           size;
+    FT_CharMap        charmap;
 
-	/* ft2 private
-	FT_Driver         driver;
-	FT_Memory         memory;
-	FT_Stream         stream;
+    /* ft2 private
+    FT_Driver         driver;
+    FT_Memory         memory;
+    FT_Stream         stream;
 
-	FT_ListRec        sizes_list;
+    FT_ListRec        sizes_list;
 
-	FT_Generic        autohint;
-	void*             extensions;
+    FT_Generic        autohint;
+    void*             extensions;
 
-	FT_Face_Internal  internal;
-	*/
+    FT_Face_Internal  internal;
+    */
 } FT_FaceRec;
 
 typedef struct  FT_GlyphSlotRec_
 {
-	FT_Library        library;
-	FT_Face           face;
-	FT_GlyphSlot      next;
-	FT_UInt           reserved;       /* retained for binary compatibility */
-	FT_Generic        generic;
+    FT_Library        library;
+    FT_Face           face;
+    FT_GlyphSlot      next;
+    FT_UInt           reserved;       /* retained for binary compatibility */
+    FT_Generic        generic;
 
-	FT_Glyph_Metrics  metrics;
-	FT_Fixed          linearHoriAdvance;
-	FT_Fixed          linearVertAdvance;
-	FT_Vector         advance;
+    FT_Glyph_Metrics  metrics;
+    FT_Fixed          linearHoriAdvance;
+    FT_Fixed          linearVertAdvance;
+    FT_Vector         advance;
 
-	FT_Glyph_Format   format;
+    FT_Glyph_Format   format;
 
-	FT_Bitmap         bitmap;
-	FT_Int            bitmap_left;
-	FT_Int            bitmap_top;
+    FT_Bitmap         bitmap;
+    FT_Int            bitmap_left;
+    FT_Int            bitmap_top;
 
-	FT_Outline        outline;
+    FT_Outline        outline;
 
-	FT_UInt           num_subglyphs;
-	FT_SubGlyph       subglyphs;
+    FT_UInt           num_subglyphs;
+    FT_SubGlyph       subglyphs;
 
-	void*             control_data;
-	long              control_len;
+    void*             control_data;
+    long              control_len;
 
-	FT_Pos            lsb_delta;
-	FT_Pos            rsb_delta;
+    FT_Pos            lsb_delta;
+    FT_Pos            rsb_delta;
 
-	void*             other;
+    void*             other;
 
-	FT_Slot_Internal  internal;
+    FT_Slot_Internal  internal;
 } FT_GlyphSlotRec;
 
 #define FT_FACE_FLAG_SCALABLE          ( 1L <<  0 )
@@ -492,9 +492,9 @@ typedef struct  FT_GlyphSlotRec_
 
 typedef enum  FT_Kerning_Mode_
 {
-	FT_KERNING_DEFAULT  = 0,
-	FT_KERNING_UNFITTED,
-	FT_KERNING_UNSCALED
+    FT_KERNING_DEFAULT  = 0,
+    FT_KERNING_UNFITTED,
+    FT_KERNING_UNSCALED
 } FT_Kerning_Mode;
 
 #endif // FT2_DEFS_H_H__

@@ -3,10 +3,10 @@
 
 typedef void (*hashfunc_t) (unsigned char *out, const unsigned char *in, int n);
 qboolean hmac(
-	hashfunc_t hfunc, int hlen, int hblock,
-	unsigned char *out,
-	const unsigned char *in, int n,
-	const unsigned char *key, int k
+    hashfunc_t hfunc, int hlen, int hblock,
+    unsigned char *out,
+    const unsigned char *in, int n,
+    const unsigned char *key, int k
 );
 
 #define HMAC_MDFOUR_16BYTES(out, in, n, key, k) hmac(mdfour, 16, 64, out, in, n, key, k)

@@ -6,18 +6,18 @@
 
 typedef enum lhnetaddresstype_e
 {
-	LHNETADDRESSTYPE_NONE,
-	LHNETADDRESSTYPE_LOOP,
-	LHNETADDRESSTYPE_INET4,
-	LHNETADDRESSTYPE_INET6
+    LHNETADDRESSTYPE_NONE,
+    LHNETADDRESSTYPE_LOOP,
+    LHNETADDRESSTYPE_INET4,
+    LHNETADDRESSTYPE_INET6
 }
 lhnetaddresstype_t;
 
 typedef struct lhnetaddress_s
 {
-	lhnetaddresstype_t addresstype;
-	int port; // used by LHNETADDRESSTYPE_LOOP
-	unsigned char storage[256]; // sockaddr_in or sockaddr_in6
+    lhnetaddresstype_t addresstype;
+    int port; // used by LHNETADDRESSTYPE_LOOP
+    unsigned char storage[256]; // sockaddr_in or sockaddr_in6
 }
 lhnetaddress_t;
 
@@ -32,9 +32,9 @@ int LHNETADDRESS_Compare(const lhnetaddress_t *address1, const lhnetaddress_t *a
 
 typedef struct lhnetsocket_s
 {
-	lhnetaddress_t address;
-	int inetsocket;
-	struct lhnetsocket_s *next, *prev;
+    lhnetaddress_t address;
+    int inetsocket;
+    struct lhnetsocket_s *next, *prev;
 }
 lhnetsocket_t;
 

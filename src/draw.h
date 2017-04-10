@@ -27,38 +27,38 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // FIXME: move this stuff to cl_screen
 typedef struct cachepic_s
 {
-	// size of pic
-	int width, height;
-	// this flag indicates that it should be loaded and unloaded on demand
-	int autoload;
-	// texture flags to upload with
-	int texflags;
-	// texture may be freed after a while
-	int lastusedframe;
-	// renderer texture to use
-	rtexture_t *tex;
-	// used for hash lookups
-	struct cachepic_s *chain;
-	// flags - CACHEPICFLAG_NEWPIC for example
-	unsigned int flags;
-	// has alpha?
-	qboolean hasalpha;
-	// name of pic
-	char name[MAX_QPATH];
-	// allow to override/free the texture
-	qboolean allow_free_tex;
+    // size of pic
+    int width, height;
+    // this flag indicates that it should be loaded and unloaded on demand
+    int autoload;
+    // texture flags to upload with
+    int texflags;
+    // texture may be freed after a while
+    int lastusedframe;
+    // renderer texture to use
+    rtexture_t *tex;
+    // used for hash lookups
+    struct cachepic_s *chain;
+    // flags - CACHEPICFLAG_NEWPIC for example
+    unsigned int flags;
+    // has alpha?
+    qboolean hasalpha;
+    // name of pic
+    char name[MAX_QPATH];
+    // allow to override/free the texture
+    qboolean allow_free_tex;
 }
 cachepic_t;
 
 typedef enum cachepicflags_e
 {
-	CACHEPICFLAG_NOTPERSISTENT = 1,
-	CACHEPICFLAG_QUIET = 2,
-	CACHEPICFLAG_NOCOMPRESSION = 4,
-	CACHEPICFLAG_NOCLAMP = 8,
-	CACHEPICFLAG_NEWPIC = 16, // disables matching texflags check, because a pic created with Draw_NewPic should not be subject to that
-	CACHEPICFLAG_MIPMAP = 32,
-	CACHEPICFLAG_NEAREST = 64 // force nearest filtering instead of linear
+    CACHEPICFLAG_NOTPERSISTENT = 1,
+    CACHEPICFLAG_QUIET = 2,
+    CACHEPICFLAG_NOCOMPRESSION = 4,
+    CACHEPICFLAG_NOCLAMP = 8,
+    CACHEPICFLAG_NEWPIC = 16, // disables matching texflags check, because a pic created with Draw_NewPic should not be subject to that
+    CACHEPICFLAG_MIPMAP = 32,
+    CACHEPICFLAG_NEAREST = 64 // force nearest filtering instead of linear
 }
 cachepicflags_t;
 
@@ -77,14 +77,14 @@ void Draw_FreePic(const char *picname);
 // each color is 4 floats
 typedef struct drawqueuemesh_s
 {
-	rtexture_t *texture;
-	int num_triangles;
-	int num_vertices;
-	int *data_element3i;
-	unsigned short *data_element3s;
-	float *data_vertex3f;
-	float *data_texcoord2f;
-	float *data_color4f;
+    rtexture_t *texture;
+    int num_triangles;
+    int num_vertices;
+    int *data_element3i;
+    unsigned short *data_element3s;
+    float *data_vertex3f;
+    float *data_texcoord2f;
+    float *data_color4f;
 }
 drawqueuemesh_t;
 
@@ -103,36 +103,36 @@ DRAWFLAG_NOGAMMA = 0x200 // ONLY R_DrawQSuperPic()
 
 typedef struct ft2_settings_s
 {
-	float scale, voffset;
-	// cvar parameters (only read on loadfont command)
-	int antialias, hinting;
-	float outline, blur, shadowx, shadowy, shadowz;
+    float scale, voffset;
+    // cvar parameters (only read on loadfont command)
+    int antialias, hinting;
+    float outline, blur, shadowx, shadowy, shadowz;
 } ft2_settings_t;
 
 #define MAX_FONT_SIZES 16
 #define MAX_FONT_FALLBACKS 3
 typedef struct dp_font_s
 {
-	rtexture_t *tex;
-	float width_of[256]; // width_of[0] == max width of any char; 1.0f is base width (1/16 of texture width); therefore, all widths have to be <= 1 (does not include scale)
-	float maxwidth; // precalculated max width of the font (includes scale)
-	char texpath[MAX_QPATH];
-	char title[MAX_QPATH];
+    rtexture_t *tex;
+    float width_of[256]; // width_of[0] == max width of any char; 1.0f is base width (1/16 of texture width); therefore, all widths have to be <= 1 (does not include scale)
+    float maxwidth; // precalculated max width of the font (includes scale)
+    char texpath[MAX_QPATH];
+    char title[MAX_QPATH];
 
-	int req_face; // requested face index, usually 0
-	float req_sizes[MAX_FONT_SIZES]; // sizes to render the font with, 0 still defaults to 16 (backward compatibility when loadfont doesn't get a size parameter) and -1 = disabled
-	char fallbacks[MAX_FONT_FALLBACKS][MAX_QPATH];
-	int fallback_faces[MAX_FONT_FALLBACKS];
-	struct ft2_font_s *ft2;
+    int req_face; // requested face index, usually 0
+    float req_sizes[MAX_FONT_SIZES]; // sizes to render the font with, 0 still defaults to 16 (backward compatibility when loadfont doesn't get a size parameter) and -1 = disabled
+    char fallbacks[MAX_FONT_FALLBACKS][MAX_QPATH];
+    int fallback_faces[MAX_FONT_FALLBACKS];
+    struct ft2_font_s *ft2;
 
-	ft2_settings_t settings;
+    ft2_settings_t settings;
 }
 dp_font_t;
 
 typedef struct dp_fonts_s
 {
-	dp_font_t *f;
-	int maxsize;
+    dp_font_t *f;
+    int maxsize;
 }
 dp_fonts_t;
 extern dp_fonts_t dp_fonts;
@@ -151,11 +151,11 @@ extern dp_fonts_t dp_fonts;
 #define MAX_USERFONTS    (dp_fonts.maxsize - 8)
 
 // shared color tag printing constants
-#define STRING_COLOR_TAG			'^'
-#define STRING_COLOR_DEFAULT		7
-#define STRING_COLOR_DEFAULT_STR	"^7"
-#define STRING_COLOR_RGB_TAG_CHAR	'x'
-#define STRING_COLOR_RGB_TAG		"^x"
+#define STRING_COLOR_TAG            '^'
+#define STRING_COLOR_DEFAULT        7
+#define STRING_COLOR_DEFAULT_STR    "^7"
+#define STRING_COLOR_RGB_TAG_CHAR    'x'
+#define STRING_COLOR_RGB_TAG        "^x"
 
 // all of these functions will set r_defdef.draw2dstage if not in 2D rendering mode (and of course prepare for 2D rendering in that case)
 

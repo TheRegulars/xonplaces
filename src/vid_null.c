@@ -31,23 +31,23 @@ void VID_Shutdown(void)
 
 static void signal_handler(int sig)
 {
-	Con_Printf("Received signal %d, exiting...\n", sig);
-	Sys_Quit(1);
+    Con_Printf("Received signal %d, exiting...\n", sig);
+    Sys_Quit(1);
 }
 
 static void InitSig(void)
 {
 #ifndef WIN32
-	signal(SIGHUP, signal_handler);
-	signal(SIGINT, signal_handler);
-	signal(SIGQUIT, signal_handler);
-	signal(SIGILL, signal_handler);
-	signal(SIGTRAP, signal_handler);
-	signal(SIGIOT, signal_handler);
-	signal(SIGBUS, signal_handler);
-	signal(SIGFPE, signal_handler);
-	signal(SIGSEGV, signal_handler);
-	signal(SIGTERM, signal_handler);
+    signal(SIGHUP, signal_handler);
+    signal(SIGINT, signal_handler);
+    signal(SIGQUIT, signal_handler);
+    signal(SIGILL, signal_handler);
+    signal(SIGTRAP, signal_handler);
+    signal(SIGIOT, signal_handler);
+    signal(SIGBUS, signal_handler);
+    signal(SIGFPE, signal_handler);
+    signal(SIGSEGV, signal_handler);
+    signal(SIGTERM, signal_handler);
 #endif
 }
 
@@ -61,27 +61,27 @@ void VID_Finish (void)
 
 int VID_SetGamma(unsigned short *ramps, int rampsize)
 {
-	return FALSE;
+    return FALSE;
 }
 
 int VID_GetGamma(unsigned short *ramps, int rampsize)
 {
-	return FALSE;
+    return FALSE;
 }
 
 void VID_Init(void)
 {
-	InitSig(); // trap evil signals
+    InitSig(); // trap evil signals
 }
 
 qboolean VID_InitMode(viddef_mode_t *mode)
 {
-	return false;
+    return false;
 }
 
 void *GL_GetProcAddress(const char *name)
 {
-	return NULL;
+    return NULL;
 }
 
 void Sys_SendKeyEvents(void)
@@ -98,10 +98,10 @@ void IN_Move(void)
 
 vid_mode_t *VID_GetDesktopMode(void)
 {
-	return NULL;
+    return NULL;
 }
 
 size_t VID_ListModes(vid_mode_t *modes, size_t maxcount)
 {
-	return 0;
+    return 0;
 }

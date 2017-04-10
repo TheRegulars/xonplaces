@@ -35,29 +35,29 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 typedef struct link_s
 {
-	int entitynumber;
-	struct link_s	*prev, *next;
+    int entitynumber;
+    struct link_s    *prev, *next;
 } link_t;
 
 typedef struct world_physics_s
 {
-	// for ODE physics engine
-	qboolean ode; // if true then ode is activated
-	void *ode_world;
-	void *ode_space;
-	void *ode_contactgroup;
-	// number of constraint solver iterations to use (for dWorldQuickStep)
-	int ode_iterations;
-	// actual step (server frametime / ode_iterations)
-	vec_t ode_step;
-	// time we need to simulate, for constantstep
-	vec_t ode_time;
-	// stats
-	int ode_numobjects; // total objects cound
-	int ode_activeovjects; // active objects count
-	// max velocity for a 1-unit radius object at current step to prevent
-	// missed collisions
-	vec_t ode_movelimit;
+    // for ODE physics engine
+    qboolean ode; // if true then ode is activated
+    void *ode_world;
+    void *ode_space;
+    void *ode_contactgroup;
+    // number of constraint solver iterations to use (for dWorldQuickStep)
+    int ode_iterations;
+    // actual step (server frametime / ode_iterations)
+    vec_t ode_step;
+    // time we need to simulate, for constantstep
+    vec_t ode_time;
+    // stats
+    int ode_numobjects; // total objects cound
+    int ode_activeovjects; // active objects count
+    // max velocity for a 1-unit radius object at current step to prevent
+    // missed collisions
+    vec_t ode_movelimit;
 }
 world_physics_t;
 
@@ -65,27 +65,27 @@ struct prvm_prog_s;
 
 typedef struct world_s
 {
-	// convenient fields
-	char filename[MAX_QPATH];
-	vec3_t mins;
-	vec3_t maxs;
-	struct prvm_prog_s *prog;
+    // convenient fields
+    char filename[MAX_QPATH];
+    vec3_t mins;
+    vec3_t maxs;
+    struct prvm_prog_s *prog;
 
-	int areagrid_stats_calls;
-	int areagrid_stats_nodechecks;
-	int areagrid_stats_entitychecks;
+    int areagrid_stats_calls;
+    int areagrid_stats_nodechecks;
+    int areagrid_stats_entitychecks;
 
-	link_t areagrid[AREA_GRIDNODES];
-	link_t areagrid_outside;
-	vec3_t areagrid_bias;
-	vec3_t areagrid_scale;
-	vec3_t areagrid_mins;
-	vec3_t areagrid_maxs;
-	vec3_t areagrid_size;
-	int areagrid_marknumber;
+    link_t areagrid[AREA_GRIDNODES];
+    link_t areagrid_outside;
+    vec3_t areagrid_bias;
+    vec3_t areagrid_scale;
+    vec3_t areagrid_mins;
+    vec3_t areagrid_maxs;
+    vec3_t areagrid_size;
+    int areagrid_marknumber;
 
-	// if the QC uses a physics engine, the data for it is here
-	world_physics_t physics;
+    // if the QC uses a physics engine, the data for it is here
+    world_physics_t physics;
 }
 world_t;
 

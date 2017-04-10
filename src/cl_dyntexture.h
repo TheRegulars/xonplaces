@@ -2,7 +2,7 @@
 #ifndef CL_DYNTEXTURE_H
 #define CL_DYNTEXTURE_H
 
-#define CLDYNTEXTUREPREFIX			"_dynamic/"
+#define CLDYNTEXTUREPREFIX            "_dynamic/"
 
 // always path fully specified names to the dynamic texture functions! (ie. with the _dynamic/ prefix, etc.!)
 

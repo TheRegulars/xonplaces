@@ -21,13 +21,13 @@ typedef bool qboolean;
 #endif
 
 // up / down
-#define	PITCH	0
+#define    PITCH    0
 
 // left / right
-#define	YAW		1
+#define    YAW        1
 
 // fall over
-#define	ROLL	2
+#define    ROLL    2
 
 #if defined(__GNUC__) || (defined(_MSC_VER) && _MSC_VER >= 1400)
 #define RESTRICT __restrict

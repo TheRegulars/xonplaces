@@ -1,23 +1,23 @@
 /*
-	Libavcodec integration for Darkplaces by Timofeyev Pavel
+    Libavcodec integration for Darkplaces by Timofeyev Pavel
 
-	This program is free software; you can redistribute it and/or
-	modify it under the terms of the GNU General Public License
-	as published by the Free Software Foundation; either version 2
-	of the License, or (at your option) any later version.
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-	See the GNU General Public License for more details.
+    See the GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to:
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to:
 
-		Free Software Foundation, Inc.
-		59 Temple Place - Suite 330
-		Boston, MA  02111-1307, USA
+        Free Software Foundation, Inc.
+        59 Temple Place - Suite 330
+        Boston, MA  02111-1307, USA
 
 */
 
@@ -66,33 +66,33 @@ int (*qLibAvW_PlayGetFrameImage)(void *stream, int pixel_format, void *imagedata
 
 static dllfunction_t libavwfuncs[] =
 {
-	{"LibAvW_Init",                (void **) &qLibAvW_Init },
-	{"LibAvW_ErrorString",         (void **) &qLibAvW_ErrorString },
-	{"LibAvW_AvcVersion",          (void **) &qLibAvW_AvcVersion },
-	{"LibAvW_Version",             (void **) &qLibAvW_Version },
-	{"LibAvW_CreateStream",        (void **) &qLibAvW_CreateStream },
-	{"LibAvW_RemoveStream",        (void **) &qLibAvW_RemoveStream },
-	{"LibAvW_StreamGetVideoWidth", (void **) &qLibAvW_StreamGetVideoWidth },
-	{"LibAvW_StreamGetVideoHeight",(void **) &qLibAvW_StreamGetVideoHeight },
-	{"LibAvW_StreamGetFramerate",  (void **) &qLibAvW_StreamGetFramerate },
-	{"LibAvW_StreamGetError",      (void **) &qLibAvW_StreamGetError },
-	{"LibAvW_PlayVideo",           (void **) &qLibAvW_PlayVideo },
-	{"LibAvW_PlaySeekNextFrame",   (void **) &qLibAvW_PlaySeekNextFrame },
-	{"LibAvW_PlayGetFrameImage",   (void **) &qLibAvW_PlayGetFrameImage },
-	{NULL, NULL}
+    {"LibAvW_Init",                (void **) &qLibAvW_Init },
+    {"LibAvW_ErrorString",         (void **) &qLibAvW_ErrorString },
+    {"LibAvW_AvcVersion",          (void **) &qLibAvW_AvcVersion },
+    {"LibAvW_Version",             (void **) &qLibAvW_Version },
+    {"LibAvW_CreateStream",        (void **) &qLibAvW_CreateStream },
+    {"LibAvW_RemoveStream",        (void **) &qLibAvW_RemoveStream },
+    {"LibAvW_StreamGetVideoWidth", (void **) &qLibAvW_StreamGetVideoWidth },
+    {"LibAvW_StreamGetVideoHeight",(void **) &qLibAvW_StreamGetVideoHeight },
+    {"LibAvW_StreamGetFramerate",  (void **) &qLibAvW_StreamGetFramerate },
+    {"LibAvW_StreamGetError",      (void **) &qLibAvW_StreamGetError },
+    {"LibAvW_PlayVideo",           (void **) &qLibAvW_PlayVideo },
+    {"LibAvW_PlaySeekNextFrame",   (void **) &qLibAvW_PlaySeekNextFrame },
+    {"LibAvW_PlayGetFrameImage",   (void **) &qLibAvW_PlayGetFrameImage },
+    {NULL, NULL}
 };
 
 const char* dllnames_libavw[] =
 {
 #if defined(WIN32)
-		"libavw.dll",
+        "libavw.dll",
 #elif defined(MACOSX)
-		"libavw.dylib",
+        "libavw.dylib",
 #else
-		"libavw.so.1",
-		"libavw.so",
+        "libavw.so.1",
+        "libavw.so",
 #endif
-		NULL
+        NULL
 };
 
 static dllhandle_t libavw_dll = NULL;
@@ -100,17 +100,17 @@ static dllhandle_t libavw_dll = NULL;
 // DP videostream
 typedef struct libavwstream_s
 {
-	qfile_t     *file;
-	double       info_framerate;
-	unsigned int info_imagewidth;
-	unsigned int info_imageheight;
-	double       info_aspectratio;
-	void        *stream;
+    qfile_t     *file;
+    double       info_framerate;
+    unsigned int info_imagewidth;
+    unsigned int info_imageheight;
+    double       info_aspectratio;
+    void        *stream;
 
-	// channel the sound file is being played on
-	sfx_t *sfx;
-	int    sndchan;
-	int    sndstarted;
+    // channel the sound file is being played on
+    sfx_t *sfx;
+    int    sndchan;
+    int    sndstarted;
 }
 libavwstream_t;
 
@@ -121,20 +121,20 @@ cvar_t cl_video_libavw_scaler    = {CVAR_SAVE, "cl_video_libavw_scaler", "1", "s
 // video extensions
 const char* libavw_extensions[] =
 {
-	"ogv",
-	"avi",
-	"mpg",
-	"mp4",
-	"mkv",
-	"webm",
-	"bik",
-	"roq",
-	"flv",
-	"wmv",
-	"mpeg",
-	"mjpeg",
-	"mpeg4",
-	NULL
+    "ogv",
+    "avi",
+    "mpg",
+    "mp4",
+    "mkv",
+    "webm",
+    "bik",
+    "roq",
+    "flv",
+    "wmv",
+    "mpeg",
+    "mjpeg",
+    "mpeg4",
+    NULL
 };
 
 /*
@@ -156,231 +156,231 @@ void libavw_close(void *stream);
 
 static int libavw_decodeframe(void *stream, void *imagedata, unsigned int Rmask, unsigned int Gmask, unsigned int Bmask, unsigned int bytesperpixel, int imagebytesperrow)
 {
-	int pixel_format = LIBAVW_PIXEL_FORMAT_BGR;
-	int errorcode;
+    int pixel_format = LIBAVW_PIXEL_FORMAT_BGR;
+    int errorcode;
 
-	libavwstream_t *s = (libavwstream_t *)stream;
+    libavwstream_t *s = (libavwstream_t *)stream;
 
-	// start sound
-	if (!s->sndstarted)
-	{
-		if (s->sfx != NULL)
-			s->sndchan = S_StartSound(-1, 0, s->sfx, vec3_origin, 1.0f, 0);
-		s->sndstarted = 1;
-	}
+    // start sound
+    if (!s->sndstarted)
+    {
+        if (s->sfx != NULL)
+            s->sndchan = S_StartSound(-1, 0, s->sfx, vec3_origin, 1.0f, 0);
+        s->sndstarted = 1;
+    }
 
-	// read frame
-	if (!qLibAvW_PlaySeekNextFrame(s->stream))
-	{
-		// got error or file end
-		errorcode = qLibAvW_StreamGetError(s->stream);
-		if (errorcode)
-			Con_Printf("LibAvW: %s\n", qLibAvW_ErrorString(errorcode));
-		return 1;
-	}
+    // read frame
+    if (!qLibAvW_PlaySeekNextFrame(s->stream))
+    {
+        // got error or file end
+        errorcode = qLibAvW_StreamGetError(s->stream);
+        if (errorcode)
+            Con_Printf("LibAvW: %s\n", qLibAvW_ErrorString(errorcode));
+        return 1;
+    }
 
-	// decode into bgr texture
-	if (bytesperpixel == 4)
-		pixel_format = LIBAVW_PIXEL_FORMAT_BGRA;
-	else if (bytesperpixel == 3)
-		pixel_format = LIBAVW_PIXEL_FORMAT_BGR;
-	else
-	{
-		Con_Printf("LibAvW: cannot determine pixel format for bpp %i\n", bytesperpixel);
-		return 1;
-	}
-	if (!qLibAvW_PlayGetFrameImage(s->stream, pixel_format, imagedata, s->info_imagewidth, s->info_imageheight, min(9, max(0, cl_video_libavw_scaler.integer))))
-		Con_Printf("LibAvW: %s\n", qLibAvW_ErrorString(qLibAvW_StreamGetError(s->stream)));
-	return 0;
+    // decode into bgr texture
+    if (bytesperpixel == 4)
+        pixel_format = LIBAVW_PIXEL_FORMAT_BGRA;
+    else if (bytesperpixel == 3)
+        pixel_format = LIBAVW_PIXEL_FORMAT_BGR;
+    else
+    {
+        Con_Printf("LibAvW: cannot determine pixel format for bpp %i\n", bytesperpixel);
+        return 1;
+    }
+    if (!qLibAvW_PlayGetFrameImage(s->stream, pixel_format, imagedata, s->info_imagewidth, s->info_imageheight, min(9, max(0, cl_video_libavw_scaler.integer))))
+        Con_Printf("LibAvW: %s\n", qLibAvW_ErrorString(qLibAvW_StreamGetError(s->stream)));
+    return 0;
 }
 
 // get stream info
 unsigned int libavw_getwidth(void *stream)
 {
-	return ((libavwstream_t *)stream)->info_imagewidth;
+    return ((libavwstream_t *)stream)->info_imagewidth;
 }
 
 unsigned int libavw_getheight(void *stream)
 {
-	return ((libavwstream_t *)stream)->info_imageheight;
+    return ((libavwstream_t *)stream)->info_imageheight;
 }
 
 double libavw_getframerate(void *stream)
 {
-	return ((libavwstream_t *)stream)->info_framerate;
+    return ((libavwstream_t *)stream)->info_framerate;
 }
 
 double libavw_getaspectratio(void *stream)
 {
-	return ((libavwstream_t *)stream)->info_aspectratio;
+    return ((libavwstream_t *)stream)->info_aspectratio;
 }
 
 // close stream
 void libavw_close(void *stream)
 {
-	libavwstream_t *s = (libavwstream_t *)stream;
+    libavwstream_t *s = (libavwstream_t *)stream;
 
-	if (s->stream)
-		qLibAvW_RemoveStream(s->stream);
-	s->stream = NULL;
-	if (s->file)
-		FS_Close(s->file);
-	s->file = NULL;
-	if (s->sndchan >= 0)
-		S_StopChannel(s->sndchan, true, true);
-	s->sndchan = -1;
+    if (s->stream)
+        qLibAvW_RemoveStream(s->stream);
+    s->stream = NULL;
+    if (s->file)
+        FS_Close(s->file);
+    s->file = NULL;
+    if (s->sndchan >= 0)
+        S_StopChannel(s->sndchan, true, true);
+    s->sndchan = -1;
 }
 
 // IO wrapper
 static int LibAvW_FS_Read(void *opaque, unsigned char *buf, int buf_size)
 {
-	return FS_Read((qfile_t *)opaque, buf, buf_size);
+    return FS_Read((qfile_t *)opaque, buf, buf_size);
 }
 static fs_offset_t LibAvW_FS_Seek(void *opaque, fs_offset_t pos, int whence)
 {
-	return (fs_offset_t)FS_Seek((qfile_t *)opaque, pos, whence);
+    return (fs_offset_t)FS_Seek((qfile_t *)opaque, pos, whence);
 }
 static fs_offset_t LibAvW_FS_SeekSize(void *opaque)
 {
-	return (fs_offset_t)FS_FileSize((qfile_t *)opaque);
+    return (fs_offset_t)FS_FileSize((qfile_t *)opaque);
 }
 
 // open as DP video stream
 static void *LibAvW_OpenVideo(clvideo_t *video, char *filename, const char **errorstring)
 {
-	libavwstream_t *s;
-	char filebase[MAX_OSPATH], check[MAX_OSPATH];
-	unsigned int i;
-	int errorcode;
-	char *wavename;
-	size_t len;
+    libavwstream_t *s;
+    char filebase[MAX_OSPATH], check[MAX_OSPATH];
+    unsigned int i;
+    int errorcode;
+    char *wavename;
+    size_t len;
 
-	if (!libavw_dll)
-		return NULL;
-
-	// allocate stream
-	s = (libavwstream_t *)Z_Malloc(sizeof(libavwstream_t));
-	if (s == NULL)
-	{
-		*errorstring = "unable to allocate memory for stream info structure";
-		return NULL;
-	}
-	memset(s, 0, sizeof(libavwstream_t));
-	s->sndchan = -1;
-
-	// open file
-	s->file = FS_OpenVirtualFile(filename, true);
-	if (!s->file)
-	{
-		FS_StripExtension(filename, filebase, sizeof(filebase));
-		// we tried .dpv, try another extensions
-		for (i = 0; libavw_extensions[i] != NULL; i++)
-		{
-			dpsnprintf(check, sizeof(check), "%s.%s", filebase, libavw_extensions[i]);
-			s->file = FS_OpenVirtualFile(check, true);
-			if (s->file)
-				break;
-		}
-		if (!s->file)
-		{
-			*errorstring = "unable to open videofile";
-			libavw_close(s);
-			Z_Free(s);
-			 return NULL;
-		}
-	}
-
-	// allocate libavw stream
-	if ((errorcode = qLibAvW_CreateStream(&s->stream)))
-	{
-		*errorstring = qLibAvW_ErrorString(errorcode);
-		libavw_close(s);
-		Z_Free(s);
+    if (!libavw_dll)
         return NULL;
-	}
 
-	// open video for playing
-	if (!qLibAvW_PlayVideo(s->stream, s->file, &LibAvW_FS_Read, &LibAvW_FS_Seek, &LibAvW_FS_SeekSize))
-	{
-		*errorstring = qLibAvW_ErrorString(qLibAvW_StreamGetError(s->stream));
-		libavw_close(s);
-		Z_Free(s);
+    // allocate stream
+    s = (libavwstream_t *)Z_Malloc(sizeof(libavwstream_t));
+    if (s == NULL)
+    {
+        *errorstring = "unable to allocate memory for stream info structure";
         return NULL;
-	}
+    }
+    memset(s, 0, sizeof(libavwstream_t));
+    s->sndchan = -1;
 
-	// all right, start codec
-	s->info_imagewidth = qLibAvW_StreamGetVideoWidth(s->stream);
-	s->info_imageheight = qLibAvW_StreamGetVideoHeight(s->stream);
-	s->info_framerate = qLibAvW_StreamGetFramerate(s->stream);
-	s->info_aspectratio = (double)s->info_imagewidth / (double)s->info_imageheight;
-	video->close = libavw_close;
-	video->getwidth = libavw_getwidth;
-	video->getheight = libavw_getheight;
-	video->getframerate = libavw_getframerate;
-	video->decodeframe = libavw_decodeframe;
-	video->getaspectratio = libavw_getaspectratio;
+    // open file
+    s->file = FS_OpenVirtualFile(filename, true);
+    if (!s->file)
+    {
+        FS_StripExtension(filename, filebase, sizeof(filebase));
+        // we tried .dpv, try another extensions
+        for (i = 0; libavw_extensions[i] != NULL; i++)
+        {
+            dpsnprintf(check, sizeof(check), "%s.%s", filebase, libavw_extensions[i]);
+            s->file = FS_OpenVirtualFile(check, true);
+            if (s->file)
+                break;
+        }
+        if (!s->file)
+        {
+            *errorstring = "unable to open videofile";
+            libavw_close(s);
+            Z_Free(s);
+             return NULL;
+        }
+    }
 
-	// apply min-width, min-height, keep aspect rate
-	if (cl_video_libavw_minwidth.integer > 0)
-		s->info_imagewidth = max(s->info_imagewidth, (unsigned int)cl_video_libavw_minwidth.integer);
-	if (cl_video_libavw_minheight.integer > 0)
-		s->info_imageheight = max(s->info_imageheight, (unsigned int)cl_video_libavw_minheight.integer);
-	
-	// provide sound in separate .wav
-	len = strlen(filename) + 10;
-	wavename = (char *)Z_Malloc(len);
-	if (wavename)
-	{
-		FS_StripExtension(filename, wavename, len-1);
-		strlcat(wavename, ".wav", len);
-		s->sfx = S_PrecacheSound(wavename, false, false);
-		s->sndchan = -1;
-		Z_Free(wavename);
-	}
-	return s;
+    // allocate libavw stream
+    if ((errorcode = qLibAvW_CreateStream(&s->stream)))
+    {
+        *errorstring = qLibAvW_ErrorString(errorcode);
+        libavw_close(s);
+        Z_Free(s);
+        return NULL;
+    }
+
+    // open video for playing
+    if (!qLibAvW_PlayVideo(s->stream, s->file, &LibAvW_FS_Read, &LibAvW_FS_Seek, &LibAvW_FS_SeekSize))
+    {
+        *errorstring = qLibAvW_ErrorString(qLibAvW_StreamGetError(s->stream));
+        libavw_close(s);
+        Z_Free(s);
+        return NULL;
+    }
+
+    // all right, start codec
+    s->info_imagewidth = qLibAvW_StreamGetVideoWidth(s->stream);
+    s->info_imageheight = qLibAvW_StreamGetVideoHeight(s->stream);
+    s->info_framerate = qLibAvW_StreamGetFramerate(s->stream);
+    s->info_aspectratio = (double)s->info_imagewidth / (double)s->info_imageheight;
+    video->close = libavw_close;
+    video->getwidth = libavw_getwidth;
+    video->getheight = libavw_getheight;
+    video->getframerate = libavw_getframerate;
+    video->decodeframe = libavw_decodeframe;
+    video->getaspectratio = libavw_getaspectratio;
+
+    // apply min-width, min-height, keep aspect rate
+    if (cl_video_libavw_minwidth.integer > 0)
+        s->info_imagewidth = max(s->info_imagewidth, (unsigned int)cl_video_libavw_minwidth.integer);
+    if (cl_video_libavw_minheight.integer > 0)
+        s->info_imageheight = max(s->info_imageheight, (unsigned int)cl_video_libavw_minheight.integer);
+    
+    // provide sound in separate .wav
+    len = strlen(filename) + 10;
+    wavename = (char *)Z_Malloc(len);
+    if (wavename)
+    {
+        FS_StripExtension(filename, wavename, len-1);
+        strlcat(wavename, ".wav", len);
+        s->sfx = S_PrecacheSound(wavename, false, false);
+        s->sndchan = -1;
+        Z_Free(wavename);
+    }
+    return s;
 }
 
 static void libavw_message(int level, const char *message)
 {
-	if (level == LIBAVW_PRINT_WARNING)
-		Con_Printf("LibAvcodec warning: %s\n", message);
-	else if (level == LIBAVW_PRINT_ERROR)
-		Con_Printf("LibAvcodec error: %s\n", message);
-	else if (level == LIBAVW_PRINT_FATAL)
-		Con_Printf("LibAvcodec fatal error: %s\n", message);
-	else
-		Con_Printf("LibAvcodec panic: %s\n", message);
+    if (level == LIBAVW_PRINT_WARNING)
+        Con_Printf("LibAvcodec warning: %s\n", message);
+    else if (level == LIBAVW_PRINT_ERROR)
+        Con_Printf("LibAvcodec error: %s\n", message);
+    else if (level == LIBAVW_PRINT_FATAL)
+        Con_Printf("LibAvcodec fatal error: %s\n", message);
+    else
+        Con_Printf("LibAvcodec panic: %s\n", message);
 }
 
 static qboolean LibAvW_OpenLibrary(void)
 {
-	int errorcode;
+    int errorcode;
 
-	// COMMANDLINEOPTION: Video: -nolibavw disables libavcodec wrapper support
-	if (COM_CheckParm("-nolibavw"))
-		return false;
+    // COMMANDLINEOPTION: Video: -nolibavw disables libavcodec wrapper support
+    if (COM_CheckParm("-nolibavw"))
+        return false;
 
-	// load DLL's
-	Sys_LoadLibrary(dllnames_libavw, &libavw_dll, libavwfuncs);
-	if (!libavw_dll)
-		return false;
+    // load DLL's
+    Sys_LoadLibrary(dllnames_libavw, &libavw_dll, libavwfuncs);
+    if (!libavw_dll)
+        return false;
 
-	// initialize libav wrapper
-	if ((errorcode = qLibAvW_Init(&libavw_message)))
-	{
-		Con_Printf("LibAvW failed to initialize: %s\n", qLibAvW_ErrorString(errorcode));
-		Sys_UnloadLibrary(&libavw_dll);
-	}
+    // initialize libav wrapper
+    if ((errorcode = qLibAvW_Init(&libavw_message)))
+    {
+        Con_Printf("LibAvW failed to initialize: %s\n", qLibAvW_ErrorString(errorcode));
+        Sys_UnloadLibrary(&libavw_dll);
+    }
 
-	Cvar_RegisterVariable(&cl_video_libavw_minwidth);
-	Cvar_RegisterVariable(&cl_video_libavw_minheight);
-	Cvar_RegisterVariable(&cl_video_libavw_scaler);
+    Cvar_RegisterVariable(&cl_video_libavw_minwidth);
+    Cvar_RegisterVariable(&cl_video_libavw_minheight);
+    Cvar_RegisterVariable(&cl_video_libavw_scaler);
 
-	return true;
+    return true;
 }
 
 static void LibAvW_CloseLibrary(void)
 {
-	Sys_UnloadLibrary(&libavw_dll);
+    Sys_UnloadLibrary(&libavw_dll);
 }
 

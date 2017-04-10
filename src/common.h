@@ -34,20 +34,20 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 #ifdef SUNOS
-#include <sys/file.h>		///< Needed for FNDELAY
+#include <sys/file.h>        ///< Needed for FNDELAY
 #endif
 
 //============================================================================
 
 typedef struct sizebuf_s
 {
-	qboolean	allowoverflow;	///< if false, do a Sys_Error
-	qboolean	overflowed;		///< set to true if the buffer size failed
-	unsigned char		*data;
-	int			maxsize;
-	int			cursize;
-	int			readcount;
-	qboolean	badread;		// set if a read goes beyond end of message
+    qboolean    allowoverflow;    ///< if false, do a Sys_Error
+    qboolean    overflowed;        ///< set to true if the buffer size failed
+    unsigned char        *data;
+    int            maxsize;
+    int            cursize;
+    int            readcount;
+    qboolean    badread;        // set if a read goes beyond end of message
 } sizebuf_t;
 
 void SZ_Clear (sizebuf_t *buf);
@@ -70,7 +70,7 @@ void COM_Init_Commands(void);
 
 
 //============================================================================
-//							Endianess handling
+//                            Endianess handling
 //============================================================================
 
 // check mem_bigendian if you need to know the system byte order
@@ -124,14 +124,14 @@ void StoreLittleShort (unsigned char *buffer, unsigned short i);
 // (use Protocol_EnumForNumber and Protocol_NumberToEnum to convert)
 typedef enum protocolversion_e
 {
-	PROTOCOL_UNKNOWN,
-	PROTOCOL_DARKPLACES7, ///< added QuakeWorld-style movement protocol to allow more consistent prediction
-	PROTOCOL_DARKPLACES6, ///< various changes
-	PROTOCOL_DARKPLACES5, ///< uses EntityFrame5 entity snapshot encoder/decoder which is based on a Tribes networking article at http://www.garagegames.com/articles/networking1/
-	PROTOCOL_DARKPLACES4, ///< various changes
-	PROTOCOL_DARKPLACES3, ///< uses EntityFrame4 entity snapshot encoder/decoder which is broken, this attempted to do partial snapshot updates on a QuakeWorld-like protocol, but it is broken and impossible to fix
-	PROTOCOL_DARKPLACES2, ///< various changes
-	PROTOCOL_DARKPLACES1, ///< uses EntityFrame entity snapshot encoder/decoder which is a QuakeWorld-like entity snapshot delta compression method
+    PROTOCOL_UNKNOWN,
+    PROTOCOL_DARKPLACES7, ///< added QuakeWorld-style movement protocol to allow more consistent prediction
+    PROTOCOL_DARKPLACES6, ///< various changes
+    PROTOCOL_DARKPLACES5, ///< uses EntityFrame5 entity snapshot encoder/decoder which is based on a Tribes networking article at http://www.garagegames.com/articles/networking1/
+    PROTOCOL_DARKPLACES4, ///< various changes
+    PROTOCOL_DARKPLACES3, ///< uses EntityFrame4 entity snapshot encoder/decoder which is broken, this attempted to do partial snapshot updates on a QuakeWorld-like protocol, but it is broken and impossible to fix
+    PROTOCOL_DARKPLACES2, ///< various changes
+    PROTOCOL_DARKPLACES1, ///< uses EntityFrame entity snapshot encoder/decoder which is a QuakeWorld-like entity snapshot delta compression method
 }
 protocolversion_t;
 
@@ -243,55 +243,55 @@ extern int dpvsnprintf (char *buffer, size_t buffersize, const char *format, va_
 
 //============================================================================
 
-extern	struct cvar_s	registered;
-extern	struct cvar_s	cmdline;
+extern    struct cvar_s    registered;
+extern    struct cvar_s    cmdline;
 
 typedef enum userdirmode_e
 {
-	USERDIRMODE_NOHOME, // basedir only
-	USERDIRMODE_HOME, // Windows basedir, general POSIX (~/.)
-	USERDIRMODE_MYGAMES, // pre-Vista (My Documents/My Games/), general POSIX (~/.)
-	USERDIRMODE_SAVEDGAMES, // Vista (%USERPROFILE%/Saved Games/), OSX (~/Library/Application Support/), Linux (~/.config)
-	USERDIRMODE_COUNT
+    USERDIRMODE_NOHOME, // basedir only
+    USERDIRMODE_HOME, // Windows basedir, general POSIX (~/.)
+    USERDIRMODE_MYGAMES, // pre-Vista (My Documents/My Games/), general POSIX (~/.)
+    USERDIRMODE_SAVEDGAMES, // Vista (%USERPROFILE%/Saved Games/), OSX (~/Library/Application Support/), Linux (~/.config)
+    USERDIRMODE_COUNT
 }
 userdirmode_t;
 
 typedef enum gamemode_e
 {
-	GAME_NORMAL,
-	GAME_HIPNOTIC,
-	GAME_ROGUE,
-	GAME_QUOTH,
-	GAME_NEHAHRA,
-	GAME_NEXUIZ,
-	GAME_XONOTIC,
-	GAME_TRANSFUSION,
-	GAME_GOODVSBAD2,
-	GAME_TEU,
-	GAME_BATTLEMECH,
-	GAME_ZYMOTIC,
-	GAME_SETHERAL,
-	GAME_TENEBRAE, // full of evil hackery
-	GAME_NEOTERIC,
-	GAME_OPENQUARTZ, //this game sucks
-	GAME_PRYDON,
-	GAME_DELUXEQUAKE,
-	GAME_THEHUNTED,
-	GAME_DEFEATINDETAIL2,
-	GAME_DARSANA,
-	GAME_CONTAGIONTHEORY,
-	GAME_EDU2P,
-	GAME_PROPHECY,
-	GAME_BLOODOMNICIDE,
-	GAME_STEELSTORM, // added by motorsep
-	GAME_STEELSTORM2, // added by motorsep
-	GAME_SSAMMO, // added by motorsep
-	GAME_STEELSTORMREVENANTS, // added by motorsep 07/19/2015
-	GAME_TOMESOFMEPHISTOPHELES, // added by motorsep
-	GAME_STRAPBOMB, // added by motorsep for Urre
-	GAME_MOONHELM,
-	GAME_VORETOURNAMENT,
-	GAME_COUNT
+    GAME_NORMAL,
+    GAME_HIPNOTIC,
+    GAME_ROGUE,
+    GAME_QUOTH,
+    GAME_NEHAHRA,
+    GAME_NEXUIZ,
+    GAME_XONOTIC,
+    GAME_TRANSFUSION,
+    GAME_GOODVSBAD2,
+    GAME_TEU,
+    GAME_BATTLEMECH,
+    GAME_ZYMOTIC,
+    GAME_SETHERAL,
+    GAME_TENEBRAE, // full of evil hackery
+    GAME_NEOTERIC,
+    GAME_OPENQUARTZ, //this game sucks
+    GAME_PRYDON,
+    GAME_DELUXEQUAKE,
+    GAME_THEHUNTED,
+    GAME_DEFEATINDETAIL2,
+    GAME_DARSANA,
+    GAME_CONTAGIONTHEORY,
+    GAME_EDU2P,
+    GAME_PROPHECY,
+    GAME_BLOODOMNICIDE,
+    GAME_STEELSTORM, // added by motorsep
+    GAME_STEELSTORM2, // added by motorsep
+    GAME_SSAMMO, // added by motorsep
+    GAME_STEELSTORMREVENANTS, // added by motorsep 07/19/2015
+    GAME_TOMESOFMEPHISTOPHELES, // added by motorsep
+    GAME_STRAPBOMB, // added by motorsep for Urre
+    GAME_MOONHELM,
+    GAME_VORETOURNAMENT,
+    GAME_COUNT
 }
 gamemode_t;
 
@@ -324,10 +324,10 @@ void COM_ToUpperString (const char *in, char *out, size_t size_out);
 
 typedef struct stringlist_s
 {
-	/// maxstrings changes as needed, causing reallocation of strings[] array
-	int maxstrings;
-	int numstrings;
-	char **strings;
+    /// maxstrings changes as needed, causing reallocation of strings[] array
+    int maxstrings;
+    int numstrings;
+    char **strings;
 } stringlist_t;
 
 int matchpattern(const char *in, const char *pattern, int caseinsensitive);

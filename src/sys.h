@@ -40,8 +40,8 @@ typedef HMODULE dllhandle_t;
 
 typedef struct dllfunction_s
 {
-	const char *name;
-	void **funcvariable;
+    const char *name;
+    void **funcvariable;
 }
 dllfunction_t;
 
@@ -90,8 +90,8 @@ void Sys_AllowProfiling (qboolean enable);
 
 typedef struct sys_cleantime_s
 {
-	double dirtytime; // last value gotten from Sys_DirtyTime()
-	double cleantime; // sanitized linearly increasing time since app start
+    double dirtytime; // last value gotten from Sys_DirtyTime()
+    double cleantime; // sanitized linearly increasing time since app start
 }
 sys_cleantime_t;
 

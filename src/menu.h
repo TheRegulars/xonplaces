@@ -22,30 +22,30 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define MENU_H
 
 enum m_state_e {
-	m_none,
-	m_main,
-	m_demo,
-	m_singleplayer,
-	m_transfusion_episode,
-	m_transfusion_skill,
-	m_load,
-	m_save,
-	m_multiplayer,
-	m_setup,
-	m_options,
-	m_video,
-	m_keys,
-	m_help,
-	m_credits,
-	m_quit,
-	m_lanconfig,
-	m_gameoptions,
-	m_slist,
-	m_options_effects,
-	m_options_graphics,
-	m_options_colorcontrol,
-	m_reset,
-	m_modlist
+    m_none,
+    m_main,
+    m_demo,
+    m_singleplayer,
+    m_transfusion_episode,
+    m_transfusion_skill,
+    m_load,
+    m_save,
+    m_multiplayer,
+    m_setup,
+    m_options,
+    m_video,
+    m_keys,
+    m_help,
+    m_credits,
+    m_quit,
+    m_lanconfig,
+    m_gameoptions,
+    m_slist,
+    m_options_effects,
+    m_options_graphics,
+    m_options_colorcontrol,
+    m_reset,
+    m_modlist
 };
 
 extern enum m_state_e m_state;
@@ -85,10 +85,10 @@ extern int (*MR_GetServerListEntryCategory) (const serverlist_entry_t *entry);
 
 typedef struct video_resolution_s
 {
-	const char *type;
-	int width, height;
-	int conwidth, conheight;
-	double pixelheight; ///< pixel aspect
+    const char *type;
+    int width, height;
+    int conwidth, conheight;
+    double pixelheight; ///< pixel aspect
 }
 video_resolution_t;
 extern video_resolution_t *video_resolutions;

@@ -28,8 +28,8 @@ it is sufficient to initialize a cvar_t with just the first two fields, or
 you can add a ,true flag for variables that you want saved to the configuration
 file when the game is quit:
 
-cvar_t	r_draworder = {"r_draworder","1"};
-cvar_t	scr_screensize = {"screensize","1",true};
+cvar_t    r_draworder = {"r_draworder","1"};
+cvar_t    scr_screensize = {"screensize","1",true};
 
 Cvars must be registered before use, or they will have a 0 value instead of the float interpretation of the string.  Generally, all cvar_t declarations should be registered in the apropriate init function before any console commands are executed:
 Cvar_RegisterVariable (&host_framerate);
@@ -47,8 +47,8 @@ teamplay = cvar("teamplay");
 cvar_set ("registered", "1");
 
 The user can access cvars from the console in two ways:
-r_draworder			prints the current value
-r_draworder 0		sets the current value to 0
+r_draworder            prints the current value
+r_draworder 0        sets the current value to 0
 Cvars are restricted from having the same names as commands to keep this
 interface from being ambiguous.
 */
@@ -95,51 +95,51 @@ interface from being ambiguous.
 
 typedef struct cvaroption_s
 {
-	int value;
-	const char *name;
+    int value;
+    const char *name;
 }
 cvaroption_t;
 
 typedef struct menucvar_s
 {
-	int type;
-	float valuemin, valuemax, valuestep;
-	int numoptions;
-	cvaroption_t optionlist[MAX_CVAROPTIONS];
+    int type;
+    float valuemin, valuemax, valuestep;
+    int numoptions;
+    cvaroption_t optionlist[MAX_CVAROPTIONS];
 }
 menucvar_t;
 */
 
 typedef struct cvar_s
 {
-	int flags;
+    int flags;
 
-	const char *name;
+    const char *name;
 
-	const char *string;
-	const char *description;
-	int integer;
-	float value;
-	float vector[3];
+    const char *string;
+    const char *description;
+    int integer;
+    float value;
+    float vector[3];
 
-	const char *defstring;
+    const char *defstring;
 
-	// values at init (for Cvar_RestoreInitState)
-	qboolean initstate; // indicates this existed at init
-	int initflags;
-	const char *initstring;
-	const char *initdescription;
-	int initinteger;
-	float initvalue;
-	float initvector[3];
-	const char *initdefstring;
+    // values at init (for Cvar_RestoreInitState)
+    qboolean initstate; // indicates this existed at init
+    int initflags;
+    const char *initstring;
+    const char *initdescription;
+    int initinteger;
+    float initvalue;
+    float initvector[3];
+    const char *initdefstring;
 
-	int globaldefindex[3];
-	int globaldefindex_stringno[3];
+    int globaldefindex[3];
+    int globaldefindex_stringno[3];
 
-	//menucvar_t menuinfo;
-	struct cvar_s *next;
-	struct cvar_s *nextonhashchain;
+    //menucvar_t menuinfo;
+    struct cvar_s *next;
+    struct cvar_s *nextonhashchain;
 } cvar_t;
 
 /*

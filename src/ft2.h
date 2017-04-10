@@ -31,38 +31,38 @@ typedef struct ft2_attachment_s ft2_attachment_t;
 typedef float ft2_kernvec[2];
 typedef struct ft2_kerning_s
 {
-	ft2_kernvec kerning[256][256]; /* kerning[left char][right char] */
+    ft2_kernvec kerning[256][256]; /* kerning[left char][right char] */
 } ft2_kerning_t;
 
 typedef struct ft2_font_s
 {
-	char            name[64];
-	qboolean        has_kerning;
-	// last requested size loaded using Font_SetSize
-	float		currentw;
-	float		currenth;
-	float           ascend;
-	float           descend;
-	qboolean        image_font; // only fallbacks are freetype fonts
+    char            name[64];
+    qboolean        has_kerning;
+    // last requested size loaded using Font_SetSize
+    float        currentw;
+    float        currenth;
+    float           ascend;
+    float           descend;
+    qboolean        image_font; // only fallbacks are freetype fonts
 
-	// TODO: clean this up and do not expose everything.
-	
-	const unsigned char  *data; // FT2 needs it to stay
-	//fs_offset_t     datasize;
-	void           *face;
+    // TODO: clean this up and do not expose everything.
+    
+    const unsigned char  *data; // FT2 needs it to stay
+    //fs_offset_t     datasize;
+    void           *face;
 
-	// an unordered array of ordered linked lists of glyph maps for a specific size
-	ft2_font_map_t *font_maps[MAX_FONT_SIZES];
-	int             num_sizes;
+    // an unordered array of ordered linked lists of glyph maps for a specific size
+    ft2_font_map_t *font_maps[MAX_FONT_SIZES];
+    int             num_sizes;
 
-	// attachments
-	size_t            attachmentcount;
-	ft2_attachment_t *attachments;
+    // attachments
+    size_t            attachmentcount;
+    ft2_attachment_t *attachments;
 
-	ft2_settings_t *settings;
+    ft2_settings_t *settings;
 
-	// fallback mechanism
-	struct ft2_font_s *next;
+    // fallback mechanism
+    struct ft2_font_s *next;
 } ft2_font_t;
 
 void            Font_CloseLibrary(void);

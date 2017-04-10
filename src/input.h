@@ -37,13 +37,13 @@ void IN_Move (void);
 #define IN_BESTWEAPON_MAX 32
 typedef struct
 {
-	char name[32];
-	int impulse;
-	int activeweaponcode;
-	int weaponbit;
-	int ammostat;
-	int ammomin;
-	/// \TODO add a parameter for the picture to be used by the sbar, and use it there
+    char name[32];
+    int impulse;
+    int activeweaponcode;
+    int weaponbit;
+    int ammostat;
+    int ammomin;
+    /// \TODO add a parameter for the picture to be used by the sbar, and use it there
 }
 in_bestweapon_info_t;
 extern in_bestweapon_info_t in_bestweapon_info[IN_BESTWEAPON_MAX];

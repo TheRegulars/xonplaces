@@ -18,16 +18,16 @@ extern int crypto_keyfp_recommended_length; // applies to LOCAL IDs, and to ALL 
 
 typedef struct
 {
-	unsigned char dhkey[DHKEY_SIZE]; // shared key, not NUL terminated
-	char client_idfp[FP64_SIZE+1];
-	char client_keyfp[FP64_SIZE+1];
-	qboolean client_issigned;
-	char server_idfp[FP64_SIZE+1];
-	char server_keyfp[FP64_SIZE+1];
-	qboolean server_issigned;
-	qboolean authenticated;
-	qboolean use_aes;
-	void *data;
+    unsigned char dhkey[DHKEY_SIZE]; // shared key, not NUL terminated
+    char client_idfp[FP64_SIZE+1];
+    char client_keyfp[FP64_SIZE+1];
+    qboolean client_issigned;
+    char server_idfp[FP64_SIZE+1];
+    char server_keyfp[FP64_SIZE+1];
+    qboolean server_issigned;
+    qboolean authenticated;
+    qboolean use_aes;
+    void *data;
 }
 crypto_t;
 

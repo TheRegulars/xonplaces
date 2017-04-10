@@ -40,217 +40,217 @@ static char cd_dev[64] = "/dev/cdrom";
 
 void CDAudio_SysEject (void)
 {
-	if (cdfile == -1)
-		return;
+    if (cdfile == -1)
+        return;
 
-	if (ioctl(cdfile, CDROMEJECT) == -1)
-		Con_Print("ioctl CDROMEJECT failed\n");
+    if (ioctl(cdfile, CDROMEJECT) == -1)
+        Con_Print("ioctl CDROMEJECT failed\n");
 }
 
 
 void CDAudio_SysCloseDoor (void)
 {
-	if (cdfile == -1)
-		return;
+    if (cdfile == -1)
+        return;
 
-	if (ioctl(cdfile, CDROMCLOSETRAY) == -1)
-		Con_Print("ioctl CDROMCLOSETRAY failed\n");
+    if (ioctl(cdfile, CDROMCLOSETRAY) == -1)
+        Con_Print("ioctl CDROMCLOSETRAY failed\n");
 }
 
 int CDAudio_SysGetAudioDiskInfo (void)
 {
-	struct cdrom_tochdr tochdr;
+    struct cdrom_tochdr tochdr;
 
-	if (cdfile == -1)
-		return -1;
+    if (cdfile == -1)
+        return -1;
 
-	if (ioctl(cdfile, CDROMREADTOCHDR, &tochdr) == -1)
-	{
-		Con_Print("ioctl CDROMREADTOCHDR failed\n");
-		return -1;
-	}
+    if (ioctl(cdfile, CDROMREADTOCHDR, &tochdr) == -1)
+    {
+        Con_Print("ioctl CDROMREADTOCHDR failed\n");
+        return -1;
+    }
 
-	if (tochdr.cdth_trk0 < 1)
-	{
-		Con_Print("CDAudio: no music tracks\n");
-		return -1;
-	}
+    if (tochdr.cdth_trk0 < 1)
+    {
+        Con_Print("CDAudio: no music tracks\n");
+        return -1;
+    }
 
-	return tochdr.cdth_trk1;
+    return tochdr.cdth_trk1;
 }
 
 
 float CDAudio_SysGetVolume (void)
 {
-	struct cdrom_volctrl vol;
+    struct cdrom_volctrl vol;
 
-	if (cdfile == -1)
-		return -1.0f;
+    if (cdfile == -1)
+        return -1.0f;
 
-	if (ioctl (cdfile, CDROMVOLREAD, &vol) == -1)
-	{
-		Con_Print("ioctl CDROMVOLREAD failed\n");
-		return -1.0f;
-	}
+    if (ioctl (cdfile, CDROMVOLREAD, &vol) == -1)
+    {
+        Con_Print("ioctl CDROMVOLREAD failed\n");
+        return -1.0f;
+    }
 
-	return (vol.channel0 + vol.channel1) / 2.0f / 255.0f;
+    return (vol.channel0 + vol.channel1) / 2.0f / 255.0f;
 }
 
 
 void CDAudio_SysSetVolume (float volume)
 {
-	struct cdrom_volctrl vol;
+    struct cdrom_volctrl vol;
 
-	if (cdfile == -1)
-		return;
+    if (cdfile == -1)
+        return;
 
-	vol.channel0 = vol.channel1 = (__u8)(volume * 255);
-	vol.channel2 = vol.channel3 = 0;
+    vol.channel0 = vol.channel1 = (__u8)(volume * 255);
+    vol.channel2 = vol.channel3 = 0;
 
-	if (ioctl (cdfile, CDROMVOLCTRL, &vol) == -1)
-		Con_Print("ioctl CDROMVOLCTRL failed\n");
+    if (ioctl (cdfile, CDROMVOLCTRL, &vol) == -1)
+        Con_Print("ioctl CDROMVOLCTRL failed\n");
 }
 
 
 int CDAudio_SysPlay (int track)
 {
-	struct cdrom_tocentry entry;
-	struct cdrom_ti ti;
+    struct cdrom_tocentry entry;
+    struct cdrom_ti ti;
 
-	if (cdfile == -1)
-		return -1;
+    if (cdfile == -1)
+        return -1;
 
-	// don't try to play a non-audio track
-	entry.cdte_track = track;
-	entry.cdte_format = CDROM_MSF;
-	if (ioctl(cdfile, CDROMREADTOCENTRY, &entry) == -1)
-	{
-		Con_Print("ioctl CDROMREADTOCENTRY failed\n");
-		return -1;
-	}
-	if (entry.cdte_ctrl == CDROM_DATA_TRACK)
-	{
-		Con_Printf("CDAudio: track %i is not audio\n", track);
-		return -1;
-	}
+    // don't try to play a non-audio track
+    entry.cdte_track = track;
+    entry.cdte_format = CDROM_MSF;
+    if (ioctl(cdfile, CDROMREADTOCENTRY, &entry) == -1)
+    {
+        Con_Print("ioctl CDROMREADTOCENTRY failed\n");
+        return -1;
+    }
+    if (entry.cdte_ctrl == CDROM_DATA_TRACK)
+    {
+        Con_Printf("CDAudio: track %i is not audio\n", track);
+        return -1;
+    }
 
-	if (cdPlaying)
-		CDAudio_Stop();
+    if (cdPlaying)
+        CDAudio_Stop();
 
-	ti.cdti_trk0 = track;
-	ti.cdti_trk1 = track;
-	ti.cdti_ind0 = 1;
-	ti.cdti_ind1 = 99;
+    ti.cdti_trk0 = track;
+    ti.cdti_trk1 = track;
+    ti.cdti_ind0 = 1;
+    ti.cdti_ind1 = 99;
 
-	if (ioctl(cdfile, CDROMPLAYTRKIND, &ti) == -1)
-	{
-		Con_Print("ioctl CDROMPLAYTRKIND failed\n");
-		return -1;
-	}
+    if (ioctl(cdfile, CDROMPLAYTRKIND, &ti) == -1)
+    {
+        Con_Print("ioctl CDROMPLAYTRKIND failed\n");
+        return -1;
+    }
 
-	if (ioctl(cdfile, CDROMRESUME) == -1)
-	{
-		Con_Print("ioctl CDROMRESUME failed\n");
-		return -1;
-	}
+    if (ioctl(cdfile, CDROMRESUME) == -1)
+    {
+        Con_Print("ioctl CDROMRESUME failed\n");
+        return -1;
+    }
 
-	return 0;
+    return 0;
 }
 
 
 int CDAudio_SysStop (void)
 {
-	if (cdfile == -1)
-		return -1;
+    if (cdfile == -1)
+        return -1;
 
-	if (ioctl(cdfile, CDROMSTOP) == -1)
-	{
-		Con_Printf("ioctl CDROMSTOP failed (%d)\n", errno);
-		return -1;
-	}
+    if (ioctl(cdfile, CDROMSTOP) == -1)
+    {
+        Con_Printf("ioctl CDROMSTOP failed (%d)\n", errno);
+        return -1;
+    }
 
-	return 0;
+    return 0;
 }
 
 int CDAudio_SysPause (void)
 {
-	if (cdfile == -1)
-		return -1;
+    if (cdfile == -1)
+        return -1;
 
-	if (ioctl(cdfile, CDROMPAUSE) == -1)
-	{
-		Con_Print("ioctl CDROMPAUSE failed\n");
-		return -1;
-	}
+    if (ioctl(cdfile, CDROMPAUSE) == -1)
+    {
+        Con_Print("ioctl CDROMPAUSE failed\n");
+        return -1;
+    }
 
-	return 0;
+    return 0;
 }
 
 
 int CDAudio_SysResume (void)
 {
-	if (cdfile == -1)
-		return -1;
+    if (cdfile == -1)
+        return -1;
 
-	if (ioctl(cdfile, CDROMRESUME) == -1)
-		Con_Print("ioctl CDROMRESUME failed\n");
+    if (ioctl(cdfile, CDROMRESUME) == -1)
+        Con_Print("ioctl CDROMRESUME failed\n");
 
-	return 0;
+    return 0;
 }
 
 int CDAudio_SysUpdate (void)
 {
-	struct cdrom_subchnl subchnl;
-	static time_t lastchk = 0;
+    struct cdrom_subchnl subchnl;
+    static time_t lastchk = 0;
 
-	if (cdPlaying && lastchk < time(NULL) && cdfile != -1)
-	{
-		lastchk = time(NULL) + 2; //two seconds between chks
-		subchnl.cdsc_format = CDROM_MSF;
-		if (ioctl(cdfile, CDROMSUBCHNL, &subchnl) == -1)
-		{
-			Con_Print("ioctl CDROMSUBCHNL failed\n");
-			cdPlaying = false;
-			return -1;
-		}
-		if (subchnl.cdsc_audiostatus != CDROM_AUDIO_PLAY &&
-			subchnl.cdsc_audiostatus != CDROM_AUDIO_PAUSED)
-		{
-			cdPlaying = false;
-			if (cdPlayLooping)
-				CDAudio_Play(cdPlayTrack, true);
-		}
-		else
-			cdPlayTrack = subchnl.cdsc_trk;
-	}
+    if (cdPlaying && lastchk < time(NULL) && cdfile != -1)
+    {
+        lastchk = time(NULL) + 2; //two seconds between chks
+        subchnl.cdsc_format = CDROM_MSF;
+        if (ioctl(cdfile, CDROMSUBCHNL, &subchnl) == -1)
+        {
+            Con_Print("ioctl CDROMSUBCHNL failed\n");
+            cdPlaying = false;
+            return -1;
+        }
+        if (subchnl.cdsc_audiostatus != CDROM_AUDIO_PLAY &&
+            subchnl.cdsc_audiostatus != CDROM_AUDIO_PAUSED)
+        {
+            cdPlaying = false;
+            if (cdPlayLooping)
+                CDAudio_Play(cdPlayTrack, true);
+        }
+        else
+            cdPlayTrack = subchnl.cdsc_trk;
+    }
 
-	return 0;
+    return 0;
 }
 
 void CDAudio_SysInit (void)
 {
-	int i;
+    int i;
 
 // COMMANDLINEOPTION: Linux Sound: -cddev <devicepath> chooses which CD drive to use
-	if ((i = COM_CheckParm("-cddev")) != 0 && i < com_argc - 1)
-		strlcpy(cd_dev, com_argv[i + 1], sizeof(cd_dev));
+    if ((i = COM_CheckParm("-cddev")) != 0 && i < com_argc - 1)
+        strlcpy(cd_dev, com_argv[i + 1], sizeof(cd_dev));
 }
 
 int CDAudio_SysStartup (void)
 {
-	if ((cdfile = open(cd_dev, O_RDONLY | O_NONBLOCK)) == -1)
-	{
-		Con_Printf("CDAudio_SysStartup: open of \"%s\" failed (%i)\n",
-					cd_dev, errno);
-		cdfile = -1;
-		return -1;
-	}
+    if ((cdfile = open(cd_dev, O_RDONLY | O_NONBLOCK)) == -1)
+    {
+        Con_Printf("CDAudio_SysStartup: open of \"%s\" failed (%i)\n",
+                    cd_dev, errno);
+        cdfile = -1;
+        return -1;
+    }
 
-	return 0;
+    return 0;
 }
 
 void CDAudio_SysShutdown (void)
 {
-	close(cdfile);
-	cdfile = -1;
+    close(cdfile);
+    cdfile = -1;
 }

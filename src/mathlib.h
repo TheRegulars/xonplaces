@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "qtypes.h"
 
 #ifndef M_PI
-#define M_PI		3.14159265358979323846	// matches value in gcc v2 math.h
+#define M_PI        3.14159265358979323846    // matches value in gcc v2 math.h
 #endif
 
 struct mplane_s;
@@ -138,10 +138,10 @@ unsigned int CeilPowerOf2(unsigned int value);
 #define TriangleBBoxOverlapsBox(a,b,c,d,e) (min((a)[0], min((b)[0], (c)[0])) < (e)[0] && max((a)[0], max((b)[0], (c)[0])) > (d)[0] && min((a)[1], min((b)[1], (c)[1])) < (e)[1] && max((a)[1], max((b)[1], (c)[1])) > (d)[1] && min((a)[2], min((b)[2], (c)[2])) < (e)[2] && max((a)[2], max((b)[2], (c)[2])) > (d)[2])
 
 #define TriangleNormal(a,b,c,n) ( \
-	(n)[0] = ((a)[1] - (b)[1]) * ((c)[2] - (b)[2]) - ((a)[2] - (b)[2]) * ((c)[1] - (b)[1]), \
-	(n)[1] = ((a)[2] - (b)[2]) * ((c)[0] - (b)[0]) - ((a)[0] - (b)[0]) * ((c)[2] - (b)[2]), \
-	(n)[2] = ((a)[0] - (b)[0]) * ((c)[1] - (b)[1]) - ((a)[1] - (b)[1]) * ((c)[0] - (b)[0]) \
-	)
+    (n)[0] = ((a)[1] - (b)[1]) * ((c)[2] - (b)[2]) - ((a)[2] - (b)[2]) * ((c)[1] - (b)[1]), \
+    (n)[1] = ((a)[2] - (b)[2]) * ((c)[0] - (b)[0]) - ((a)[0] - (b)[0]) * ((c)[2] - (b)[2]), \
+    (n)[2] = ((a)[0] - (b)[0]) * ((c)[1] - (b)[1]) - ((a)[1] - (b)[1]) * ((c)[0] - (b)[0]) \
+    )
 
 /*! Fast PointInfrontOfTriangle.
  * subtracts v1 from v0 and v2, combined into a crossproduct, combined with a
@@ -163,21 +163,21 @@ unsigned int CeilPowerOf2(unsigned int value);
 // readable version, kept only for explanatory reasons
 int PointInfrontOfTriangle(const float *p, const float *a, const float *b, const float *c)
 {
-	float dir0[3], dir1[3], normal[3];
+    float dir0[3], dir1[3], normal[3];
 
-	// calculate two mostly perpendicular edge directions
-	VectorSubtract(a, b, dir0);
-	VectorSubtract(c, b, dir1);
+    // calculate two mostly perpendicular edge directions
+    VectorSubtract(a, b, dir0);
+    VectorSubtract(c, b, dir1);
 
-	// we have two edge directions, we can calculate a third vector from
-	// them, which is the direction of the surface normal (its magnitude
-	// is not 1 however)
-	CrossProduct(dir0, dir1, normal);
+    // we have two edge directions, we can calculate a third vector from
+    // them, which is the direction of the surface normal (its magnitude
+    // is not 1 however)
+    CrossProduct(dir0, dir1, normal);
 
-	// compare distance of light along normal, with distance of any point
-	// of the triangle along the same normal (the triangle is planar,
-	// I.E. flat, so all points give the same answer)
-	return DotProduct(p, normal) > DotProduct(a, normal);
+    // compare distance of light along normal, with distance of any point
+    // of the triangle along the same normal (the triangle is planar,
+    // I.E. flat, so all points give the same answer)
+    return DotProduct(p, normal) > DotProduct(a, normal);
 }
 #endif
 
@@ -241,7 +241,7 @@ float VectorNormalizeLength (vec3_t v);
 /// returns vector length
 float VectorNormalizeLength2 (vec3_t v, vec3_t dest);
 
-#define NUMVERTEXNORMALS	162
+#define NUMVERTEXNORMALS    162
 extern float m_bytenormals[NUMVERTEXNORMALS][3];
 
 unsigned char NormalToByte(const vec3_t n);
@@ -278,13 +278,13 @@ void BoxPlaneCornerDistances_Separate(const vec3_t emins, const vec3_t emaxs, co
 /// LordHavoc: minimal plane structure
 typedef struct tinyplane_s
 {
-	float normal[3], dist;
+    float normal[3], dist;
 }
 tinyplane_t;
 
 typedef struct tinydoubleplane_s
 {
-	double normal[3], dist;
+    double normal[3], dist;
 }
 tinydoubleplane_t;
 
@@ -306,7 +306,7 @@ int LoopingFrameNumberFromDouble(double t, int loopframes);
 // https://en.wikipedia.org/Lehmer_random_number_generator
 typedef struct randomseed_s
 {
-	unsigned int s[4];
+    unsigned int s[4];
 }
 randomseed_t;
 

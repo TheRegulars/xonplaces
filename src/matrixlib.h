@@ -3,14 +3,14 @@
 #define MATRIXLIB_H
 
 #ifndef M_PI
-#define M_PI		3.14159265358979323846	// matches value in gcc v2 math.h
+#define M_PI        3.14159265358979323846    // matches value in gcc v2 math.h
 #endif
 
 //#define MATRIX4x4_OPENGLORIENTATION
 
 typedef struct matrix4x4_s
 {
-	vec_t m[4][4];
+    vec_t m[4][4];
 }
 matrix4x4_t;
 

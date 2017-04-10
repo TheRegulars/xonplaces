@@ -36,7 +36,7 @@ BRUSH MODELS
 //
 typedef struct mvertex_s
 {
-	vec3_t position;
+    vec3_t position;
 }
 mvertex_t;
 
@@ -48,18 +48,18 @@ mvertex_t;
 // plane_t structure
 typedef struct mplane_s
 {
-	union
-	{
-		struct
-		{
-			vec3_t normal;
-			vec_t dist;
-		};
-		vec4_t normal_and_dist;
-	};
-	// for texture axis selection and fast side tests
-	int type; // set by PlaneClassify()
-	int signbits; // set by PlaneClassify()
+    union
+    {
+        struct
+        {
+            vec3_t normal;
+            vec_t dist;
+        };
+        vec4_t normal_and_dist;
+    };
+    // for texture axis selection and fast side tests
+    int type; // set by PlaneClassify()
+    int signbits; // set by PlaneClassify()
 }
 mplane_t;
 
@@ -136,7 +136,7 @@ mplane_t;
 
 typedef struct medge_s
 {
-	unsigned int v[2];
+    unsigned int v[2];
 }
 medge_t;
 
@@ -146,137 +146,137 @@ struct msurface_s;
 
 typedef struct mnode_s
 {
-	//this part shared between node and leaf
-	mplane_t *plane; // != NULL
-	struct mnode_s *parent;
-	struct mportal_s *portals;
-	// for bounding box culling
-	vec3_t mins;
-	vec3_t maxs;
-	// supercontents from all brushes inside this node or leaf
-	int combinedsupercontents;
+    //this part shared between node and leaf
+    mplane_t *plane; // != NULL
+    struct mnode_s *parent;
+    struct mportal_s *portals;
+    // for bounding box culling
+    vec3_t mins;
+    vec3_t maxs;
+    // supercontents from all brushes inside this node or leaf
+    int combinedsupercontents;
 
-	// this part unique to node
-	struct mnode_s *children[2];
+    // this part unique to node
+    struct mnode_s *children[2];
 
-	// q1bsp specific
-	unsigned int firstsurface;
-	unsigned int numsurfaces;
+    // q1bsp specific
+    unsigned int firstsurface;
+    unsigned int numsurfaces;
 }
 mnode_t;
 
 typedef struct mleaf_s
 {
-	//this part shared between node and leaf
-	mplane_t *plane; // == NULL
-	struct mnode_s *parent;
-	struct mportal_s *portals;
-	// for bounding box culling
-	vec3_t mins;
-	vec3_t maxs;
-	// supercontents from all brushes inside this node or leaf
-	int combinedsupercontents;
+    //this part shared between node and leaf
+    mplane_t *plane; // == NULL
+    struct mnode_s *parent;
+    struct mportal_s *portals;
+    // for bounding box culling
+    vec3_t mins;
+    vec3_t maxs;
+    // supercontents from all brushes inside this node or leaf
+    int combinedsupercontents;
 
-	// this part unique to leaf
-	// common
-	int clusterindex; // -1 is not in pvs, >= 0 is pvs bit number
-	int areaindex; // q3bsp
-	int containscollisionsurfaces; // indicates whether the leafsurfaces contains q3 patches
-	int numleafsurfaces;
-	int *firstleafsurface;
-	int numleafbrushes; // q3bsp
-	int *firstleafbrush; // q3bsp
-	unsigned char ambient_sound_level[NUM_AMBIENTS]; // q1bsp
-	int contents; // q1bsp: // TODO: remove (only used temporarily during loading when making collision hull 0)
-	int portalmarkid; // q1bsp // used by see-polygon-through-portals visibility checker
+    // this part unique to leaf
+    // common
+    int clusterindex; // -1 is not in pvs, >= 0 is pvs bit number
+    int areaindex; // q3bsp
+    int containscollisionsurfaces; // indicates whether the leafsurfaces contains q3 patches
+    int numleafsurfaces;
+    int *firstleafsurface;
+    int numleafbrushes; // q3bsp
+    int *firstleafbrush; // q3bsp
+    unsigned char ambient_sound_level[NUM_AMBIENTS]; // q1bsp
+    int contents; // q1bsp: // TODO: remove (only used temporarily during loading when making collision hull 0)
+    int portalmarkid; // q1bsp // used by see-polygon-through-portals visibility checker
 }
 mleaf_t;
 
 typedef struct mclipnode_s
 {
-	int			planenum;
-	int			children[2];	// negative numbers are contents
+    int            planenum;
+    int            children[2];    // negative numbers are contents
 } mclipnode_t;
 
 typedef struct hull_s
 {
-	mclipnode_t *clipnodes;
-	mplane_t *planes;
-	int firstclipnode;
-	int lastclipnode;
-	vec3_t clip_mins;
-	vec3_t clip_maxs;
-	vec3_t clip_size;
+    mclipnode_t *clipnodes;
+    mplane_t *planes;
+    int firstclipnode;
+    int lastclipnode;
+    vec3_t clip_mins;
+    vec3_t clip_maxs;
+    vec3_t clip_size;
 }
 hull_t;
 
 typedef struct mportal_s
 {
-	struct mportal_s *next; // the next portal on this leaf
-	mleaf_t *here; // the leaf this portal is on
-	mleaf_t *past; // the leaf through this portal (infront)
-	int numpoints;
-	mvertex_t *points;
-	vec3_t mins, maxs; // culling
-	mplane_t plane;
+    struct mportal_s *next; // the next portal on this leaf
+    mleaf_t *here; // the leaf this portal is on
+    mleaf_t *past; // the leaf through this portal (infront)
+    int numpoints;
+    mvertex_t *points;
+    vec3_t mins, maxs; // culling
+    mplane_t plane;
 }
 mportal_t;
 
 typedef struct svbspmesh_s
 {
-	struct svbspmesh_s *next;
-	int numverts, maxverts;
-	int numtriangles, maxtriangles;
-	float *verts;
-	int *elements;
+    struct svbspmesh_s *next;
+    int numverts, maxverts;
+    int numtriangles, maxtriangles;
+    float *verts;
+    int *elements;
 }
 svbspmesh_t;
 
 // Q2 bsp stuff
 
 #define Q2BSPMAGIC ('I' + 'B' * 256 + 'S' * 65536 + 'P' * 16777216)
-#define Q2BSPVERSION	38
+#define Q2BSPVERSION    38
 
 // leaffaces, leafbrushes, planes, and verts are still bounded by
 // 16 bit short limits
 
 //=============================================================================
 
-#define	Q2LUMP_ENTITIES		0
-#define	Q2LUMP_PLANES			1
-#define	Q2LUMP_VERTEXES		2
-#define	Q2LUMP_VISIBILITY		3
-#define	Q2LUMP_NODES			4
-#define	Q2LUMP_TEXINFO		5
-#define	Q2LUMP_FACES			6
-#define	Q2LUMP_LIGHTING		7
-#define	Q2LUMP_LEAFS			8
-#define	Q2LUMP_LEAFFACES		9
-#define	Q2LUMP_LEAFBRUSHES	10
-#define	Q2LUMP_EDGES			11
-#define	Q2LUMP_SURFEDGES		12
-#define	Q2LUMP_MODELS			13
-#define	Q2LUMP_BRUSHES		14
-#define	Q2LUMP_BRUSHSIDES		15
-#define	Q2LUMP_POP			16
-#define	Q2LUMP_AREAS			17
-#define	Q2LUMP_AREAPORTALS	18
-#define	Q2HEADER_LUMPS		19
+#define    Q2LUMP_ENTITIES        0
+#define    Q2LUMP_PLANES            1
+#define    Q2LUMP_VERTEXES        2
+#define    Q2LUMP_VISIBILITY        3
+#define    Q2LUMP_NODES            4
+#define    Q2LUMP_TEXINFO        5
+#define    Q2LUMP_FACES            6
+#define    Q2LUMP_LIGHTING        7
+#define    Q2LUMP_LEAFS            8
+#define    Q2LUMP_LEAFFACES        9
+#define    Q2LUMP_LEAFBRUSHES    10
+#define    Q2LUMP_EDGES            11
+#define    Q2LUMP_SURFEDGES        12
+#define    Q2LUMP_MODELS            13
+#define    Q2LUMP_BRUSHES        14
+#define    Q2LUMP_BRUSHSIDES        15
+#define    Q2LUMP_POP            16
+#define    Q2LUMP_AREAS            17
+#define    Q2LUMP_AREAPORTALS    18
+#define    Q2HEADER_LUMPS        19
 
 typedef struct q2dheader_s
 {
-	int			ident;
-	int			version;
-	lump_t		lumps[Q2HEADER_LUMPS];
+    int            ident;
+    int            version;
+    lump_t        lumps[Q2HEADER_LUMPS];
 } q2dheader_t;
 
 typedef struct q2dmodel_s
 {
-	float		mins[3], maxs[3];
-	float		origin[3];		// for sounds or lights
-	int			headnode;
-	int			firstface, numfaces;	// submodels just draw faces
-										// without walking the bsp tree
+    float        mins[3], maxs[3];
+    float        origin[3];        // for sounds or lights
+    int            headnode;
+    int            firstface, numfaces;    // submodels just draw faces
+                                        // without walking the bsp tree
 } q2dmodel_t;
 
 // planes (x&~1) and (x&~1)+1 are always opposites
@@ -288,117 +288,117 @@ typedef struct q2dmodel_s
 // these definitions also need to be in q_shared.h!
 
 // lower bits are stronger, and will eat weaker brushes completely
-#define	Q2CONTENTS_SOLID			1		// an eye is never valid in a solid
-#define	Q2CONTENTS_WINDOW			2		// translucent, but not watery
-#define	Q2CONTENTS_AUX			4
-#define	Q2CONTENTS_LAVA			8
-#define	Q2CONTENTS_SLIME			16
-#define	Q2CONTENTS_WATER			32
-#define	Q2CONTENTS_MIST			64
-#define	Q2LAST_VISIBLE_CONTENTS	64
+#define    Q2CONTENTS_SOLID            1        // an eye is never valid in a solid
+#define    Q2CONTENTS_WINDOW            2        // translucent, but not watery
+#define    Q2CONTENTS_AUX            4
+#define    Q2CONTENTS_LAVA            8
+#define    Q2CONTENTS_SLIME            16
+#define    Q2CONTENTS_WATER            32
+#define    Q2CONTENTS_MIST            64
+#define    Q2LAST_VISIBLE_CONTENTS    64
 
 // remaining contents are non-visible, and don't eat brushes
 
-#define	Q2CONTENTS_AREAPORTAL		0x8000
+#define    Q2CONTENTS_AREAPORTAL        0x8000
 
-#define	Q2CONTENTS_PLAYERCLIP		0x10000
-#define	Q2CONTENTS_MONSTERCLIP	0x20000
+#define    Q2CONTENTS_PLAYERCLIP        0x10000
+#define    Q2CONTENTS_MONSTERCLIP    0x20000
 
 // currents can be added to any other contents, and may be mixed
-#define	Q2CONTENTS_CURRENT_0		0x40000
-#define	Q2CONTENTS_CURRENT_90		0x80000
-#define	Q2CONTENTS_CURRENT_180	0x100000
-#define	Q2CONTENTS_CURRENT_270	0x200000
-#define	Q2CONTENTS_CURRENT_UP		0x400000
-#define	Q2CONTENTS_CURRENT_DOWN	0x800000
+#define    Q2CONTENTS_CURRENT_0        0x40000
+#define    Q2CONTENTS_CURRENT_90        0x80000
+#define    Q2CONTENTS_CURRENT_180    0x100000
+#define    Q2CONTENTS_CURRENT_270    0x200000
+#define    Q2CONTENTS_CURRENT_UP        0x400000
+#define    Q2CONTENTS_CURRENT_DOWN    0x800000
 
-#define	Q2CONTENTS_ORIGIN			0x1000000	// removed before bsping an entity
+#define    Q2CONTENTS_ORIGIN            0x1000000    // removed before bsping an entity
 
-#define	Q2CONTENTS_MONSTER		0x2000000	// should never be on a brush, only in game
-#define	Q2CONTENTS_DEADMONSTER	0x4000000
-#define	Q2CONTENTS_DETAIL			0x8000000	// brushes to be added after vis leafs
-#define	Q2CONTENTS_TRANSLUCENT	0x10000000	// auto set if any surface has trans
-#define	Q2CONTENTS_LADDER			0x20000000
+#define    Q2CONTENTS_MONSTER        0x2000000    // should never be on a brush, only in game
+#define    Q2CONTENTS_DEADMONSTER    0x4000000
+#define    Q2CONTENTS_DETAIL            0x8000000    // brushes to be added after vis leafs
+#define    Q2CONTENTS_TRANSLUCENT    0x10000000    // auto set if any surface has trans
+#define    Q2CONTENTS_LADDER            0x20000000
 
 
 
-#define	Q2SURF_LIGHT		0x1		// value will hold the light strength
+#define    Q2SURF_LIGHT        0x1        // value will hold the light strength
 
-#define	Q2SURF_SLICK		0x2		// effects game physics
+#define    Q2SURF_SLICK        0x2        // effects game physics
 
-#define	Q2SURF_SKY		0x4		// don't draw, but add to skybox
-#define	Q2SURF_WARP		0x8		// turbulent water warp
-#define	Q2SURF_TRANS33	0x10
-#define	Q2SURF_TRANS66	0x20
-#define	Q2SURF_FLOWING	0x40	// scroll towards angle
-#define	Q2SURF_NODRAW		0x80	// don't bother referencing the texture
+#define    Q2SURF_SKY        0x4        // don't draw, but add to skybox
+#define    Q2SURF_WARP        0x8        // turbulent water warp
+#define    Q2SURF_TRANS33    0x10
+#define    Q2SURF_TRANS66    0x20
+#define    Q2SURF_FLOWING    0x40    // scroll towards angle
+#define    Q2SURF_NODRAW        0x80    // don't bother referencing the texture
 
-#define Q2SURF_HINT		0x100   // make a primary bsp splitter
-#define Q2SURF_SKIP		0x200   // completely ignore, allowing non-closed brushes
+#define Q2SURF_HINT        0x100   // make a primary bsp splitter
+#define Q2SURF_SKIP        0x200   // completely ignore, allowing non-closed brushes
 
-#define Q2SURF_ALPHATEST 0x02000000	// alpha test masking of color 255 in wal textures (supported by modded engines)
+#define Q2SURF_ALPHATEST 0x02000000    // alpha test masking of color 255 in wal textures (supported by modded engines)
 
 
 /*
 typedef struct q2dnode_s
 {
-	int			planenum;
-	int			children[2];	// negative numbers are -(leafs+1), not nodes
-	short		mins[3];		// for frustom culling
-	short		maxs[3];
-	unsigned short	firstface;
-	unsigned short	numfaces;	// counting both sides
+    int            planenum;
+    int            children[2];    // negative numbers are -(leafs+1), not nodes
+    short        mins[3];        // for frustom culling
+    short        maxs[3];
+    unsigned short    firstface;
+    unsigned short    numfaces;    // counting both sides
 } q2dnode_t;
 
 typedef struct q2texinfo_s
 {
-	float		vecs[2][4];		// [s/t][xyz offset]
-	int			flags;			// miptex flags + overrides
-	int			value;			// light emission, etc
-	char		texture[32];	// texture name (textures/something.wal)
-	int			nexttexinfo;	// for animations, -1 = end of chain
+    float        vecs[2][4];        // [s/t][xyz offset]
+    int            flags;            // miptex flags + overrides
+    int            value;            // light emission, etc
+    char        texture[32];    // texture name (textures/something.wal)
+    int            nexttexinfo;    // for animations, -1 = end of chain
 } q2texinfo_t;
 
 typedef struct q2dleaf_s
 {
-	int				contents;			// OR of all brushes (not needed?)
+    int                contents;            // OR of all brushes (not needed?)
 
-	short			cluster;
-	short			area;
+    short            cluster;
+    short            area;
 
-	short			mins[3];			// for frustum culling
-	short			maxs[3];
+    short            mins[3];            // for frustum culling
+    short            maxs[3];
 
-	unsigned short	firstleafface;
-	unsigned short	numleaffaces;
+    unsigned short    firstleafface;
+    unsigned short    numleaffaces;
 
-	unsigned short	firstleafbrush;
-	unsigned short	numleafbrushes;
+    unsigned short    firstleafbrush;
+    unsigned short    numleafbrushes;
 } q2dleaf_t;
 
 typedef struct q2dbrushside_s
 {
-	unsigned short	planenum;		// facing out of the leaf
-	short	texinfo;
+    unsigned short    planenum;        // facing out of the leaf
+    short    texinfo;
 } q2dbrushside_t;
 
 typedef struct q2dbrush_s
 {
-	int			firstside;
-	int			numsides;
-	int			contents;
+    int            firstside;
+    int            numsides;
+    int            contents;
 } q2dbrush_t;
 
 
 // the visibility lump consists of a header with a count, then
 // byte offsets for the PVS and PHS of each cluster, then the raw
 // compressed bit vectors
-#define	Q2DVIS_PVS	0
-#define	Q2DVIS_PHS	1
+#define    Q2DVIS_PVS    0
+#define    Q2DVIS_PHS    1
 typedef struct q2dvis_s
 {
-	int			numclusters;
-	int			bitofs[8][2];	// bitofs[numclusters][2]
+    int            numclusters;
+    int            bitofs[8][2];    // bitofs[numclusters][2]
 } q2dvis_t;
 
 // each area has a list of portals that lead into other areas
@@ -406,146 +406,146 @@ typedef struct q2dvis_s
 // hearable even if the vis info says that it should be
 typedef struct q2dareaportal_s
 {
-	int		portalnum;
-	int		otherarea;
+    int        portalnum;
+    int        otherarea;
 } q2dareaportal_t;
 
 typedef struct q2darea_s
 {
-	int		numareaportals;
-	int		firstareaportal;
+    int        numareaportals;
+    int        firstareaportal;
 } q2darea_t;
 */
 
 
 //Q3 bsp stuff
 
-#define Q3BSPVERSION	46
+#define Q3BSPVERSION    46
 #define Q3BSPVERSION_LIVE 47
-#define Q3BSPVERSION_IG	48
+#define Q3BSPVERSION_IG    48
 
-#define	Q3LUMP_ENTITIES		0 // entities to spawn (used by server and client)
-#define	Q3LUMP_TEXTURES		1 // textures used (used by faces)
-#define	Q3LUMP_PLANES		2 // planes used (used by bsp nodes)
-#define	Q3LUMP_NODES		3 // bsp nodes (used by bsp nodes, bsp leafs, rendering, collisions)
-#define	Q3LUMP_LEAFS		4 // bsp leafs (used by bsp nodes)
-#define	Q3LUMP_LEAFFACES	5 // array of ints indexing faces (used by leafs)
-#define	Q3LUMP_LEAFBRUSHES	6 // array of ints indexing brushes (used by leafs)
-#define	Q3LUMP_MODELS		7 // models (used by rendering, collisions)
-#define	Q3LUMP_BRUSHES		8 // brushes (used by effects, collisions)
-#define	Q3LUMP_BRUSHSIDES	9 // brush faces (used by brushes)
-#define	Q3LUMP_VERTICES		10 // mesh vertices (used by faces)
-#define	Q3LUMP_TRIANGLES	11 // mesh triangles (used by faces)
-#define	Q3LUMP_EFFECTS		12 // fog (used by faces)
-#define	Q3LUMP_FACES		13 // surfaces (used by leafs)
-#define	Q3LUMP_LIGHTMAPS	14 // lightmap textures (used by faces)
-#define	Q3LUMP_LIGHTGRID	15 // lighting as a voxel grid (used by rendering)
-#define	Q3LUMP_PVS			16 // potentially visible set; bit[clusters][clusters] (used by rendering)
-#define	Q3HEADER_LUMPS		17
-#define	Q3LUMP_ADVERTISEMENTS 17 // quake live stuff written by zeroradiant's q3map2 (ignored by DP)
-#define	Q3HEADER_LUMPS_LIVE	18
-#define	Q3HEADER_LUMPS_MAX	18
+#define    Q3LUMP_ENTITIES        0 // entities to spawn (used by server and client)
+#define    Q3LUMP_TEXTURES        1 // textures used (used by faces)
+#define    Q3LUMP_PLANES        2 // planes used (used by bsp nodes)
+#define    Q3LUMP_NODES        3 // bsp nodes (used by bsp nodes, bsp leafs, rendering, collisions)
+#define    Q3LUMP_LEAFS        4 // bsp leafs (used by bsp nodes)
+#define    Q3LUMP_LEAFFACES    5 // array of ints indexing faces (used by leafs)
+#define    Q3LUMP_LEAFBRUSHES    6 // array of ints indexing brushes (used by leafs)
+#define    Q3LUMP_MODELS        7 // models (used by rendering, collisions)
+#define    Q3LUMP_BRUSHES        8 // brushes (used by effects, collisions)
+#define    Q3LUMP_BRUSHSIDES    9 // brush faces (used by brushes)
+#define    Q3LUMP_VERTICES        10 // mesh vertices (used by faces)
+#define    Q3LUMP_TRIANGLES    11 // mesh triangles (used by faces)
+#define    Q3LUMP_EFFECTS        12 // fog (used by faces)
+#define    Q3LUMP_FACES        13 // surfaces (used by leafs)
+#define    Q3LUMP_LIGHTMAPS    14 // lightmap textures (used by faces)
+#define    Q3LUMP_LIGHTGRID    15 // lighting as a voxel grid (used by rendering)
+#define    Q3LUMP_PVS            16 // potentially visible set; bit[clusters][clusters] (used by rendering)
+#define    Q3HEADER_LUMPS        17
+#define    Q3LUMP_ADVERTISEMENTS 17 // quake live stuff written by zeroradiant's q3map2 (ignored by DP)
+#define    Q3HEADER_LUMPS_LIVE    18
+#define    Q3HEADER_LUMPS_MAX    18
 
 typedef struct q3dheader_s
 {
-	int			ident;
-	int			version;
-	lump_t		lumps[Q3HEADER_LUMPS_MAX];
+    int            ident;
+    int            version;
+    lump_t        lumps[Q3HEADER_LUMPS_MAX];
 } q3dheader_t;
 
 typedef struct q3dtexture_s
 {
-	char name[Q3PATHLENGTH];
-	int surfaceflags;
-	int contents;
+    char name[Q3PATHLENGTH];
+    int surfaceflags;
+    int contents;
 }
 q3dtexture_t;
 
 // note: planes are paired, the pair of planes with i and i ^ 1 are opposites.
 typedef struct q3dplane_s
 {
-	float normal[3];
-	float dist;
+    float normal[3];
+    float dist;
 }
 q3dplane_t;
 
 typedef struct q3dnode_s
 {
-	int planeindex;
-	int childrenindex[2];
-	int mins[3];
-	int maxs[3];
+    int planeindex;
+    int childrenindex[2];
+    int mins[3];
+    int maxs[3];
 }
 q3dnode_t;
 
 typedef struct q3dleaf_s
 {
-	int clusterindex; // pvs index
-	int areaindex; // area index
-	int mins[3];
-	int maxs[3];
-	int firstleafface;
-	int numleaffaces;
-	int firstleafbrush;
-	int numleafbrushes;
+    int clusterindex; // pvs index
+    int areaindex; // area index
+    int mins[3];
+    int maxs[3];
+    int firstleafface;
+    int numleaffaces;
+    int firstleafbrush;
+    int numleafbrushes;
 }
 q3dleaf_t;
 
 typedef struct q3dmodel_s
 {
-	float mins[3];
-	float maxs[3];
-	int firstface;
-	int numfaces;
-	int firstbrush;
-	int numbrushes;
+    float mins[3];
+    float maxs[3];
+    int firstface;
+    int numfaces;
+    int firstbrush;
+    int numbrushes;
 }
 q3dmodel_t;
 
 typedef struct q3dbrush_s
 {
-	int firstbrushside;
-	int numbrushsides;
-	int textureindex;
+    int firstbrushside;
+    int numbrushsides;
+    int textureindex;
 }
 q3dbrush_t;
 
 typedef struct q3dbrushside_s
 {
-	int planeindex;
-	int textureindex;
+    int planeindex;
+    int textureindex;
 }
 q3dbrushside_t;
 
 typedef struct q3dbrushside_ig_s
 {
-	int planeindex;
-	int textureindex;
-	int surfaceflags;
+    int planeindex;
+    int textureindex;
+    int surfaceflags;
 }
 q3dbrushside_ig_t;
 
 typedef struct q3dvertex_s
 {
-	float origin3f[3];
-	float texcoord2f[2];
-	float lightmap2f[2];
-	float normal3f[3];
-	unsigned char color4ub[4];
+    float origin3f[3];
+    float texcoord2f[2];
+    float lightmap2f[2];
+    float normal3f[3];
+    unsigned char color4ub[4];
 }
 q3dvertex_t;
 
 typedef struct q3dmeshvertex_s
 {
-	int offset; // first vertex index of mesh
+    int offset; // first vertex index of mesh
 }
 q3dmeshvertex_t;
 
 typedef struct q3deffect_s
 {
-	char shadername[Q3PATHLENGTH];
-	int brushindex;
-	int unknown; // I read this is always 5 except in q3dm8 which has one effect with -1
+    char shadername[Q3PATHLENGTH];
+    int brushindex;
+    int unknown; // I read this is always 5 except in q3dm8 which has one effect with -1
 }
 q3deffect_t;
 
@@ -556,97 +556,97 @@ q3deffect_t;
 
 typedef struct q3dface_s
 {
-	int textureindex;
-	int effectindex; // -1 if none
-	int type; // Q3FACETYPE
-	int firstvertex;
-	int numvertices;
-	int firstelement;
-	int numelements;
-	int lightmapindex; // -1 if none
-	int lightmap_base[2];
-	int lightmap_size[2];
-	union
-	{
-		struct
-		{
-			// corrupt or don't care
-			int blah[14];
-		}
-		unknown;
-		struct
-		{
-			// Q3FACETYPE_FLAT
-			// mesh is a collection of triangles on a plane, renderable as a mesh (NOT a polygon)
-			float lightmap_origin[3];
-			float lightmap_vectors[2][3];
-			float normal[3];
-			int unused1[2];
-		}
-		flat;
-		struct
-		{
-			// Q3FACETYPE_PATCH
-			// patch renders as a bezier mesh, with adjustable tesselation
-			// level (optionally based on LOD using the bbox and polygon
-			// count to choose a tesselation level)
-			// note: multiple patches may have the same bbox to cause them to
-			// be LOD adjusted together as a group
-			int unused1[3];
-			float mins[3]; // LOD bbox
-			float maxs[3]; // LOD bbox
-			int unused2[3];
-			int patchsize[2]; // dimensions of vertex grid
-		}
-		patch;
-		struct
-		{
-			// Q3FACETYPE_MESH
-			// mesh renders as simply a triangle mesh
-			int unused1[3];
-			float mins[3];
-			float maxs[3];
-			int unused2[5];
-		}
-		mesh;
-		struct
-		{
-			// Q3FACETYPE_FLARE
-			// flare renders as a simple sprite at origin, no geometry
-			// exists, nor does it have a radius, a cvar controls the radius
-			// and another cvar controls distance fade
-			// (they were not used in Q3 I'm told)
-			float origin[3];
-			int unused1[11];
-		}
-		flare;
-	}
-	specific;
+    int textureindex;
+    int effectindex; // -1 if none
+    int type; // Q3FACETYPE
+    int firstvertex;
+    int numvertices;
+    int firstelement;
+    int numelements;
+    int lightmapindex; // -1 if none
+    int lightmap_base[2];
+    int lightmap_size[2];
+    union
+    {
+        struct
+        {
+            // corrupt or don't care
+            int blah[14];
+        }
+        unknown;
+        struct
+        {
+            // Q3FACETYPE_FLAT
+            // mesh is a collection of triangles on a plane, renderable as a mesh (NOT a polygon)
+            float lightmap_origin[3];
+            float lightmap_vectors[2][3];
+            float normal[3];
+            int unused1[2];
+        }
+        flat;
+        struct
+        {
+            // Q3FACETYPE_PATCH
+            // patch renders as a bezier mesh, with adjustable tesselation
+            // level (optionally based on LOD using the bbox and polygon
+            // count to choose a tesselation level)
+            // note: multiple patches may have the same bbox to cause them to
+            // be LOD adjusted together as a group
+            int unused1[3];
+            float mins[3]; // LOD bbox
+            float maxs[3]; // LOD bbox
+            int unused2[3];
+            int patchsize[2]; // dimensions of vertex grid
+        }
+        patch;
+        struct
+        {
+            // Q3FACETYPE_MESH
+            // mesh renders as simply a triangle mesh
+            int unused1[3];
+            float mins[3];
+            float maxs[3];
+            int unused2[5];
+        }
+        mesh;
+        struct
+        {
+            // Q3FACETYPE_FLARE
+            // flare renders as a simple sprite at origin, no geometry
+            // exists, nor does it have a radius, a cvar controls the radius
+            // and another cvar controls distance fade
+            // (they were not used in Q3 I'm told)
+            float origin[3];
+            int unused1[11];
+        }
+        flare;
+    }
+    specific;
 }
 q3dface_t;
 
 typedef struct q3dlightmap_s
 {
-	unsigned char rgb[128*128*3];
+    unsigned char rgb[128*128*3];
 }
 q3dlightmap_t;
 
 typedef struct q3dlightgrid_s
 {
-	unsigned char ambientrgb[3];
-	unsigned char diffusergb[3];
-	unsigned char diffusepitch;
-	unsigned char diffuseyaw;
+    unsigned char ambientrgb[3];
+    unsigned char diffusergb[3];
+    unsigned char diffusepitch;
+    unsigned char diffuseyaw;
 }
 q3dlightgrid_t;
 
 typedef struct q3dpvs_s
 {
-	int numclusters;
-	int chainlength;
-	// unsigned char chains[];
-	// containing bits in 0-7 order (not 7-0 order),
-	// pvschains[mycluster * chainlength + (thatcluster >> 3)] & (1 << (thatcluster & 7))
+    int numclusters;
+    int chainlength;
+    // unsigned char chains[];
+    // containing bits in 0-7 order (not 7-0 order),
+    // pvschains[mycluster * chainlength + (thatcluster >> 3)] & (1 << (thatcluster & 7))
 }
 q3dpvs_t;
 
@@ -707,17 +707,17 @@ q3dpvs_t;
 
 typedef struct q3mbrush_s
 {
-	struct colbrushf_s *colbrushf;
-	int numbrushsides;
-	struct q3mbrushside_s *firstbrushside;
-	struct texture_s *texture;
+    struct colbrushf_s *colbrushf;
+    int numbrushsides;
+    struct q3mbrushside_s *firstbrushside;
+    struct texture_s *texture;
 }
 q3mbrush_t;
 
 typedef struct q3mbrushside_s
 {
-	struct mplane_s *plane;
-	struct texture_s *texture;
+    struct mplane_s *plane;
+    struct texture_s *texture;
 }
 q3mbrushside_t;
 

@@ -37,20 +37,20 @@ LPDIRECT3DDEVICE9 vid_d3d9dev;
 
 typedef struct xinput_gamepad_s
 {
-	WORD wButtons;
-	BYTE bLeftTrigger;
-	BYTE bRightTrigger;
-	SHORT sThumbLX;
-	SHORT sThumbLY;
-	SHORT sThumbRX;
-	SHORT sThumbRY;
+    WORD wButtons;
+    BYTE bLeftTrigger;
+    BYTE bRightTrigger;
+    SHORT sThumbLX;
+    SHORT sThumbLY;
+    SHORT sThumbRX;
+    SHORT sThumbRY;
 }
 xinput_gamepad_t;
 
 typedef struct xinput_state_s
 {
-	DWORD dwPacketNumber;
-	xinput_gamepad_t Gamepad;
+    DWORD dwPacketNumber;
+    xinput_gamepad_t Gamepad;
 }
 xinput_state_t;
 
@@ -539,567 +539,567 @@ void (GLAPIENTRY *qglBlendFuncSeparate)(GLenum sfactorRGB, GLenum dfactorRGB, GL
 
 qboolean GL_CheckExtension(const char *minglver_or_ext, const dllfunction_t *funcs, const char *disableparm, int silent)
 {
-	int failed = false;
-	const dllfunction_t *func;
-	struct { int major, minor; } min_version, curr_version;
-	char extstr[MAX_INPUTLINE];
-	int ext;
+    int failed = false;
+    const dllfunction_t *func;
+    struct { int major, minor; } min_version, curr_version;
+    char extstr[MAX_INPUTLINE];
+    int ext;
 
-	if(sscanf(minglver_or_ext, "%d.%d", &min_version.major, &min_version.minor) == 2)
-		ext = 0; // opengl version
-	else if(minglver_or_ext[0] != toupper(minglver_or_ext[0]))
-		ext = -1; // pseudo name
-	else
-		ext = 1; // extension name
+    if(sscanf(minglver_or_ext, "%d.%d", &min_version.major, &min_version.minor) == 2)
+        ext = 0; // opengl version
+    else if(minglver_or_ext[0] != toupper(minglver_or_ext[0]))
+        ext = -1; // pseudo name
+    else
+        ext = 1; // extension name
 
-	if (ext)
-		Con_DPrintf("checking for %s...  ", minglver_or_ext);
-	else
-		Con_DPrintf("checking for OpenGL %s core features...  ", minglver_or_ext);
+    if (ext)
+        Con_DPrintf("checking for %s...  ", minglver_or_ext);
+    else
+        Con_DPrintf("checking for OpenGL %s core features...  ", minglver_or_ext);
 
-	for (func = funcs;func && func->name;func++)
-		*func->funcvariable = NULL;
+    for (func = funcs;func && func->name;func++)
+        *func->funcvariable = NULL;
 
-	if (disableparm && (COM_CheckParm(disableparm) || COM_CheckParm("-safe")))
-	{
-		Con_DPrint("disabled by commandline\n");
-		return false;
-	}
+    if (disableparm && (COM_CheckParm(disableparm) || COM_CheckParm("-safe")))
+    {
+        Con_DPrint("disabled by commandline\n");
+        return false;
+    }
 
-	if (ext == 1) // opengl extension
-	{
-		if (!strstr(gl_extensions ? gl_extensions : "", minglver_or_ext) && !strstr(gl_platformextensions ? gl_platformextensions : "", minglver_or_ext))
-		{
-			Con_DPrint("not detected\n");
-			return false;
-		}
-	}
+    if (ext == 1) // opengl extension
+    {
+        if (!strstr(gl_extensions ? gl_extensions : "", minglver_or_ext) && !strstr(gl_platformextensions ? gl_platformextensions : "", minglver_or_ext))
+        {
+            Con_DPrint("not detected\n");
+            return false;
+        }
+    }
 
-	if(ext == 0) // opengl version
-	{
-		if (sscanf(gl_version, "%d.%d", &curr_version.major, &curr_version.minor) < 2)
-			curr_version.major = curr_version.minor = 1;
+    if(ext == 0) // opengl version
+    {
+        if (sscanf(gl_version, "%d.%d", &curr_version.major, &curr_version.minor) < 2)
+            curr_version.major = curr_version.minor = 1;
 
-		if (curr_version.major < min_version.major || (curr_version.major == min_version.major && curr_version.minor < min_version.minor))
-		{
-			Con_DPrintf("not detected (OpenGL %d.%d loaded)\n", curr_version.major, curr_version.minor);
-			return false;
-		}
-	}
+        if (curr_version.major < min_version.major || (curr_version.major == min_version.major && curr_version.minor < min_version.minor))
+        {
+            Con_DPrintf("not detected (OpenGL %d.%d loaded)\n", curr_version.major, curr_version.minor);
+            return false;
+        }
+    }
 
-	for (func = funcs;func && func->name != NULL;func++)
-	{
-		// Con_DPrintf("\n    %s...  ", func->name);
+    for (func = funcs;func && func->name != NULL;func++)
+    {
+        // Con_DPrintf("\n    %s...  ", func->name);
 
-		// functions are cleared before all the extensions are evaluated
-		if (!(*func->funcvariable = (void *) GL_GetProcAddress(func->name)))
-		{
-			if (ext && !silent)
-				Con_DPrintf("%s is missing function \"%s\" - broken driver!\n", minglver_or_ext, func->name);
-			if (!ext)
-				Con_Printf("OpenGL %s core features are missing function \"%s\" - broken driver!\n", minglver_or_ext, func->name);
-			failed = true;
-		}
-	}
-	// delay the return so it prints all missing functions
-	if (failed)
-		return false;
-	// VorteX: add to found extension list
-	dpsnprintf(extstr, sizeof(extstr), "%s %s ", gl_info_extensions.string, minglver_or_ext);
-	Cvar_SetQuick(&gl_info_extensions, extstr);
+        // functions are cleared before all the extensions are evaluated
+        if (!(*func->funcvariable = (void *) GL_GetProcAddress(func->name)))
+        {
+            if (ext && !silent)
+                Con_DPrintf("%s is missing function \"%s\" - broken driver!\n", minglver_or_ext, func->name);
+            if (!ext)
+                Con_Printf("OpenGL %s core features are missing function \"%s\" - broken driver!\n", minglver_or_ext, func->name);
+            failed = true;
+        }
+    }
+    // delay the return so it prints all missing functions
+    if (failed)
+        return false;
+    // VorteX: add to found extension list
+    dpsnprintf(extstr, sizeof(extstr), "%s %s ", gl_info_extensions.string, minglver_or_ext);
+    Cvar_SetQuick(&gl_info_extensions, extstr);
 
-	Con_DPrint("enabled\n");
-	return true;
+    Con_DPrint("enabled\n");
+    return true;
 }
 
 #ifndef USE_GLES2
 static dllfunction_t opengl110funcs[] =
 {
-	{"glClearColor", (void **) &qglClearColor},
-	{"glClear", (void **) &qglClear},
-	{"glAlphaFunc", (void **) &qglAlphaFunc},
-	{"glBlendFunc", (void **) &qglBlendFunc},
-	{"glCullFace", (void **) &qglCullFace},
-	{"glDrawBuffer", (void **) &qglDrawBuffer},
-	{"glReadBuffer", (void **) &qglReadBuffer},
-	{"glEnable", (void **) &qglEnable},
-	{"glDisable", (void **) &qglDisable},
-	{"glIsEnabled", (void **) &qglIsEnabled},
-	{"glEnableClientState", (void **) &qglEnableClientState},
-	{"glDisableClientState", (void **) &qglDisableClientState},
-	{"glGetBooleanv", (void **) &qglGetBooleanv},
-	{"glGetDoublev", (void **) &qglGetDoublev},
-	{"glGetFloatv", (void **) &qglGetFloatv},
-	{"glGetIntegerv", (void **) &qglGetIntegerv},
-	{"glGetError", (void **) &qglGetError},
-	{"glGetString", (void **) &qglGetString},
-	{"glFinish", (void **) &qglFinish},
-	{"glFlush", (void **) &qglFlush},
-	{"glClearDepth", (void **) &qglClearDepth},
-	{"glDepthFunc", (void **) &qglDepthFunc},
-	{"glDepthMask", (void **) &qglDepthMask},
-	{"glDepthRange", (void **) &qglDepthRange},
-	{"glDrawElements", (void **) &qglDrawElements},
-	{"glDrawArrays", (void **) &qglDrawArrays},
-	{"glColorMask", (void **) &qglColorMask},
-	{"glVertexPointer", (void **) &qglVertexPointer},
-	{"glNormalPointer", (void **) &qglNormalPointer},
-	{"glColorPointer", (void **) &qglColorPointer},
-	{"glTexCoordPointer", (void **) &qglTexCoordPointer},
-	{"glArrayElement", (void **) &qglArrayElement},
-	{"glColor4ub", (void **) &qglColor4ub},
-	{"glColor4f", (void **) &qglColor4f},
-	{"glTexCoord1f", (void **) &qglTexCoord1f},
-	{"glTexCoord2f", (void **) &qglTexCoord2f},
-	{"glTexCoord3f", (void **) &qglTexCoord3f},
-	{"glTexCoord4f", (void **) &qglTexCoord4f},
-	{"glVertex2f", (void **) &qglVertex2f},
-	{"glVertex3f", (void **) &qglVertex3f},
-	{"glVertex4f", (void **) &qglVertex4f},
-	{"glBegin", (void **) &qglBegin},
-	{"glEnd", (void **) &qglEnd},
+    {"glClearColor", (void **) &qglClearColor},
+    {"glClear", (void **) &qglClear},
+    {"glAlphaFunc", (void **) &qglAlphaFunc},
+    {"glBlendFunc", (void **) &qglBlendFunc},
+    {"glCullFace", (void **) &qglCullFace},
+    {"glDrawBuffer", (void **) &qglDrawBuffer},
+    {"glReadBuffer", (void **) &qglReadBuffer},
+    {"glEnable", (void **) &qglEnable},
+    {"glDisable", (void **) &qglDisable},
+    {"glIsEnabled", (void **) &qglIsEnabled},
+    {"glEnableClientState", (void **) &qglEnableClientState},
+    {"glDisableClientState", (void **) &qglDisableClientState},
+    {"glGetBooleanv", (void **) &qglGetBooleanv},
+    {"glGetDoublev", (void **) &qglGetDoublev},
+    {"glGetFloatv", (void **) &qglGetFloatv},
+    {"glGetIntegerv", (void **) &qglGetIntegerv},
+    {"glGetError", (void **) &qglGetError},
+    {"glGetString", (void **) &qglGetString},
+    {"glFinish", (void **) &qglFinish},
+    {"glFlush", (void **) &qglFlush},
+    {"glClearDepth", (void **) &qglClearDepth},
+    {"glDepthFunc", (void **) &qglDepthFunc},
+    {"glDepthMask", (void **) &qglDepthMask},
+    {"glDepthRange", (void **) &qglDepthRange},
+    {"glDrawElements", (void **) &qglDrawElements},
+    {"glDrawArrays", (void **) &qglDrawArrays},
+    {"glColorMask", (void **) &qglColorMask},
+    {"glVertexPointer", (void **) &qglVertexPointer},
+    {"glNormalPointer", (void **) &qglNormalPointer},
+    {"glColorPointer", (void **) &qglColorPointer},
+    {"glTexCoordPointer", (void **) &qglTexCoordPointer},
+    {"glArrayElement", (void **) &qglArrayElement},
+    {"glColor4ub", (void **) &qglColor4ub},
+    {"glColor4f", (void **) &qglColor4f},
+    {"glTexCoord1f", (void **) &qglTexCoord1f},
+    {"glTexCoord2f", (void **) &qglTexCoord2f},
+    {"glTexCoord3f", (void **) &qglTexCoord3f},
+    {"glTexCoord4f", (void **) &qglTexCoord4f},
+    {"glVertex2f", (void **) &qglVertex2f},
+    {"glVertex3f", (void **) &qglVertex3f},
+    {"glVertex4f", (void **) &qglVertex4f},
+    {"glBegin", (void **) &qglBegin},
+    {"glEnd", (void **) &qglEnd},
 //[515]: added on 29.07.2005
-	{"glLineWidth", (void**) &qglLineWidth},
-	{"glPointSize", (void**) &qglPointSize},
+    {"glLineWidth", (void**) &qglLineWidth},
+    {"glPointSize", (void**) &qglPointSize},
 //
-	{"glMatrixMode", (void **) &qglMatrixMode},
-//	{"glOrtho", (void **) &qglOrtho},
-//	{"glFrustum", (void **) &qglFrustum},
-	{"glViewport", (void **) &qglViewport},
-//	{"glPushMatrix", (void **) &qglPushMatrix},
-//	{"glPopMatrix", (void **) &qglPopMatrix},
-	{"glLoadIdentity", (void **) &qglLoadIdentity},
-//	{"glLoadMatrixd", (void **) &qglLoadMatrixd},
-	{"glLoadMatrixf", (void **) &qglLoadMatrixf},
-//	{"glMultMatrixd", (void **) &qglMultMatrixd},
-//	{"glMultMatrixf", (void **) &qglMultMatrixf},
-//	{"glRotated", (void **) &qglRotated},
-//	{"glRotatef", (void **) &qglRotatef},
-//	{"glScaled", (void **) &qglScaled},
-//	{"glScalef", (void **) &qglScalef},
-//	{"glTranslated", (void **) &qglTranslated},
-//	{"glTranslatef", (void **) &qglTranslatef},
-	{"glReadPixels", (void **) &qglReadPixels},
-	{"glStencilFunc", (void **) &qglStencilFunc},
-	{"glStencilMask", (void **) &qglStencilMask},
-	{"glStencilOp", (void **) &qglStencilOp},
-	{"glClearStencil", (void **) &qglClearStencil},
-	{"glTexEnvf", (void **) &qglTexEnvf},
-	{"glTexEnvfv", (void **) &qglTexEnvfv},
-	{"glTexEnvi", (void **) &qglTexEnvi},
-	{"glTexParameterf", (void **) &qglTexParameterf},
-	{"glTexParameterfv", (void **) &qglTexParameterfv},
-	{"glTexParameteri", (void **) &qglTexParameteri},
-	{"glGetTexImage", (void **) &qglGetTexImage},
-	{"glGetTexParameterfv", (void **) &qglGetTexParameterfv},
-	{"glGetTexParameteriv", (void **) &qglGetTexParameteriv},
-	{"glGetTexLevelParameterfv", (void **) &qglGetTexLevelParameterfv},
-	{"glGetTexLevelParameteriv", (void **) &qglGetTexLevelParameteriv},
-	{"glHint", (void **) &qglHint},
-//	{"glPixelStoref", (void **) &qglPixelStoref},
-	{"glPixelStorei", (void **) &qglPixelStorei},
-	{"glGenTextures", (void **) &qglGenTextures},
-	{"glDeleteTextures", (void **) &qglDeleteTextures},
-	{"glBindTexture", (void **) &qglBindTexture},
-//	{"glPrioritizeTextures", (void **) &qglPrioritizeTextures},
-//	{"glAreTexturesResident", (void **) &qglAreTexturesResident},
-//	{"glIsTexture", (void **) &qglIsTexture},
-//	{"glTexImage1D", (void **) &qglTexImage1D},
-	{"glTexImage2D", (void **) &qglTexImage2D},
-//	{"glTexSubImage1D", (void **) &qglTexSubImage1D},
-	{"glTexSubImage2D", (void **) &qglTexSubImage2D},
-//	{"glCopyTexImage1D", (void **) &qglCopyTexImage1D},
-	{"glCopyTexImage2D", (void **) &qglCopyTexImage2D},
-//	{"glCopyTexSubImage1D", (void **) &qglCopyTexSubImage1D},
-	{"glCopyTexSubImage2D", (void **) &qglCopyTexSubImage2D},
-	{"glScissor", (void **) &qglScissor},
-	{"glPolygonOffset", (void **) &qglPolygonOffset},
-	{"glPolygonMode", (void **) &qglPolygonMode},
-	{"glPolygonStipple", (void **) &qglPolygonStipple},
-//	{"glClipPlane", (void **) &qglClipPlane},
-//	{"glGetClipPlane", (void **) &qglGetClipPlane},
-	{NULL, NULL}
+    {"glMatrixMode", (void **) &qglMatrixMode},
+//    {"glOrtho", (void **) &qglOrtho},
+//    {"glFrustum", (void **) &qglFrustum},
+    {"glViewport", (void **) &qglViewport},
+//    {"glPushMatrix", (void **) &qglPushMatrix},
+//    {"glPopMatrix", (void **) &qglPopMatrix},
+    {"glLoadIdentity", (void **) &qglLoadIdentity},
+//    {"glLoadMatrixd", (void **) &qglLoadMatrixd},
+    {"glLoadMatrixf", (void **) &qglLoadMatrixf},
+//    {"glMultMatrixd", (void **) &qglMultMatrixd},
+//    {"glMultMatrixf", (void **) &qglMultMatrixf},
+//    {"glRotated", (void **) &qglRotated},
+//    {"glRotatef", (void **) &qglRotatef},
+//    {"glScaled", (void **) &qglScaled},
+//    {"glScalef", (void **) &qglScalef},
+//    {"glTranslated", (void **) &qglTranslated},
+//    {"glTranslatef", (void **) &qglTranslatef},
+    {"glReadPixels", (void **) &qglReadPixels},
+    {"glStencilFunc", (void **) &qglStencilFunc},
+    {"glStencilMask", (void **) &qglStencilMask},
+    {"glStencilOp", (void **) &qglStencilOp},
+    {"glClearStencil", (void **) &qglClearStencil},
+    {"glTexEnvf", (void **) &qglTexEnvf},
+    {"glTexEnvfv", (void **) &qglTexEnvfv},
+    {"glTexEnvi", (void **) &qglTexEnvi},
+    {"glTexParameterf", (void **) &qglTexParameterf},
+    {"glTexParameterfv", (void **) &qglTexParameterfv},
+    {"glTexParameteri", (void **) &qglTexParameteri},
+    {"glGetTexImage", (void **) &qglGetTexImage},
+    {"glGetTexParameterfv", (void **) &qglGetTexParameterfv},
+    {"glGetTexParameteriv", (void **) &qglGetTexParameteriv},
+    {"glGetTexLevelParameterfv", (void **) &qglGetTexLevelParameterfv},
+    {"glGetTexLevelParameteriv", (void **) &qglGetTexLevelParameteriv},
+    {"glHint", (void **) &qglHint},
+//    {"glPixelStoref", (void **) &qglPixelStoref},
+    {"glPixelStorei", (void **) &qglPixelStorei},
+    {"glGenTextures", (void **) &qglGenTextures},
+    {"glDeleteTextures", (void **) &qglDeleteTextures},
+    {"glBindTexture", (void **) &qglBindTexture},
+//    {"glPrioritizeTextures", (void **) &qglPrioritizeTextures},
+//    {"glAreTexturesResident", (void **) &qglAreTexturesResident},
+//    {"glIsTexture", (void **) &qglIsTexture},
+//    {"glTexImage1D", (void **) &qglTexImage1D},
+    {"glTexImage2D", (void **) &qglTexImage2D},
+//    {"glTexSubImage1D", (void **) &qglTexSubImage1D},
+    {"glTexSubImage2D", (void **) &qglTexSubImage2D},
+//    {"glCopyTexImage1D", (void **) &qglCopyTexImage1D},
+    {"glCopyTexImage2D", (void **) &qglCopyTexImage2D},
+//    {"glCopyTexSubImage1D", (void **) &qglCopyTexSubImage1D},
+    {"glCopyTexSubImage2D", (void **) &qglCopyTexSubImage2D},
+    {"glScissor", (void **) &qglScissor},
+    {"glPolygonOffset", (void **) &qglPolygonOffset},
+    {"glPolygonMode", (void **) &qglPolygonMode},
+    {"glPolygonStipple", (void **) &qglPolygonStipple},
+//    {"glClipPlane", (void **) &qglClipPlane},
+//    {"glGetClipPlane", (void **) &qglGetClipPlane},
+    {NULL, NULL}
 };
 
 static dllfunction_t drawrangeelementsfuncs[] =
 {
-	{"glDrawRangeElements", (void **) &qglDrawRangeElements},
-	{NULL, NULL}
+    {"glDrawRangeElements", (void **) &qglDrawRangeElements},
+    {NULL, NULL}
 };
 
 static dllfunction_t drawrangeelementsextfuncs[] =
 {
-	{"glDrawRangeElementsEXT", (void **) &qglDrawRangeElementsEXT},
-	{NULL, NULL}
+    {"glDrawRangeElementsEXT", (void **) &qglDrawRangeElementsEXT},
+    {NULL, NULL}
 };
 
 static dllfunction_t multitexturefuncs[] =
 {
-	{"glMultiTexCoord1fARB", (void **) &qglMultiTexCoord1f},
-	{"glMultiTexCoord2fARB", (void **) &qglMultiTexCoord2f},
-	{"glMultiTexCoord3fARB", (void **) &qglMultiTexCoord3f},
-	{"glMultiTexCoord4fARB", (void **) &qglMultiTexCoord4f},
-	{"glActiveTextureARB", (void **) &qglActiveTexture},
-	{"glClientActiveTextureARB", (void **) &qglClientActiveTexture},
-	{NULL, NULL}
+    {"glMultiTexCoord1fARB", (void **) &qglMultiTexCoord1f},
+    {"glMultiTexCoord2fARB", (void **) &qglMultiTexCoord2f},
+    {"glMultiTexCoord3fARB", (void **) &qglMultiTexCoord3f},
+    {"glMultiTexCoord4fARB", (void **) &qglMultiTexCoord4f},
+    {"glActiveTextureARB", (void **) &qglActiveTexture},
+    {"glClientActiveTextureARB", (void **) &qglClientActiveTexture},
+    {NULL, NULL}
 };
 
 static dllfunction_t texture3dextfuncs[] =
 {
-	{"glTexImage3DEXT", (void **) &qglTexImage3D},
-	{"glTexSubImage3DEXT", (void **) &qglTexSubImage3D},
-	{"glCopyTexSubImage3DEXT", (void **) &qglCopyTexSubImage3D},
-	{NULL, NULL}
+    {"glTexImage3DEXT", (void **) &qglTexImage3D},
+    {"glTexSubImage3DEXT", (void **) &qglTexSubImage3D},
+    {"glCopyTexSubImage3DEXT", (void **) &qglCopyTexSubImage3D},
+    {NULL, NULL}
 };
 
 static dllfunction_t atiseparatestencilfuncs[] =
 {
-	{"glStencilOpSeparateATI", (void **) &qglStencilOpSeparate},
-	{"glStencilFuncSeparateATI", (void **) &qglStencilFuncSeparate},
-	{NULL, NULL}
+    {"glStencilOpSeparateATI", (void **) &qglStencilOpSeparate},
+    {"glStencilFuncSeparateATI", (void **) &qglStencilFuncSeparate},
+    {NULL, NULL}
 };
 
 static dllfunction_t gl2separatestencilfuncs[] =
 {
-	{"glStencilOpSeparate", (void **) &qglStencilOpSeparate},
-	{"glStencilFuncSeparate", (void **) &qglStencilFuncSeparate},
-	{NULL, NULL}
+    {"glStencilOpSeparate", (void **) &qglStencilOpSeparate},
+    {"glStencilFuncSeparate", (void **) &qglStencilFuncSeparate},
+    {NULL, NULL}
 };
 
 static dllfunction_t stenciltwosidefuncs[] =
 {
-	{"glActiveStencilFaceEXT", (void **) &qglActiveStencilFaceEXT},
-	{NULL, NULL}
+    {"glActiveStencilFaceEXT", (void **) &qglActiveStencilFaceEXT},
+    {NULL, NULL}
 };
 
 static dllfunction_t blendequationfuncs[] =
 {
-	{"glBlendEquationEXT", (void **) &qglBlendEquationEXT},
-	{NULL, NULL}
+    {"glBlendEquationEXT", (void **) &qglBlendEquationEXT},
+    {NULL, NULL}
 };
 
 static dllfunction_t gl20shaderfuncs[] =
 {
-	{"glDeleteShader", (void **) &qglDeleteShader},
-	{"glDeleteProgram", (void **) &qglDeleteProgram},
-//	{"glGetHandle", (void **) &qglGetHandle},
-	{"glDetachShader", (void **) &qglDetachShader},
-	{"glCreateShader", (void **) &qglCreateShader},
-	{"glShaderSource", (void **) &qglShaderSource},
-	{"glCompileShader", (void **) &qglCompileShader},
-	{"glCreateProgram", (void **) &qglCreateProgram},
-	{"glAttachShader", (void **) &qglAttachShader},
-	{"glLinkProgram", (void **) &qglLinkProgram},
-	{"glUseProgram", (void **) &qglUseProgram},
-	{"glValidateProgram", (void **) &qglValidateProgram},
-	{"glUniform1f", (void **) &qglUniform1f},
-	{"glUniform2f", (void **) &qglUniform2f},
-	{"glUniform3f", (void **) &qglUniform3f},
-	{"glUniform4f", (void **) &qglUniform4f},
-	{"glUniform1i", (void **) &qglUniform1i},
-	{"glUniform2i", (void **) &qglUniform2i},
-	{"glUniform3i", (void **) &qglUniform3i},
-	{"glUniform4i", (void **) &qglUniform4i},
-	{"glUniform1fv", (void **) &qglUniform1fv},
-	{"glUniform2fv", (void **) &qglUniform2fv},
-	{"glUniform3fv", (void **) &qglUniform3fv},
-	{"glUniform4fv", (void **) &qglUniform4fv},
-	{"glUniform1iv", (void **) &qglUniform1iv},
-	{"glUniform2iv", (void **) &qglUniform2iv},
-	{"glUniform3iv", (void **) &qglUniform3iv},
-	{"glUniform4iv", (void **) &qglUniform4iv},
-	{"glUniformMatrix2fv", (void **) &qglUniformMatrix2fv},
-	{"glUniformMatrix3fv", (void **) &qglUniformMatrix3fv},
-	{"glUniformMatrix4fv", (void **) &qglUniformMatrix4fv},
-	{"glGetShaderiv", (void **) &qglGetShaderiv},
-	{"glGetProgramiv", (void **) &qglGetProgramiv},
-	{"glGetShaderInfoLog", (void **) &qglGetShaderInfoLog},
-	{"glGetProgramInfoLog", (void **) &qglGetProgramInfoLog},
-	{"glGetAttachedShaders", (void **) &qglGetAttachedShaders},
-	{"glGetUniformLocation", (void **) &qglGetUniformLocation},
-	{"glGetActiveUniform", (void **) &qglGetActiveUniform},
-	{"glGetUniformfv", (void **) &qglGetUniformfv},
-	{"glGetUniformiv", (void **) &qglGetUniformiv},
-	{"glGetShaderSource", (void **) &qglGetShaderSource},
-	{"glVertexAttrib1f", (void **) &qglVertexAttrib1f},
-	{"glVertexAttrib1s", (void **) &qglVertexAttrib1s},
-	{"glVertexAttrib1d", (void **) &qglVertexAttrib1d},
-	{"glVertexAttrib2f", (void **) &qglVertexAttrib2f},
-	{"glVertexAttrib2s", (void **) &qglVertexAttrib2s},
-	{"glVertexAttrib2d", (void **) &qglVertexAttrib2d},
-	{"glVertexAttrib3f", (void **) &qglVertexAttrib3f},
-	{"glVertexAttrib3s", (void **) &qglVertexAttrib3s},
-	{"glVertexAttrib3d", (void **) &qglVertexAttrib3d},
-	{"glVertexAttrib4f", (void **) &qglVertexAttrib4f},
-	{"glVertexAttrib4s", (void **) &qglVertexAttrib4s},
-	{"glVertexAttrib4d", (void **) &qglVertexAttrib4d},
-	{"glVertexAttrib4Nub", (void **) &qglVertexAttrib4Nub},
-	{"glVertexAttrib1fv", (void **) &qglVertexAttrib1fv},
-	{"glVertexAttrib1sv", (void **) &qglVertexAttrib1sv},
-	{"glVertexAttrib1dv", (void **) &qglVertexAttrib1dv},
-	{"glVertexAttrib2fv", (void **) &qglVertexAttrib1fv},
-	{"glVertexAttrib2sv", (void **) &qglVertexAttrib1sv},
-	{"glVertexAttrib2dv", (void **) &qglVertexAttrib1dv},
-	{"glVertexAttrib3fv", (void **) &qglVertexAttrib1fv},
-	{"glVertexAttrib3sv", (void **) &qglVertexAttrib1sv},
-	{"glVertexAttrib3dv", (void **) &qglVertexAttrib1dv},
-	{"glVertexAttrib4fv", (void **) &qglVertexAttrib1fv},
-	{"glVertexAttrib4sv", (void **) &qglVertexAttrib1sv},
-	{"glVertexAttrib4dv", (void **) &qglVertexAttrib1dv},
-//	{"glVertexAttrib4iv", (void **) &qglVertexAttrib1iv},
-//	{"glVertexAttrib4bv", (void **) &qglVertexAttrib1bv},
-//	{"glVertexAttrib4ubv", (void **) &qglVertexAttrib1ubv},
-//	{"glVertexAttrib4usv", (void **) &qglVertexAttrib1usv},
-//	{"glVertexAttrib4uiv", (void **) &qglVertexAttrib1uiv},
-//	{"glVertexAttrib4Nbv", (void **) &qglVertexAttrib1Nbv},
-//	{"glVertexAttrib4Nsv", (void **) &qglVertexAttrib1Nsv},
-//	{"glVertexAttrib4Niv", (void **) &qglVertexAttrib1Niv},
-//	{"glVertexAttrib4Nubv", (void **) &qglVertexAttrib1Nubv},
-//	{"glVertexAttrib4Nusv", (void **) &qglVertexAttrib1Nusv},
-//	{"glVertexAttrib4Nuiv", (void **) &qglVertexAttrib1Nuiv},
-	{"glVertexAttribPointer", (void **) &qglVertexAttribPointer},
-	{"glEnableVertexAttribArray", (void **) &qglEnableVertexAttribArray},
-	{"glDisableVertexAttribArray", (void **) &qglDisableVertexAttribArray},
-	{"glBindAttribLocation", (void **) &qglBindAttribLocation},
-	{"glGetActiveAttrib", (void **) &qglGetActiveAttrib},
-	{"glGetAttribLocation", (void **) &qglGetAttribLocation},
-	{"glGetVertexAttribdv", (void **) &qglGetVertexAttribdv},
-	{"glGetVertexAttribfv", (void **) &qglGetVertexAttribfv},
-	{"glGetVertexAttribiv", (void **) &qglGetVertexAttribiv},
-	{"glGetVertexAttribPointerv", (void **) &qglGetVertexAttribPointerv},
-	{NULL, NULL}
+    {"glDeleteShader", (void **) &qglDeleteShader},
+    {"glDeleteProgram", (void **) &qglDeleteProgram},
+//    {"glGetHandle", (void **) &qglGetHandle},
+    {"glDetachShader", (void **) &qglDetachShader},
+    {"glCreateShader", (void **) &qglCreateShader},
+    {"glShaderSource", (void **) &qglShaderSource},
+    {"glCompileShader", (void **) &qglCompileShader},
+    {"glCreateProgram", (void **) &qglCreateProgram},
+    {"glAttachShader", (void **) &qglAttachShader},
+    {"glLinkProgram", (void **) &qglLinkProgram},
+    {"glUseProgram", (void **) &qglUseProgram},
+    {"glValidateProgram", (void **) &qglValidateProgram},
+    {"glUniform1f", (void **) &qglUniform1f},
+    {"glUniform2f", (void **) &qglUniform2f},
+    {"glUniform3f", (void **) &qglUniform3f},
+    {"glUniform4f", (void **) &qglUniform4f},
+    {"glUniform1i", (void **) &qglUniform1i},
+    {"glUniform2i", (void **) &qglUniform2i},
+    {"glUniform3i", (void **) &qglUniform3i},
+    {"glUniform4i", (void **) &qglUniform4i},
+    {"glUniform1fv", (void **) &qglUniform1fv},
+    {"glUniform2fv", (void **) &qglUniform2fv},
+    {"glUniform3fv", (void **) &qglUniform3fv},
+    {"glUniform4fv", (void **) &qglUniform4fv},
+    {"glUniform1iv", (void **) &qglUniform1iv},
+    {"glUniform2iv", (void **) &qglUniform2iv},
+    {"glUniform3iv", (void **) &qglUniform3iv},
+    {"glUniform4iv", (void **) &qglUniform4iv},
+    {"glUniformMatrix2fv", (void **) &qglUniformMatrix2fv},
+    {"glUniformMatrix3fv", (void **) &qglUniformMatrix3fv},
+    {"glUniformMatrix4fv", (void **) &qglUniformMatrix4fv},
+    {"glGetShaderiv", (void **) &qglGetShaderiv},
+    {"glGetProgramiv", (void **) &qglGetProgramiv},
+    {"glGetShaderInfoLog", (void **) &qglGetShaderInfoLog},
+    {"glGetProgramInfoLog", (void **) &qglGetProgramInfoLog},
+    {"glGetAttachedShaders", (void **) &qglGetAttachedShaders},
+    {"glGetUniformLocation", (void **) &qglGetUniformLocation},
+    {"glGetActiveUniform", (void **) &qglGetActiveUniform},
+    {"glGetUniformfv", (void **) &qglGetUniformfv},
+    {"glGetUniformiv", (void **) &qglGetUniformiv},
+    {"glGetShaderSource", (void **) &qglGetShaderSource},
+    {"glVertexAttrib1f", (void **) &qglVertexAttrib1f},
+    {"glVertexAttrib1s", (void **) &qglVertexAttrib1s},
+    {"glVertexAttrib1d", (void **) &qglVertexAttrib1d},
+    {"glVertexAttrib2f", (void **) &qglVertexAttrib2f},
+    {"glVertexAttrib2s", (void **) &qglVertexAttrib2s},
+    {"glVertexAttrib2d", (void **) &qglVertexAttrib2d},
+    {"glVertexAttrib3f", (void **) &qglVertexAttrib3f},
+    {"glVertexAttrib3s", (void **) &qglVertexAttrib3s},
+    {"glVertexAttrib3d", (void **) &qglVertexAttrib3d},
+    {"glVertexAttrib4f", (void **) &qglVertexAttrib4f},
+    {"glVertexAttrib4s", (void **) &qglVertexAttrib4s},
+    {"glVertexAttrib4d", (void **) &qglVertexAttrib4d},
+    {"glVertexAttrib4Nub", (void **) &qglVertexAttrib4Nub},
+    {"glVertexAttrib1fv", (void **) &qglVertexAttrib1fv},
+    {"glVertexAttrib1sv", (void **) &qglVertexAttrib1sv},
+    {"glVertexAttrib1dv", (void **) &qglVertexAttrib1dv},
+    {"glVertexAttrib2fv", (void **) &qglVertexAttrib1fv},
+    {"glVertexAttrib2sv", (void **) &qglVertexAttrib1sv},
+    {"glVertexAttrib2dv", (void **) &qglVertexAttrib1dv},
+    {"glVertexAttrib3fv", (void **) &qglVertexAttrib1fv},
+    {"glVertexAttrib3sv", (void **) &qglVertexAttrib1sv},
+    {"glVertexAttrib3dv", (void **) &qglVertexAttrib1dv},
+    {"glVertexAttrib4fv", (void **) &qglVertexAttrib1fv},
+    {"glVertexAttrib4sv", (void **) &qglVertexAttrib1sv},
+    {"glVertexAttrib4dv", (void **) &qglVertexAttrib1dv},
+//    {"glVertexAttrib4iv", (void **) &qglVertexAttrib1iv},
+//    {"glVertexAttrib4bv", (void **) &qglVertexAttrib1bv},
+//    {"glVertexAttrib4ubv", (void **) &qglVertexAttrib1ubv},
+//    {"glVertexAttrib4usv", (void **) &qglVertexAttrib1usv},
+//    {"glVertexAttrib4uiv", (void **) &qglVertexAttrib1uiv},
+//    {"glVertexAttrib4Nbv", (void **) &qglVertexAttrib1Nbv},
+//    {"glVertexAttrib4Nsv", (void **) &qglVertexAttrib1Nsv},
+//    {"glVertexAttrib4Niv", (void **) &qglVertexAttrib1Niv},
+//    {"glVertexAttrib4Nubv", (void **) &qglVertexAttrib1Nubv},
+//    {"glVertexAttrib4Nusv", (void **) &qglVertexAttrib1Nusv},
+//    {"glVertexAttrib4Nuiv", (void **) &qglVertexAttrib1Nuiv},
+    {"glVertexAttribPointer", (void **) &qglVertexAttribPointer},
+    {"glEnableVertexAttribArray", (void **) &qglEnableVertexAttribArray},
+    {"glDisableVertexAttribArray", (void **) &qglDisableVertexAttribArray},
+    {"glBindAttribLocation", (void **) &qglBindAttribLocation},
+    {"glGetActiveAttrib", (void **) &qglGetActiveAttrib},
+    {"glGetAttribLocation", (void **) &qglGetAttribLocation},
+    {"glGetVertexAttribdv", (void **) &qglGetVertexAttribdv},
+    {"glGetVertexAttribfv", (void **) &qglGetVertexAttribfv},
+    {"glGetVertexAttribiv", (void **) &qglGetVertexAttribiv},
+    {"glGetVertexAttribPointerv", (void **) &qglGetVertexAttribPointerv},
+    {NULL, NULL}
 };
 
 static dllfunction_t glsl130funcs[] =
 {
-	{"glBindFragDataLocation", (void **) &qglBindFragDataLocation},
-	{NULL, NULL}
+    {"glBindFragDataLocation", (void **) &qglBindFragDataLocation},
+    {NULL, NULL}
 };
 
 static dllfunction_t vbofuncs[] =
 {
-	{"glBindBufferARB"    , (void **) &qglBindBufferARB},
-	{"glDeleteBuffersARB" , (void **) &qglDeleteBuffersARB},
-	{"glGenBuffersARB"    , (void **) &qglGenBuffersARB},
-	{"glIsBufferARB"      , (void **) &qglIsBufferARB},
-	{"glMapBufferARB"     , (void **) &qglMapBufferARB},
-	{"glUnmapBufferARB"   , (void **) &qglUnmapBufferARB},
-	{"glBufferDataARB"    , (void **) &qglBufferDataARB},
-	{"glBufferSubDataARB" , (void **) &qglBufferSubDataARB},
-	{NULL, NULL}
+    {"glBindBufferARB"    , (void **) &qglBindBufferARB},
+    {"glDeleteBuffersARB" , (void **) &qglDeleteBuffersARB},
+    {"glGenBuffersARB"    , (void **) &qglGenBuffersARB},
+    {"glIsBufferARB"      , (void **) &qglIsBufferARB},
+    {"glMapBufferARB"     , (void **) &qglMapBufferARB},
+    {"glUnmapBufferARB"   , (void **) &qglUnmapBufferARB},
+    {"glBufferDataARB"    , (void **) &qglBufferDataARB},
+    {"glBufferSubDataARB" , (void **) &qglBufferSubDataARB},
+    {NULL, NULL}
 };
 
 static dllfunction_t ubofuncs[] =
 {
-	{"glGetUniformIndices"        , (void **) &qglGetUniformIndices},
-	{"glGetActiveUniformsiv"      , (void **) &qglGetActiveUniformsiv},
-	{"glGetActiveUniformName"     , (void **) &qglGetActiveUniformName},
-	{"glGetUniformBlockIndex"     , (void **) &qglGetUniformBlockIndex},
-	{"glGetActiveUniformBlockiv"  , (void **) &qglGetActiveUniformBlockiv},
-	{"glGetActiveUniformBlockName", (void **) &qglGetActiveUniformBlockName},
-	{"glBindBufferRange"          , (void **) &qglBindBufferRange},
-	{"glBindBufferBase"           , (void **) &qglBindBufferBase},
-	{"glGetIntegeri_v"            , (void **) &qglGetIntegeri_v},
-	{"glUniformBlockBinding"      , (void **) &qglUniformBlockBinding},
-	{NULL, NULL}
+    {"glGetUniformIndices"        , (void **) &qglGetUniformIndices},
+    {"glGetActiveUniformsiv"      , (void **) &qglGetActiveUniformsiv},
+    {"glGetActiveUniformName"     , (void **) &qglGetActiveUniformName},
+    {"glGetUniformBlockIndex"     , (void **) &qglGetUniformBlockIndex},
+    {"glGetActiveUniformBlockiv"  , (void **) &qglGetActiveUniformBlockiv},
+    {"glGetActiveUniformBlockName", (void **) &qglGetActiveUniformBlockName},
+    {"glBindBufferRange"          , (void **) &qglBindBufferRange},
+    {"glBindBufferBase"           , (void **) &qglBindBufferBase},
+    {"glGetIntegeri_v"            , (void **) &qglGetIntegeri_v},
+    {"glUniformBlockBinding"      , (void **) &qglUniformBlockBinding},
+    {NULL, NULL}
 };
 
 static dllfunction_t arbfbofuncs[] =
 {
-	{"glIsRenderbuffer"                      , (void **) &qglIsRenderbuffer},
-	{"glBindRenderbuffer"                    , (void **) &qglBindRenderbuffer},
-	{"glDeleteRenderbuffers"                 , (void **) &qglDeleteRenderbuffers},
-	{"glGenRenderbuffers"                    , (void **) &qglGenRenderbuffers},
-	{"glRenderbufferStorage"                 , (void **) &qglRenderbufferStorage},
-	{"glRenderbufferStorageMultisample"      , (void **) &qglRenderbufferStorageMultisample}, // not in GL_EXT_framebuffer_object
-	{"glGetRenderbufferParameteriv"          , (void **) &qglGetRenderbufferParameteriv},
-	{"glIsFramebuffer"                       , (void **) &qglIsFramebuffer},
-	{"glBindFramebuffer"                     , (void **) &qglBindFramebuffer},
-	{"glDeleteFramebuffers"                  , (void **) &qglDeleteFramebuffers},
-	{"glGenFramebuffers"                     , (void **) &qglGenFramebuffers},
-	{"glCheckFramebufferStatus"              , (void **) &qglCheckFramebufferStatus},
-	{"glFramebufferTexture1D"                , (void **) &qglFramebufferTexture1D},
-	{"glFramebufferTexture2D"                , (void **) &qglFramebufferTexture2D},
-	{"glFramebufferTexture3D"                , (void **) &qglFramebufferTexture3D},
-	{"glFramebufferTextureLayer"             , (void **) &qglFramebufferTextureLayer}, // not in GL_EXT_framebuffer_object
-	{"glFramebufferRenderbuffer"             , (void **) &qglFramebufferRenderbuffer},
-	{"glGetFramebufferAttachmentParameteriv" , (void **) &qglGetFramebufferAttachmentParameteriv},
-	{"glBlitFramebuffer"                     , (void **) &qglBlitFramebuffer}, // not in GL_EXT_framebuffer_object
-	{"glGenerateMipmap"                      , (void **) &qglGenerateMipmap},
-	{NULL, NULL}
+    {"glIsRenderbuffer"                      , (void **) &qglIsRenderbuffer},
+    {"glBindRenderbuffer"                    , (void **) &qglBindRenderbuffer},
+    {"glDeleteRenderbuffers"                 , (void **) &qglDeleteRenderbuffers},
+    {"glGenRenderbuffers"                    , (void **) &qglGenRenderbuffers},
+    {"glRenderbufferStorage"                 , (void **) &qglRenderbufferStorage},
+    {"glRenderbufferStorageMultisample"      , (void **) &qglRenderbufferStorageMultisample}, // not in GL_EXT_framebuffer_object
+    {"glGetRenderbufferParameteriv"          , (void **) &qglGetRenderbufferParameteriv},
+    {"glIsFramebuffer"                       , (void **) &qglIsFramebuffer},
+    {"glBindFramebuffer"                     , (void **) &qglBindFramebuffer},
+    {"glDeleteFramebuffers"                  , (void **) &qglDeleteFramebuffers},
+    {"glGenFramebuffers"                     , (void **) &qglGenFramebuffers},
+    {"glCheckFramebufferStatus"              , (void **) &qglCheckFramebufferStatus},
+    {"glFramebufferTexture1D"                , (void **) &qglFramebufferTexture1D},
+    {"glFramebufferTexture2D"                , (void **) &qglFramebufferTexture2D},
+    {"glFramebufferTexture3D"                , (void **) &qglFramebufferTexture3D},
+    {"glFramebufferTextureLayer"             , (void **) &qglFramebufferTextureLayer}, // not in GL_EXT_framebuffer_object
+    {"glFramebufferRenderbuffer"             , (void **) &qglFramebufferRenderbuffer},
+    {"glGetFramebufferAttachmentParameteriv" , (void **) &qglGetFramebufferAttachmentParameteriv},
+    {"glBlitFramebuffer"                     , (void **) &qglBlitFramebuffer}, // not in GL_EXT_framebuffer_object
+    {"glGenerateMipmap"                      , (void **) &qglGenerateMipmap},
+    {NULL, NULL}
 };
 
 static dllfunction_t extfbofuncs[] =
 {
-	{"glIsRenderbufferEXT"                      , (void **) &qglIsRenderbuffer},
-	{"glBindRenderbufferEXT"                    , (void **) &qglBindRenderbuffer},
-	{"glDeleteRenderbuffersEXT"                 , (void **) &qglDeleteRenderbuffers},
-	{"glGenRenderbuffersEXT"                    , (void **) &qglGenRenderbuffers},
-	{"glRenderbufferStorageEXT"                 , (void **) &qglRenderbufferStorage},
-	{"glGetRenderbufferParameterivEXT"          , (void **) &qglGetRenderbufferParameteriv},
-	{"glIsFramebufferEXT"                       , (void **) &qglIsFramebuffer},
-	{"glBindFramebufferEXT"                     , (void **) &qglBindFramebuffer},
-	{"glDeleteFramebuffersEXT"                  , (void **) &qglDeleteFramebuffers},
-	{"glGenFramebuffersEXT"                     , (void **) &qglGenFramebuffers},
-	{"glCheckFramebufferStatusEXT"              , (void **) &qglCheckFramebufferStatus},
-	{"glFramebufferTexture1DEXT"                , (void **) &qglFramebufferTexture1D},
-	{"glFramebufferTexture2DEXT"                , (void **) &qglFramebufferTexture2D},
-	{"glFramebufferTexture3DEXT"                , (void **) &qglFramebufferTexture3D},
-	{"glFramebufferRenderbufferEXT"             , (void **) &qglFramebufferRenderbuffer},
-	{"glGetFramebufferAttachmentParameterivEXT" , (void **) &qglGetFramebufferAttachmentParameteriv},
-	{"glGenerateMipmapEXT"                      , (void **) &qglGenerateMipmap},
-	{NULL, NULL}
+    {"glIsRenderbufferEXT"                      , (void **) &qglIsRenderbuffer},
+    {"glBindRenderbufferEXT"                    , (void **) &qglBindRenderbuffer},
+    {"glDeleteRenderbuffersEXT"                 , (void **) &qglDeleteRenderbuffers},
+    {"glGenRenderbuffersEXT"                    , (void **) &qglGenRenderbuffers},
+    {"glRenderbufferStorageEXT"                 , (void **) &qglRenderbufferStorage},
+    {"glGetRenderbufferParameterivEXT"          , (void **) &qglGetRenderbufferParameteriv},
+    {"glIsFramebufferEXT"                       , (void **) &qglIsFramebuffer},
+    {"glBindFramebufferEXT"                     , (void **) &qglBindFramebuffer},
+    {"glDeleteFramebuffersEXT"                  , (void **) &qglDeleteFramebuffers},
+    {"glGenFramebuffersEXT"                     , (void **) &qglGenFramebuffers},
+    {"glCheckFramebufferStatusEXT"              , (void **) &qglCheckFramebufferStatus},
+    {"glFramebufferTexture1DEXT"                , (void **) &qglFramebufferTexture1D},
+    {"glFramebufferTexture2DEXT"                , (void **) &qglFramebufferTexture2D},
+    {"glFramebufferTexture3DEXT"                , (void **) &qglFramebufferTexture3D},
+    {"glFramebufferRenderbufferEXT"             , (void **) &qglFramebufferRenderbuffer},
+    {"glGetFramebufferAttachmentParameterivEXT" , (void **) &qglGetFramebufferAttachmentParameteriv},
+    {"glGenerateMipmapEXT"                      , (void **) &qglGenerateMipmap},
+    {NULL, NULL}
 };
 
 static dllfunction_t texturecompressionfuncs[] =
 {
-	{"glCompressedTexImage3DARB",    (void **) &qglCompressedTexImage3DARB},
-	{"glCompressedTexImage2DARB",    (void **) &qglCompressedTexImage2DARB},
-//	{"glCompressedTexImage1DARB",    (void **) &qglCompressedTexImage1DARB},
-	{"glCompressedTexSubImage3DARB", (void **) &qglCompressedTexSubImage3DARB},
-	{"glCompressedTexSubImage2DARB", (void **) &qglCompressedTexSubImage2DARB},
-//	{"glCompressedTexSubImage1DARB", (void **) &qglCompressedTexSubImage1DARB},
-	{"glGetCompressedTexImageARB",   (void **) &qglGetCompressedTexImageARB},
-	{NULL, NULL}
+    {"glCompressedTexImage3DARB",    (void **) &qglCompressedTexImage3DARB},
+    {"glCompressedTexImage2DARB",    (void **) &qglCompressedTexImage2DARB},
+//    {"glCompressedTexImage1DARB",    (void **) &qglCompressedTexImage1DARB},
+    {"glCompressedTexSubImage3DARB", (void **) &qglCompressedTexSubImage3DARB},
+    {"glCompressedTexSubImage2DARB", (void **) &qglCompressedTexSubImage2DARB},
+//    {"glCompressedTexSubImage1DARB", (void **) &qglCompressedTexSubImage1DARB},
+    {"glGetCompressedTexImageARB",   (void **) &qglGetCompressedTexImageARB},
+    {NULL, NULL}
 };
 
 static dllfunction_t occlusionqueryfuncs[] =
 {
-	{"glGenQueriesARB",              (void **) &qglGenQueriesARB},
-	{"glDeleteQueriesARB",           (void **) &qglDeleteQueriesARB},
-	{"glIsQueryARB",                 (void **) &qglIsQueryARB},
-	{"glBeginQueryARB",              (void **) &qglBeginQueryARB},
-	{"glEndQueryARB",                (void **) &qglEndQueryARB},
-	{"glGetQueryivARB",              (void **) &qglGetQueryivARB},
-	{"glGetQueryObjectivARB",        (void **) &qglGetQueryObjectivARB},
-	{"glGetQueryObjectuivARB",       (void **) &qglGetQueryObjectuivARB},
-	{NULL, NULL}
+    {"glGenQueriesARB",              (void **) &qglGenQueriesARB},
+    {"glDeleteQueriesARB",           (void **) &qglDeleteQueriesARB},
+    {"glIsQueryARB",                 (void **) &qglIsQueryARB},
+    {"glBeginQueryARB",              (void **) &qglBeginQueryARB},
+    {"glEndQueryARB",                (void **) &qglEndQueryARB},
+    {"glGetQueryivARB",              (void **) &qglGetQueryivARB},
+    {"glGetQueryObjectivARB",        (void **) &qglGetQueryObjectivARB},
+    {"glGetQueryObjectuivARB",       (void **) &qglGetQueryObjectuivARB},
+    {NULL, NULL}
 };
 
 static dllfunction_t drawbuffersfuncs[] =
 {
-	{"glDrawBuffersARB",             (void **) &qglDrawBuffersARB},
-	{NULL, NULL}
+    {"glDrawBuffersARB",             (void **) &qglDrawBuffersARB},
+    {NULL, NULL}
 };
 
 static dllfunction_t multisamplefuncs[] =
 {
-	{"glSampleCoverageARB",          (void **) &qglSampleCoverageARB},
-	{NULL, NULL}
+    {"glSampleCoverageARB",          (void **) &qglSampleCoverageARB},
+    {NULL, NULL}
 };
 
 static dllfunction_t blendfuncseparatefuncs[] =
 {
-	{"glBlendFuncSeparateEXT", (void **) &qglBlendFuncSeparate},
-	{NULL, NULL}
+    {"glBlendFuncSeparateEXT", (void **) &qglBlendFuncSeparate},
+    {NULL, NULL}
 };
 
 #endif
 
 void VID_ClearExtensions(void)
 {
-	// VorteX: reset extensions info cvar, it got filled by GL_CheckExtension
-	Cvar_SetQuick(&gl_info_extensions, "");
+    // VorteX: reset extensions info cvar, it got filled by GL_CheckExtension
+    Cvar_SetQuick(&gl_info_extensions, "");
 
-	// clear the extension flags
-	memset(&vid.support, 0, sizeof(vid.support));
-	vid.renderpath = RENDERPATH_GL11;
-	vid.sRGBcapable2D = false;
-	vid.sRGBcapable3D = false;
-	vid.useinterleavedarrays = false;
-	vid.forcevbo = false;
-	vid.maxtexturesize_2d = 0;
-	vid.maxtexturesize_3d = 0;
-	vid.maxtexturesize_cubemap = 0;
-	vid.texunits = 1;
-	vid.teximageunits = 1;
-	vid.texarrayunits = 1;
-	vid.max_anisotropy = 1;
-	vid.maxdrawbuffers = 1;
+    // clear the extension flags
+    memset(&vid.support, 0, sizeof(vid.support));
+    vid.renderpath = RENDERPATH_GL11;
+    vid.sRGBcapable2D = false;
+    vid.sRGBcapable3D = false;
+    vid.useinterleavedarrays = false;
+    vid.forcevbo = false;
+    vid.maxtexturesize_2d = 0;
+    vid.maxtexturesize_3d = 0;
+    vid.maxtexturesize_cubemap = 0;
+    vid.texunits = 1;
+    vid.teximageunits = 1;
+    vid.texarrayunits = 1;
+    vid.max_anisotropy = 1;
+    vid.maxdrawbuffers = 1;
 
 #ifndef USE_GLES2
-	// this is a complete list of all functions that are directly checked in the renderer
-	qglDrawRangeElements = NULL;
-	qglDrawBuffer = NULL;
-	qglPolygonStipple = NULL;
-	qglFlush = NULL;
-	qglActiveTexture = NULL;
-	qglGetCompressedTexImageARB = NULL;
-	qglFramebufferTexture2D = NULL;
-	qglDrawBuffersARB = NULL;
+    // this is a complete list of all functions that are directly checked in the renderer
+    qglDrawRangeElements = NULL;
+    qglDrawBuffer = NULL;
+    qglPolygonStipple = NULL;
+    qglFlush = NULL;
+    qglActiveTexture = NULL;
+    qglGetCompressedTexImageARB = NULL;
+    qglFramebufferTexture2D = NULL;
+    qglDrawBuffersARB = NULL;
 #endif
 }
 
 #ifndef USE_GLES2
 void VID_CheckExtensions(void)
 {
-	if (!GL_CheckExtension("glbase", opengl110funcs, NULL, false))
-		Sys_Error("OpenGL 1.1.0 functions not found");
-	vid.support.gl20shaders = GL_CheckExtension("2.0", gl20shaderfuncs, "-noshaders", true);
+    if (!GL_CheckExtension("glbase", opengl110funcs, NULL, false))
+        Sys_Error("OpenGL 1.1.0 functions not found");
+    vid.support.gl20shaders = GL_CheckExtension("2.0", gl20shaderfuncs, "-noshaders", true);
 
-	CHECKGLERROR
+    CHECKGLERROR
 
-	Con_DPrint("Checking OpenGL extensions...\n");
+    Con_DPrint("Checking OpenGL extensions...\n");
 
-	if (vid.support.gl20shaders)
-	{
-		char *s;
-		// detect what GLSL version is available, to enable features like r_glsl_skeletal and higher quality reliefmapping
-		vid.support.glshaderversion = 100;
-		s = (char *) qglGetString(GL_SHADING_LANGUAGE_VERSION);
-		if (s)
-			vid.support.glshaderversion = (int)(atof(s) * 100.0f + 0.5f);
-		if (vid.support.glshaderversion < 100)
-			vid.support.glshaderversion = 100;
-		Con_DPrintf("Detected GLSL #version %i\n", vid.support.glshaderversion);
-		// get the glBindFragDataLocation function
-		if (vid.support.glshaderversion >= 130)
-			vid.support.gl20shaders130 = GL_CheckExtension("glshaders130", glsl130funcs, "-noglsl130", true);
-	}
+    if (vid.support.gl20shaders)
+    {
+        char *s;
+        // detect what GLSL version is available, to enable features like r_glsl_skeletal and higher quality reliefmapping
+        vid.support.glshaderversion = 100;
+        s = (char *) qglGetString(GL_SHADING_LANGUAGE_VERSION);
+        if (s)
+            vid.support.glshaderversion = (int)(atof(s) * 100.0f + 0.5f);
+        if (vid.support.glshaderversion < 100)
+            vid.support.glshaderversion = 100;
+        Con_DPrintf("Detected GLSL #version %i\n", vid.support.glshaderversion);
+        // get the glBindFragDataLocation function
+        if (vid.support.glshaderversion >= 130)
+            vid.support.gl20shaders130 = GL_CheckExtension("glshaders130", glsl130funcs, "-noglsl130", true);
+    }
 
-	// GL drivers generally prefer GL_BGRA
-	vid.forcetextype = GL_BGRA;
+    // GL drivers generally prefer GL_BGRA
+    vid.forcetextype = GL_BGRA;
 
-	vid.support.amd_texture_texture4 = GL_CheckExtension("GL_AMD_texture_texture4", NULL, "-notexture4", false);
-	vid.support.arb_depth_texture = GL_CheckExtension("GL_ARB_depth_texture", NULL, "-nodepthtexture", false);
-	vid.support.arb_draw_buffers = GL_CheckExtension("GL_ARB_draw_buffers", drawbuffersfuncs, "-nodrawbuffers", false);
-	vid.support.arb_multitexture = GL_CheckExtension("GL_ARB_multitexture", multitexturefuncs, "-nomtex", false);
-	vid.support.arb_occlusion_query = GL_CheckExtension("GL_ARB_occlusion_query", occlusionqueryfuncs, "-noocclusionquery", false);
-	vid.support.arb_query_buffer_object = GL_CheckExtension("GL_ARB_query_buffer_object", NULL, "-noquerybuffer", true);
-	vid.support.arb_shadow = GL_CheckExtension("GL_ARB_shadow", NULL, "-noshadow", false);
-	vid.support.arb_texture_compression = GL_CheckExtension("GL_ARB_texture_compression", texturecompressionfuncs, "-notexturecompression", false);
-	vid.support.arb_texture_cube_map = GL_CheckExtension("GL_ARB_texture_cube_map", NULL, "-nocubemap", false);
-	vid.support.arb_texture_env_combine = GL_CheckExtension("GL_ARB_texture_env_combine", NULL, "-nocombine", false) || GL_CheckExtension("GL_EXT_texture_env_combine", NULL, "-nocombine", false);
-	vid.support.arb_texture_gather = GL_CheckExtension("GL_ARB_texture_gather", NULL, "-notexturegather", false);
+    vid.support.amd_texture_texture4 = GL_CheckExtension("GL_AMD_texture_texture4", NULL, "-notexture4", false);
+    vid.support.arb_depth_texture = GL_CheckExtension("GL_ARB_depth_texture", NULL, "-nodepthtexture", false);
+    vid.support.arb_draw_buffers = GL_CheckExtension("GL_ARB_draw_buffers", drawbuffersfuncs, "-nodrawbuffers", false);
+    vid.support.arb_multitexture = GL_CheckExtension("GL_ARB_multitexture", multitexturefuncs, "-nomtex", false);
+    vid.support.arb_occlusion_query = GL_CheckExtension("GL_ARB_occlusion_query", occlusionqueryfuncs, "-noocclusionquery", false);
+    vid.support.arb_query_buffer_object = GL_CheckExtension("GL_ARB_query_buffer_object", NULL, "-noquerybuffer", true);
+    vid.support.arb_shadow = GL_CheckExtension("GL_ARB_shadow", NULL, "-noshadow", false);
+    vid.support.arb_texture_compression = GL_CheckExtension("GL_ARB_texture_compression", texturecompressionfuncs, "-notexturecompression", false);
+    vid.support.arb_texture_cube_map = GL_CheckExtension("GL_ARB_texture_cube_map", NULL, "-nocubemap", false);
+    vid.support.arb_texture_env_combine = GL_CheckExtension("GL_ARB_texture_env_combine", NULL, "-nocombine", false) || GL_CheckExtension("GL_EXT_texture_env_combine", NULL, "-nocombine", false);
+    vid.support.arb_texture_gather = GL_CheckExtension("GL_ARB_texture_gather", NULL, "-notexturegather", false);
 #ifndef __APPLE__
-	// LordHavoc: too many bugs on OSX!
-	vid.support.arb_texture_non_power_of_two = GL_CheckExtension("GL_ARB_texture_non_power_of_two", NULL, "-notexturenonpoweroftwo", false);
+    // LordHavoc: too many bugs on OSX!
+    vid.support.arb_texture_non_power_of_two = GL_CheckExtension("GL_ARB_texture_non_power_of_two", NULL, "-notexturenonpoweroftwo", false);
 #endif
-	vid.support.arb_vertex_buffer_object = GL_CheckExtension("GL_ARB_vertex_buffer_object", vbofuncs, "-novbo", false);
-	vid.support.arb_uniform_buffer_object = GL_CheckExtension("GL_ARB_uniform_buffer_object", ubofuncs, "-noubo", false);
-	vid.support.ati_separate_stencil = GL_CheckExtension("separatestencil", gl2separatestencilfuncs, "-noseparatestencil", true) || GL_CheckExtension("GL_ATI_separate_stencil", atiseparatestencilfuncs, "-noseparatestencil", false);
-	vid.support.ext_blend_minmax = GL_CheckExtension("GL_EXT_blend_minmax", blendequationfuncs, "-noblendminmax", false);
-	vid.support.ext_blend_subtract = GL_CheckExtension("GL_EXT_blend_subtract", blendequationfuncs, "-noblendsubtract", false);
-	vid.support.ext_blend_func_separate = GL_CheckExtension("GL_EXT_blend_func_separate", blendfuncseparatefuncs, "-noblendfuncseparate", false);
-	vid.support.ext_draw_range_elements = GL_CheckExtension("drawrangeelements", drawrangeelementsfuncs, "-nodrawrangeelements", true) || GL_CheckExtension("GL_EXT_draw_range_elements", drawrangeelementsextfuncs, "-nodrawrangeelements", false);
-	vid.support.arb_framebuffer_object = GL_CheckExtension("GL_ARB_framebuffer_object", arbfbofuncs, "-nofbo", false);
-	if (vid.support.arb_framebuffer_object)
-		vid.support.ext_framebuffer_object = true;
-	else
-		vid.support.ext_framebuffer_object = GL_CheckExtension("GL_EXT_framebuffer_object", extfbofuncs, "-nofbo", false);
+    vid.support.arb_vertex_buffer_object = GL_CheckExtension("GL_ARB_vertex_buffer_object", vbofuncs, "-novbo", false);
+    vid.support.arb_uniform_buffer_object = GL_CheckExtension("GL_ARB_uniform_buffer_object", ubofuncs, "-noubo", false);
+    vid.support.ati_separate_stencil = GL_CheckExtension("separatestencil", gl2separatestencilfuncs, "-noseparatestencil", true) || GL_CheckExtension("GL_ATI_separate_stencil", atiseparatestencilfuncs, "-noseparatestencil", false);
+    vid.support.ext_blend_minmax = GL_CheckExtension("GL_EXT_blend_minmax", blendequationfuncs, "-noblendminmax", false);
+    vid.support.ext_blend_subtract = GL_CheckExtension("GL_EXT_blend_subtract", blendequationfuncs, "-noblendsubtract", false);
+    vid.support.ext_blend_func_separate = GL_CheckExtension("GL_EXT_blend_func_separate", blendfuncseparatefuncs, "-noblendfuncseparate", false);
+    vid.support.ext_draw_range_elements = GL_CheckExtension("drawrangeelements", drawrangeelementsfuncs, "-nodrawrangeelements", true) || GL_CheckExtension("GL_EXT_draw_range_elements", drawrangeelementsextfuncs, "-nodrawrangeelements", false);
+    vid.support.arb_framebuffer_object = GL_CheckExtension("GL_ARB_framebuffer_object", arbfbofuncs, "-nofbo", false);
+    if (vid.support.arb_framebuffer_object)
+        vid.support.ext_framebuffer_object = true;
+    else
+        vid.support.ext_framebuffer_object = GL_CheckExtension("GL_EXT_framebuffer_object", extfbofuncs, "-nofbo", false);
 
-	vid.support.ext_packed_depth_stencil = GL_CheckExtension("GL_EXT_packed_depth_stencil", NULL, "-nopackeddepthstencil", false);
-	vid.support.ext_stencil_two_side = GL_CheckExtension("GL_EXT_stencil_two_side", stenciltwosidefuncs, "-nostenciltwoside", false);
-	vid.support.ext_texture_3d = GL_CheckExtension("GL_EXT_texture3D", texture3dextfuncs, "-notexture3d", false);
-	vid.support.ext_texture_compression_s3tc = GL_CheckExtension("GL_EXT_texture_compression_s3tc", NULL, "-nos3tc", false);
-	vid.support.ext_texture_edge_clamp = GL_CheckExtension("GL_EXT_texture_edge_clamp", NULL, "-noedgeclamp", false) || GL_CheckExtension("GL_SGIS_texture_edge_clamp", NULL, "-noedgeclamp", false);
-	vid.support.ext_texture_filter_anisotropic = GL_CheckExtension("GL_EXT_texture_filter_anisotropic", NULL, "-noanisotropy", false);
-	vid.support.ext_texture_srgb = GL_CheckExtension("GL_EXT_texture_sRGB", NULL, "-nosrgb", false);
-	vid.support.arb_texture_float = GL_CheckExtension("GL_ARB_texture_float", NULL, "-notexturefloat", false);
-	vid.support.arb_half_float_pixel = GL_CheckExtension("GL_ARB_half_float_pixel", NULL, "-nohalffloatpixel", false);
-	vid.support.arb_half_float_vertex = GL_CheckExtension("GL_ARB_half_float_vertex", NULL, "-nohalffloatvertex", false);
-	vid.support.arb_multisample = GL_CheckExtension("GL_ARB_multisample", multisamplefuncs, "-nomultisample", false);
-	vid.allowalphatocoverage = false;
+    vid.support.ext_packed_depth_stencil = GL_CheckExtension("GL_EXT_packed_depth_stencil", NULL, "-nopackeddepthstencil", false);
+    vid.support.ext_stencil_two_side = GL_CheckExtension("GL_EXT_stencil_two_side", stenciltwosidefuncs, "-nostenciltwoside", false);
+    vid.support.ext_texture_3d = GL_CheckExtension("GL_EXT_texture3D", texture3dextfuncs, "-notexture3d", false);
+    vid.support.ext_texture_compression_s3tc = GL_CheckExtension("GL_EXT_texture_compression_s3tc", NULL, "-nos3tc", false);
+    vid.support.ext_texture_edge_clamp = GL_CheckExtension("GL_EXT_texture_edge_clamp", NULL, "-noedgeclamp", false) || GL_CheckExtension("GL_SGIS_texture_edge_clamp", NULL, "-noedgeclamp", false);
+    vid.support.ext_texture_filter_anisotropic = GL_CheckExtension("GL_EXT_texture_filter_anisotropic", NULL, "-noanisotropy", false);
+    vid.support.ext_texture_srgb = GL_CheckExtension("GL_EXT_texture_sRGB", NULL, "-nosrgb", false);
+    vid.support.arb_texture_float = GL_CheckExtension("GL_ARB_texture_float", NULL, "-notexturefloat", false);
+    vid.support.arb_half_float_pixel = GL_CheckExtension("GL_ARB_half_float_pixel", NULL, "-nohalffloatpixel", false);
+    vid.support.arb_half_float_vertex = GL_CheckExtension("GL_ARB_half_float_vertex", NULL, "-nohalffloatvertex", false);
+    vid.support.arb_multisample = GL_CheckExtension("GL_ARB_multisample", multisamplefuncs, "-nomultisample", false);
+    vid.allowalphatocoverage = false;
 
 // COMMANDLINEOPTION: GL: -noshaders disables use of OpenGL 2.0 shaders (which allow pixel shader effects, can improve per pixel lighting performance and capabilities)
 // COMMANDLINEOPTION: GL: -noanisotropy disables GL_EXT_texture_filter_anisotropic (allows higher quality texturing)
@@ -1128,226 +1128,226 @@ void VID_CheckExtensions(void)
 // COMMANDLINEOPTION: GL: -nosrgb disables GL_EXT_texture_sRGB (which is used for higher quality non-linear texture gamma)
 // COMMANDLINEOPTION: GL: -nomultisample disables GL_ARB_multisample
 
-	if (vid.support.arb_draw_buffers)
-		qglGetIntegerv(GL_MAX_DRAW_BUFFERS_ARB, (GLint*)&vid.maxdrawbuffers);
+    if (vid.support.arb_draw_buffers)
+        qglGetIntegerv(GL_MAX_DRAW_BUFFERS_ARB, (GLint*)&vid.maxdrawbuffers);
 
-	// disable non-power-of-two textures on Radeon X1600 and other cards that do not accelerate it with some filtering modes / repeat modes that we use
-	// we detect these cards by checking if the hardware supports vertex texture fetch (Geforce6 does, Radeon X1600 does not, all GL3-class hardware does)
-	if(vid.support.arb_texture_non_power_of_two && vid.support.gl20shaders)
-	{
-		int val = 0;
-		qglGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &val);CHECKGLERROR
-		if (val < 1)
-			vid.support.arb_texture_non_power_of_two = false;
-	}
+    // disable non-power-of-two textures on Radeon X1600 and other cards that do not accelerate it with some filtering modes / repeat modes that we use
+    // we detect these cards by checking if the hardware supports vertex texture fetch (Geforce6 does, Radeon X1600 does not, all GL3-class hardware does)
+    if(vid.support.arb_texture_non_power_of_two && vid.support.gl20shaders)
+    {
+        int val = 0;
+        qglGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &val);CHECKGLERROR
+        if (val < 1)
+            vid.support.arb_texture_non_power_of_two = false;
+    }
 
-	// we don't care if it's an extension or not, they are identical functions, so keep it simple in the rendering code
-	if (qglDrawRangeElements == NULL)
-		qglDrawRangeElements = qglDrawRangeElementsEXT;
+    // we don't care if it's an extension or not, they are identical functions, so keep it simple in the rendering code
+    if (qglDrawRangeElements == NULL)
+        qglDrawRangeElements = qglDrawRangeElementsEXT;
 
-	qglGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint*)&vid.maxtexturesize_2d);
-	if (vid.support.ext_texture_filter_anisotropic)
-		qglGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, (GLint*)&vid.max_anisotropy);
-	if (vid.support.arb_texture_cube_map)
-		qglGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, (GLint*)&vid.maxtexturesize_cubemap);
-	if (vid.support.ext_texture_3d)
-		qglGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, (GLint*)&vid.maxtexturesize_3d);
+    qglGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint*)&vid.maxtexturesize_2d);
+    if (vid.support.ext_texture_filter_anisotropic)
+        qglGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, (GLint*)&vid.max_anisotropy);
+    if (vid.support.arb_texture_cube_map)
+        qglGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, (GLint*)&vid.maxtexturesize_cubemap);
+    if (vid.support.ext_texture_3d)
+        qglGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, (GLint*)&vid.maxtexturesize_3d);
 
-	// verify that 3d textures are really supported
-	if (vid.support.ext_texture_3d && vid.maxtexturesize_3d < 32)
-	{
-		vid.support.ext_texture_3d = false;
-		Con_Printf("GL_EXT_texture3D reported bogus GL_MAX_3D_TEXTURE_SIZE, disabled\n");
-	}
+    // verify that 3d textures are really supported
+    if (vid.support.ext_texture_3d && vid.maxtexturesize_3d < 32)
+    {
+        vid.support.ext_texture_3d = false;
+        Con_Printf("GL_EXT_texture3D reported bogus GL_MAX_3D_TEXTURE_SIZE, disabled\n");
+    }
 
-	vid.texunits = vid.teximageunits = vid.texarrayunits = 1;
-	if (vid.support.arb_multitexture)
-		qglGetIntegerv(GL_MAX_TEXTURE_UNITS, (GLint*)&vid.texunits);
-	if (vid_gl20.integer && vid.support.gl20shaders)
-	{
-		qglGetIntegerv(GL_MAX_TEXTURE_UNITS, (GLint*)&vid.texunits);
-		qglGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, (int *)&vid.teximageunits);CHECKGLERROR
-		qglGetIntegerv(GL_MAX_TEXTURE_COORDS, (int *)&vid.texarrayunits);CHECKGLERROR
-		vid.texunits = bound(4, vid.texunits, MAX_TEXTUREUNITS);
-		vid.teximageunits = bound(16, vid.teximageunits, MAX_TEXTUREUNITS);
-		vid.texarrayunits = bound(8, vid.texarrayunits, MAX_TEXTUREUNITS);
-		Con_DPrintf("Using GL2.0 rendering path - %i texture matrix, %i texture images, %i texcoords%s\n", vid.texunits, vid.teximageunits, vid.texarrayunits, vid.support.ext_framebuffer_object ? ", shadowmapping supported" : "");
-		vid.renderpath = RENDERPATH_GL20;
-		vid.sRGBcapable2D = false;
-		vid.sRGBcapable3D = true;
-		vid.useinterleavedarrays = false;
-		Con_Printf("vid.support.arb_multisample %i\n", vid.support.arb_multisample);
-		Con_Printf("vid.support.gl20shaders %i\n", vid.support.gl20shaders);
-		vid.allowalphatocoverage = true; // but see below, it may get turned to false again if GL_SAMPLES_ARB is <= 1
-	}
-	else if (vid.support.arb_texture_env_combine && vid.texunits >= 2 && vid_gl13.integer)
-	{
-		qglGetIntegerv(GL_MAX_TEXTURE_UNITS, (GLint*)&vid.texunits);
-		vid.texunits = bound(1, vid.texunits, MAX_TEXTUREUNITS);
-		vid.teximageunits = vid.texunits;
-		vid.texarrayunits = vid.texunits;
-		Con_DPrintf("Using GL1.3 rendering path - %i texture units, single pass rendering\n", vid.texunits);
-		vid.renderpath = RENDERPATH_GL13;
-		vid.sRGBcapable2D = false;
-		vid.sRGBcapable3D = false;
-		vid.useinterleavedarrays = false;
-	}
-	else
-	{
-		vid.texunits = bound(1, vid.texunits, MAX_TEXTUREUNITS);
-		vid.teximageunits = vid.texunits;
-		vid.texarrayunits = vid.texunits;
-		Con_DPrintf("Using GL1.1 rendering path - %i texture units, two pass rendering\n", vid.texunits);
-		vid.renderpath = RENDERPATH_GL11;
-		vid.sRGBcapable2D = false;
-		vid.sRGBcapable3D = false;
-		vid.useinterleavedarrays = false;
-	}
+    vid.texunits = vid.teximageunits = vid.texarrayunits = 1;
+    if (vid.support.arb_multitexture)
+        qglGetIntegerv(GL_MAX_TEXTURE_UNITS, (GLint*)&vid.texunits);
+    if (vid_gl20.integer && vid.support.gl20shaders)
+    {
+        qglGetIntegerv(GL_MAX_TEXTURE_UNITS, (GLint*)&vid.texunits);
+        qglGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, (int *)&vid.teximageunits);CHECKGLERROR
+        qglGetIntegerv(GL_MAX_TEXTURE_COORDS, (int *)&vid.texarrayunits);CHECKGLERROR
+        vid.texunits = bound(4, vid.texunits, MAX_TEXTUREUNITS);
+        vid.teximageunits = bound(16, vid.teximageunits, MAX_TEXTUREUNITS);
+        vid.texarrayunits = bound(8, vid.texarrayunits, MAX_TEXTUREUNITS);
+        Con_DPrintf("Using GL2.0 rendering path - %i texture matrix, %i texture images, %i texcoords%s\n", vid.texunits, vid.teximageunits, vid.texarrayunits, vid.support.ext_framebuffer_object ? ", shadowmapping supported" : "");
+        vid.renderpath = RENDERPATH_GL20;
+        vid.sRGBcapable2D = false;
+        vid.sRGBcapable3D = true;
+        vid.useinterleavedarrays = false;
+        Con_Printf("vid.support.arb_multisample %i\n", vid.support.arb_multisample);
+        Con_Printf("vid.support.gl20shaders %i\n", vid.support.gl20shaders);
+        vid.allowalphatocoverage = true; // but see below, it may get turned to false again if GL_SAMPLES_ARB is <= 1
+    }
+    else if (vid.support.arb_texture_env_combine && vid.texunits >= 2 && vid_gl13.integer)
+    {
+        qglGetIntegerv(GL_MAX_TEXTURE_UNITS, (GLint*)&vid.texunits);
+        vid.texunits = bound(1, vid.texunits, MAX_TEXTUREUNITS);
+        vid.teximageunits = vid.texunits;
+        vid.texarrayunits = vid.texunits;
+        Con_DPrintf("Using GL1.3 rendering path - %i texture units, single pass rendering\n", vid.texunits);
+        vid.renderpath = RENDERPATH_GL13;
+        vid.sRGBcapable2D = false;
+        vid.sRGBcapable3D = false;
+        vid.useinterleavedarrays = false;
+    }
+    else
+    {
+        vid.texunits = bound(1, vid.texunits, MAX_TEXTUREUNITS);
+        vid.teximageunits = vid.texunits;
+        vid.texarrayunits = vid.texunits;
+        Con_DPrintf("Using GL1.1 rendering path - %i texture units, two pass rendering\n", vid.texunits);
+        vid.renderpath = RENDERPATH_GL11;
+        vid.sRGBcapable2D = false;
+        vid.sRGBcapable3D = false;
+        vid.useinterleavedarrays = false;
+    }
 
-	// enable multisample antialiasing if possible
-	if(vid.support.arb_multisample)
-	{
-		int samples = 0;
-		qglGetIntegerv(GL_SAMPLES_ARB, &samples);
-		vid.samples = samples;
-		if (samples > 1)
-			qglEnable(GL_MULTISAMPLE_ARB);
-		else
-			vid.allowalphatocoverage = false;
-	}
-	else
-	{
-		vid.allowalphatocoverage = false;
-		vid.samples = 1;
-	}
+    // enable multisample antialiasing if possible
+    if(vid.support.arb_multisample)
+    {
+        int samples = 0;
+        qglGetIntegerv(GL_SAMPLES_ARB, &samples);
+        vid.samples = samples;
+        if (samples > 1)
+            qglEnable(GL_MULTISAMPLE_ARB);
+        else
+            vid.allowalphatocoverage = false;
+    }
+    else
+    {
+        vid.allowalphatocoverage = false;
+        vid.samples = 1;
+    }
 
-	// VorteX: set other info (maybe place them in VID_InitMode?)
-	Cvar_SetQuick(&gl_info_vendor, gl_vendor);
-	Cvar_SetQuick(&gl_info_renderer, gl_renderer);
-	Cvar_SetQuick(&gl_info_version, gl_version);
-	Cvar_SetQuick(&gl_info_platform, gl_platform ? gl_platform : "");
-	Cvar_SetQuick(&gl_info_driver, gl_driver);
+    // VorteX: set other info (maybe place them in VID_InitMode?)
+    Cvar_SetQuick(&gl_info_vendor, gl_vendor);
+    Cvar_SetQuick(&gl_info_renderer, gl_renderer);
+    Cvar_SetQuick(&gl_info_version, gl_version);
+    Cvar_SetQuick(&gl_info_platform, gl_platform ? gl_platform : "");
+    Cvar_SetQuick(&gl_info_driver, gl_driver);
 }
 #endif
 
 float VID_JoyState_GetAxis(const vid_joystate_t *joystate, int axis, float fsensitivity, float deadzone)
 {
-	float value;
-	value = (axis >= 0 && axis < MAXJOYAXIS) ? joystate->axis[axis] : 0.0f;
-	value = value > deadzone ? (value - deadzone) : (value < -deadzone ? (value + deadzone) : 0.0f);
-	value *= deadzone > 0 ? (1.0f / (1.0f - deadzone)) : 1.0f;
-	value = bound(-1, value, 1);
-	return value * fsensitivity;
+    float value;
+    value = (axis >= 0 && axis < MAXJOYAXIS) ? joystate->axis[axis] : 0.0f;
+    value = value > deadzone ? (value - deadzone) : (value < -deadzone ? (value + deadzone) : 0.0f);
+    value *= deadzone > 0 ? (1.0f / (1.0f - deadzone)) : 1.0f;
+    value = bound(-1, value, 1);
+    return value * fsensitivity;
 }
 
 qboolean VID_JoyBlockEmulatedKeys(int keycode)
 {
-	int j;
-	vid_joystate_t joystate;
+    int j;
+    vid_joystate_t joystate;
 
-	if (!joy_axiskeyevents.integer)
-		return false;
-	if (vid_joystate.is360)
-		return false;
-	if (keycode != K_UPARROW && keycode != K_DOWNARROW && keycode != K_RIGHTARROW && keycode != K_LEFTARROW)
-		return false;
+    if (!joy_axiskeyevents.integer)
+        return false;
+    if (vid_joystate.is360)
+        return false;
+    if (keycode != K_UPARROW && keycode != K_DOWNARROW && keycode != K_RIGHTARROW && keycode != K_LEFTARROW)
+        return false;
 
-	// block system-generated key events for arrow keys if we're emulating the arrow keys ourselves
-	VID_BuildJoyState(&joystate);
-	for (j = 32;j < 36;j++)
-		if (vid_joystate.button[j] || joystate.button[j])
-			return true;
+    // block system-generated key events for arrow keys if we're emulating the arrow keys ourselves
+    VID_BuildJoyState(&joystate);
+    for (j = 32;j < 36;j++)
+        if (vid_joystate.button[j] || joystate.button[j])
+            return true;
 
-	return false;
+    return false;
 }
 
 void VID_Shared_BuildJoyState_Begin(vid_joystate_t *joystate)
 {
 #ifdef WIN32
-	xinput_state_t xinputstate;
+    xinput_state_t xinputstate;
 #endif
-	memset(joystate, 0, sizeof(*joystate));
+    memset(joystate, 0, sizeof(*joystate));
 #ifdef WIN32
-	if (vid_xinputindex >= 0 && qXInputGetState && qXInputGetState(vid_xinputindex, &xinputstate) == S_OK)
-	{
-		joystate->is360 = true;
-		joystate->button[ 0] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) != 0;
-		joystate->button[ 1] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) != 0;
-		joystate->button[ 2] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) != 0;
-		joystate->button[ 3] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0;
-		joystate->button[ 4] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_START) != 0;
-		joystate->button[ 5] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) != 0;
-		joystate->button[ 6] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) != 0;
-		joystate->button[ 7] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) != 0;
-		joystate->button[ 8] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0;
-		joystate->button[ 9] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0;
-		joystate->button[10] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0;
-		joystate->button[11] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0;
-		joystate->button[12] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0;
-		joystate->button[13] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0;
-		joystate->button[14] = xinputstate.Gamepad.bLeftTrigger >= XINPUT_GAMEPAD_TRIGGER_THRESHOLD;
-		joystate->button[15] = xinputstate.Gamepad.bRightTrigger >= XINPUT_GAMEPAD_TRIGGER_THRESHOLD;
-		joystate->button[16] = xinputstate.Gamepad.sThumbLY < -16384;
-		joystate->button[17] = xinputstate.Gamepad.sThumbLY >  16384;
-		joystate->button[18] = xinputstate.Gamepad.sThumbLX < -16384;
-		joystate->button[19] = xinputstate.Gamepad.sThumbLX >  16384;
-		joystate->button[20] = xinputstate.Gamepad.sThumbRY < -16384;
-		joystate->button[21] = xinputstate.Gamepad.sThumbRY >  16384;
-		joystate->button[22] = xinputstate.Gamepad.sThumbRX < -16384;
-		joystate->button[23] = xinputstate.Gamepad.sThumbRX >  16384;
-		joystate->axis[ 4] = xinputstate.Gamepad.bLeftTrigger * (1.0f / 255.0f);
-		joystate->axis[ 5] = xinputstate.Gamepad.bRightTrigger * (1.0f / 255.0f);
-		joystate->axis[ 0] = xinputstate.Gamepad.sThumbLX * (1.0f / 32767.0f);
-		joystate->axis[ 1] = xinputstate.Gamepad.sThumbLY * (1.0f / 32767.0f);
-		joystate->axis[ 2] = xinputstate.Gamepad.sThumbRX * (1.0f / 32767.0f);
-		joystate->axis[ 3] = xinputstate.Gamepad.sThumbRY * (1.0f / 32767.0f);
-	}
+    if (vid_xinputindex >= 0 && qXInputGetState && qXInputGetState(vid_xinputindex, &xinputstate) == S_OK)
+    {
+        joystate->is360 = true;
+        joystate->button[ 0] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) != 0;
+        joystate->button[ 1] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) != 0;
+        joystate->button[ 2] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) != 0;
+        joystate->button[ 3] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0;
+        joystate->button[ 4] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_START) != 0;
+        joystate->button[ 5] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) != 0;
+        joystate->button[ 6] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) != 0;
+        joystate->button[ 7] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) != 0;
+        joystate->button[ 8] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) != 0;
+        joystate->button[ 9] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0;
+        joystate->button[10] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0;
+        joystate->button[11] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0;
+        joystate->button[12] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0;
+        joystate->button[13] = (xinputstate.Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0;
+        joystate->button[14] = xinputstate.Gamepad.bLeftTrigger >= XINPUT_GAMEPAD_TRIGGER_THRESHOLD;
+        joystate->button[15] = xinputstate.Gamepad.bRightTrigger >= XINPUT_GAMEPAD_TRIGGER_THRESHOLD;
+        joystate->button[16] = xinputstate.Gamepad.sThumbLY < -16384;
+        joystate->button[17] = xinputstate.Gamepad.sThumbLY >  16384;
+        joystate->button[18] = xinputstate.Gamepad.sThumbLX < -16384;
+        joystate->button[19] = xinputstate.Gamepad.sThumbLX >  16384;
+        joystate->button[20] = xinputstate.Gamepad.sThumbRY < -16384;
+        joystate->button[21] = xinputstate.Gamepad.sThumbRY >  16384;
+        joystate->button[22] = xinputstate.Gamepad.sThumbRX < -16384;
+        joystate->button[23] = xinputstate.Gamepad.sThumbRX >  16384;
+        joystate->axis[ 4] = xinputstate.Gamepad.bLeftTrigger * (1.0f / 255.0f);
+        joystate->axis[ 5] = xinputstate.Gamepad.bRightTrigger * (1.0f / 255.0f);
+        joystate->axis[ 0] = xinputstate.Gamepad.sThumbLX * (1.0f / 32767.0f);
+        joystate->axis[ 1] = xinputstate.Gamepad.sThumbLY * (1.0f / 32767.0f);
+        joystate->axis[ 2] = xinputstate.Gamepad.sThumbRX * (1.0f / 32767.0f);
+        joystate->axis[ 3] = xinputstate.Gamepad.sThumbRY * (1.0f / 32767.0f);
+    }
 #endif
 }
 
 void VID_Shared_BuildJoyState_Finish(vid_joystate_t *joystate)
 {
-	float f, r;
-	if (joystate->is360)
-		return;
-	// emulate key events for thumbstick
-	f = VID_JoyState_GetAxis(joystate, joy_axisforward.integer, 1, joy_axiskeyevents_deadzone.value) * joy_sensitivityforward.value;
-	r = VID_JoyState_GetAxis(joystate, joy_axisside.integer   , 1, joy_axiskeyevents_deadzone.value) * joy_sensitivityside.value;
+    float f, r;
+    if (joystate->is360)
+        return;
+    // emulate key events for thumbstick
+    f = VID_JoyState_GetAxis(joystate, joy_axisforward.integer, 1, joy_axiskeyevents_deadzone.value) * joy_sensitivityforward.value;
+    r = VID_JoyState_GetAxis(joystate, joy_axisside.integer   , 1, joy_axiskeyevents_deadzone.value) * joy_sensitivityside.value;
 #if MAXJOYBUTTON != 36
 #error this code must be updated if MAXJOYBUTTON changes!
 #endif
-	joystate->button[32] = f > 0.0f;
-	joystate->button[33] = f < 0.0f;
-	joystate->button[34] = r > 0.0f;
-	joystate->button[35] = r < 0.0f;
+    joystate->button[32] = f > 0.0f;
+    joystate->button[33] = f < 0.0f;
+    joystate->button[34] = r > 0.0f;
+    joystate->button[35] = r < 0.0f;
 }
 
 static void VID_KeyEventForButton(qboolean oldbutton, qboolean newbutton, int key, double *timer)
 {
-	if (oldbutton)
-	{
-		if (newbutton)
-		{
-			if (realtime >= *timer)
-			{
-				Key_Event(key, 0, true);
-				*timer = realtime + 0.1;
-			}
-		}
-		else
-		{
-			Key_Event(key, 0, false);
-			*timer = 0;
-		}
-	}
-	else
-	{
-		if (newbutton)
-		{
-			Key_Event(key, 0, true);
-			*timer = realtime + 0.5;
-		}
-	}
+    if (oldbutton)
+    {
+        if (newbutton)
+        {
+            if (realtime >= *timer)
+            {
+                Key_Event(key, 0, true);
+                *timer = realtime + 0.1;
+            }
+        }
+        else
+        {
+            Key_Event(key, 0, false);
+            *timer = 0;
+        }
+    }
+    else
+    {
+        if (newbutton)
+        {
+            Key_Event(key, 0, true);
+            *timer = realtime + 0.5;
+        }
+    }
 }
 
 #if MAXJOYBUTTON != 36
@@ -1355,121 +1355,121 @@ static void VID_KeyEventForButton(qboolean oldbutton, qboolean newbutton, int ke
 #endif
 static int joybuttonkey[MAXJOYBUTTON][2] =
 {
-	{K_JOY1, K_ENTER}, {K_JOY2, K_ESCAPE}, {K_JOY3, 0}, {K_JOY4, 0}, {K_JOY5, 0}, {K_JOY6, 0}, {K_JOY7, 0}, {K_JOY8, 0}, {K_JOY9, 0}, {K_JOY10, 0}, {K_JOY11, 0}, {K_JOY12, 0}, {K_JOY13, 0}, {K_JOY14, 0}, {K_JOY15, 0}, {K_JOY16, 0},
-	{K_AUX1, 0}, {K_AUX2, 0}, {K_AUX3, 0}, {K_AUX4, 0}, {K_AUX5, 0}, {K_AUX6, 0}, {K_AUX7, 0}, {K_AUX8, 0}, {K_AUX9, 0}, {K_AUX10, 0}, {K_AUX11, 0}, {K_AUX12, 0}, {K_AUX13, 0}, {K_AUX14, 0}, {K_AUX15, 0}, {K_AUX16, 0},
-	{K_JOY_UP, K_UPARROW}, {K_JOY_DOWN, K_DOWNARROW}, {K_JOY_RIGHT, K_RIGHTARROW}, {K_JOY_LEFT, K_LEFTARROW},
+    {K_JOY1, K_ENTER}, {K_JOY2, K_ESCAPE}, {K_JOY3, 0}, {K_JOY4, 0}, {K_JOY5, 0}, {K_JOY6, 0}, {K_JOY7, 0}, {K_JOY8, 0}, {K_JOY9, 0}, {K_JOY10, 0}, {K_JOY11, 0}, {K_JOY12, 0}, {K_JOY13, 0}, {K_JOY14, 0}, {K_JOY15, 0}, {K_JOY16, 0},
+    {K_AUX1, 0}, {K_AUX2, 0}, {K_AUX3, 0}, {K_AUX4, 0}, {K_AUX5, 0}, {K_AUX6, 0}, {K_AUX7, 0}, {K_AUX8, 0}, {K_AUX9, 0}, {K_AUX10, 0}, {K_AUX11, 0}, {K_AUX12, 0}, {K_AUX13, 0}, {K_AUX14, 0}, {K_AUX15, 0}, {K_AUX16, 0},
+    {K_JOY_UP, K_UPARROW}, {K_JOY_DOWN, K_DOWNARROW}, {K_JOY_RIGHT, K_RIGHTARROW}, {K_JOY_LEFT, K_LEFTARROW},
 };
 
 static int joybuttonkey360[][2] =
 {
-	{K_X360_DPAD_UP, K_UPARROW},
-	{K_X360_DPAD_DOWN, K_DOWNARROW},
-	{K_X360_DPAD_LEFT, K_LEFTARROW},
-	{K_X360_DPAD_RIGHT, K_RIGHTARROW},
-	{K_X360_START, K_ESCAPE},
-	{K_X360_BACK, K_ESCAPE},
-	{K_X360_LEFT_THUMB, 0},
-	{K_X360_RIGHT_THUMB, 0},
-	{K_X360_LEFT_SHOULDER, 0},
-	{K_X360_RIGHT_SHOULDER, 0},
-	{K_X360_A, K_ENTER},
-	{K_X360_B, K_ESCAPE},
-	{K_X360_X, 0},
-	{K_X360_Y, 0},
-	{K_X360_LEFT_TRIGGER, 0},
-	{K_X360_RIGHT_TRIGGER, 0},
-	{K_X360_LEFT_THUMB_DOWN, K_DOWNARROW},
-	{K_X360_LEFT_THUMB_UP, K_UPARROW},
-	{K_X360_LEFT_THUMB_LEFT, K_LEFTARROW},
-	{K_X360_LEFT_THUMB_RIGHT, K_RIGHTARROW},
-	{K_X360_RIGHT_THUMB_DOWN, 0},
-	{K_X360_RIGHT_THUMB_UP, 0},
-	{K_X360_RIGHT_THUMB_LEFT, 0},
-	{K_X360_RIGHT_THUMB_RIGHT, 0},
+    {K_X360_DPAD_UP, K_UPARROW},
+    {K_X360_DPAD_DOWN, K_DOWNARROW},
+    {K_X360_DPAD_LEFT, K_LEFTARROW},
+    {K_X360_DPAD_RIGHT, K_RIGHTARROW},
+    {K_X360_START, K_ESCAPE},
+    {K_X360_BACK, K_ESCAPE},
+    {K_X360_LEFT_THUMB, 0},
+    {K_X360_RIGHT_THUMB, 0},
+    {K_X360_LEFT_SHOULDER, 0},
+    {K_X360_RIGHT_SHOULDER, 0},
+    {K_X360_A, K_ENTER},
+    {K_X360_B, K_ESCAPE},
+    {K_X360_X, 0},
+    {K_X360_Y, 0},
+    {K_X360_LEFT_TRIGGER, 0},
+    {K_X360_RIGHT_TRIGGER, 0},
+    {K_X360_LEFT_THUMB_DOWN, K_DOWNARROW},
+    {K_X360_LEFT_THUMB_UP, K_UPARROW},
+    {K_X360_LEFT_THUMB_LEFT, K_LEFTARROW},
+    {K_X360_LEFT_THUMB_RIGHT, K_RIGHTARROW},
+    {K_X360_RIGHT_THUMB_DOWN, 0},
+    {K_X360_RIGHT_THUMB_UP, 0},
+    {K_X360_RIGHT_THUMB_LEFT, 0},
+    {K_X360_RIGHT_THUMB_RIGHT, 0},
 };
 
 double vid_joybuttontimer[MAXJOYBUTTON];
 void VID_ApplyJoyState(vid_joystate_t *joystate)
 {
-	int j;
-	int c = joy_axiskeyevents.integer != 0;
-	if (joystate->is360)
-	{
+    int j;
+    int c = joy_axiskeyevents.integer != 0;
+    if (joystate->is360)
+    {
 #if 0
-		// keystrokes (chatpad)
-		// DOES NOT WORK - no driver support in xinput1_3.dll :(
-		xinput_keystroke_t keystroke;
-		while (qXInputGetKeystroke && qXInputGetKeystroke(XUSER_INDEX_ANY, 0, &keystroke) == S_OK)
-			Con_Printf("XInput KeyStroke: VirtualKey %i, Unicode %i, Flags %x, UserIndex %i, HidCode %i\n", keystroke.VirtualKey, keystroke.Unicode, keystroke.Flags, keystroke.UserIndex, keystroke.HidCode);
+        // keystrokes (chatpad)
+        // DOES NOT WORK - no driver support in xinput1_3.dll :(
+        xinput_keystroke_t keystroke;
+        while (qXInputGetKeystroke && qXInputGetKeystroke(XUSER_INDEX_ANY, 0, &keystroke) == S_OK)
+            Con_Printf("XInput KeyStroke: VirtualKey %i, Unicode %i, Flags %x, UserIndex %i, HidCode %i\n", keystroke.VirtualKey, keystroke.Unicode, keystroke.Flags, keystroke.UserIndex, keystroke.HidCode);
 #endif
 
-		// emit key events for buttons
-		for (j = 0;j < (int)(sizeof(joybuttonkey360)/sizeof(joybuttonkey360[0]));j++)
-			VID_KeyEventForButton(vid_joystate.button[j] != 0, joystate->button[j] != 0, joybuttonkey360[j][c], &vid_joybuttontimer[j]);
+        // emit key events for buttons
+        for (j = 0;j < (int)(sizeof(joybuttonkey360)/sizeof(joybuttonkey360[0]));j++)
+            VID_KeyEventForButton(vid_joystate.button[j] != 0, joystate->button[j] != 0, joybuttonkey360[j][c], &vid_joybuttontimer[j]);
 
-		// axes
-		cl.cmd.forwardmove += VID_JoyState_GetAxis(joystate, joy_x360_axisforward.integer, joy_x360_sensitivityforward.value, joy_x360_deadzoneforward.value) * cl_forwardspeed.value;
-		cl.cmd.sidemove    += VID_JoyState_GetAxis(joystate, joy_x360_axisside.integer, joy_x360_sensitivityside.value, joy_x360_deadzoneside.value) * cl_sidespeed.value;
-		cl.cmd.upmove      += VID_JoyState_GetAxis(joystate, joy_x360_axisup.integer, joy_x360_sensitivityup.value, joy_x360_deadzoneup.value) * cl_upspeed.value;
-		cl.viewangles[0]   += VID_JoyState_GetAxis(joystate, joy_x360_axispitch.integer, joy_x360_sensitivitypitch.value, joy_x360_deadzonepitch.value) * cl.realframetime * cl_pitchspeed.value;
-		cl.viewangles[1]   += VID_JoyState_GetAxis(joystate, joy_x360_axisyaw.integer, joy_x360_sensitivityyaw.value, joy_x360_deadzoneyaw.value) * cl.realframetime * cl_yawspeed.value;
-		//cl.viewangles[2]   += VID_JoyState_GetAxis(joystate, joy_x360_axisroll.integer, joy_x360_sensitivityroll.value, joy_x360_deadzoneroll.value) * cl.realframetime * cl_rollspeed.value;
-	}
-	else
-	{
-		// emit key events for buttons
-		for (j = 0;j < MAXJOYBUTTON;j++)
-			VID_KeyEventForButton(vid_joystate.button[j] != 0, joystate->button[j] != 0, joybuttonkey[j][c], &vid_joybuttontimer[j]);
+        // axes
+        cl.cmd.forwardmove += VID_JoyState_GetAxis(joystate, joy_x360_axisforward.integer, joy_x360_sensitivityforward.value, joy_x360_deadzoneforward.value) * cl_forwardspeed.value;
+        cl.cmd.sidemove    += VID_JoyState_GetAxis(joystate, joy_x360_axisside.integer, joy_x360_sensitivityside.value, joy_x360_deadzoneside.value) * cl_sidespeed.value;
+        cl.cmd.upmove      += VID_JoyState_GetAxis(joystate, joy_x360_axisup.integer, joy_x360_sensitivityup.value, joy_x360_deadzoneup.value) * cl_upspeed.value;
+        cl.viewangles[0]   += VID_JoyState_GetAxis(joystate, joy_x360_axispitch.integer, joy_x360_sensitivitypitch.value, joy_x360_deadzonepitch.value) * cl.realframetime * cl_pitchspeed.value;
+        cl.viewangles[1]   += VID_JoyState_GetAxis(joystate, joy_x360_axisyaw.integer, joy_x360_sensitivityyaw.value, joy_x360_deadzoneyaw.value) * cl.realframetime * cl_yawspeed.value;
+        //cl.viewangles[2]   += VID_JoyState_GetAxis(joystate, joy_x360_axisroll.integer, joy_x360_sensitivityroll.value, joy_x360_deadzoneroll.value) * cl.realframetime * cl_rollspeed.value;
+    }
+    else
+    {
+        // emit key events for buttons
+        for (j = 0;j < MAXJOYBUTTON;j++)
+            VID_KeyEventForButton(vid_joystate.button[j] != 0, joystate->button[j] != 0, joybuttonkey[j][c], &vid_joybuttontimer[j]);
 
-		// axes
-		cl.cmd.forwardmove += VID_JoyState_GetAxis(joystate, joy_axisforward.integer, joy_sensitivityforward.value, joy_deadzoneforward.value) * cl_forwardspeed.value;
-		cl.cmd.sidemove    += VID_JoyState_GetAxis(joystate, joy_axisside.integer, joy_sensitivityside.value, joy_deadzoneside.value) * cl_sidespeed.value;
-		cl.cmd.upmove      += VID_JoyState_GetAxis(joystate, joy_axisup.integer, joy_sensitivityup.value, joy_deadzoneup.value) * cl_upspeed.value;
-		cl.viewangles[0]   += VID_JoyState_GetAxis(joystate, joy_axispitch.integer, joy_sensitivitypitch.value, joy_deadzonepitch.value) * cl.realframetime * cl_pitchspeed.value;
-		cl.viewangles[1]   += VID_JoyState_GetAxis(joystate, joy_axisyaw.integer, joy_sensitivityyaw.value, joy_deadzoneyaw.value) * cl.realframetime * cl_yawspeed.value;
-		//cl.viewangles[2]   += VID_JoyState_GetAxis(joystate, joy_axisroll.integer, joy_sensitivityroll.value, joy_deadzoneroll.value) * cl.realframetime * cl_rollspeed.value;
-	}
+        // axes
+        cl.cmd.forwardmove += VID_JoyState_GetAxis(joystate, joy_axisforward.integer, joy_sensitivityforward.value, joy_deadzoneforward.value) * cl_forwardspeed.value;
+        cl.cmd.sidemove    += VID_JoyState_GetAxis(joystate, joy_axisside.integer, joy_sensitivityside.value, joy_deadzoneside.value) * cl_sidespeed.value;
+        cl.cmd.upmove      += VID_JoyState_GetAxis(joystate, joy_axisup.integer, joy_sensitivityup.value, joy_deadzoneup.value) * cl_upspeed.value;
+        cl.viewangles[0]   += VID_JoyState_GetAxis(joystate, joy_axispitch.integer, joy_sensitivitypitch.value, joy_deadzonepitch.value) * cl.realframetime * cl_pitchspeed.value;
+        cl.viewangles[1]   += VID_JoyState_GetAxis(joystate, joy_axisyaw.integer, joy_sensitivityyaw.value, joy_deadzoneyaw.value) * cl.realframetime * cl_yawspeed.value;
+        //cl.viewangles[2]   += VID_JoyState_GetAxis(joystate, joy_axisroll.integer, joy_sensitivityroll.value, joy_deadzoneroll.value) * cl.realframetime * cl_rollspeed.value;
+    }
 
-	vid_joystate = *joystate;
+    vid_joystate = *joystate;
 }
 
 int VID_Shared_SetJoystick(int index)
 {
 #ifdef WIN32
-	int i;
-	int xinputcount = 0;
-	int xinputindex = -1;
-	int xinputavailable = 0;
-	xinput_state_t state;
-	// detect available XInput controllers
-	for (i = 0;i < 4;i++)
-	{
-		if (qXInputGetState && qXInputGetState(i, &state) == S_OK)
-		{
-			xinputavailable |= 1<<i;
-			if (index == xinputcount)
-				xinputindex = i;
-			xinputcount++;
-		}
-	}
-	if (joy_xinputavailable.integer != xinputavailable)
-		Cvar_SetValueQuick(&joy_xinputavailable, xinputavailable);
-	if (vid_xinputindex != xinputindex)
-	{
-		vid_xinputindex = xinputindex;
-		if (xinputindex >= 0)
-			Con_Printf("Joystick %i opened (XInput Device %i)\n", index, xinputindex);
-	}
-	return xinputcount;
+    int i;
+    int xinputcount = 0;
+    int xinputindex = -1;
+    int xinputavailable = 0;
+    xinput_state_t state;
+    // detect available XInput controllers
+    for (i = 0;i < 4;i++)
+    {
+        if (qXInputGetState && qXInputGetState(i, &state) == S_OK)
+        {
+            xinputavailable |= 1<<i;
+            if (index == xinputcount)
+                xinputindex = i;
+            xinputcount++;
+        }
+    }
+    if (joy_xinputavailable.integer != xinputavailable)
+        Cvar_SetValueQuick(&joy_xinputavailable, xinputavailable);
+    if (vid_xinputindex != xinputindex)
+    {
+        vid_xinputindex = xinputindex;
+        if (xinputindex >= 0)
+            Con_Printf("Joystick %i opened (XInput Device %i)\n", index, xinputindex);
+    }
+    return xinputcount;
 #else
-	return 0;
+    return 0;
 #endif
 }
 
 
 static void Force_CenterView_f (void)
 {
-	cl.viewangles[PITCH] = 0;
+    cl.viewangles[PITCH] = 0;
 }
 
 static int gamma_forcenextframe = false;
@@ -1480,234 +1480,234 @@ unsigned int vid_gammatables_serial = 0; // so other subsystems can poll if gamm
 qboolean vid_gammatables_trivial = true;
 void VID_BuildGammaTables(unsigned short *ramps, int rampsize)
 {
-	if (cachecolorenable)
-	{
-		BuildGammaTable16(1.0f, invpow(0.5, 1 - cachegrey[0]), cachewhite[0], cacheblack[0], cachecontrastboost, ramps, rampsize);
-		BuildGammaTable16(1.0f, invpow(0.5, 1 - cachegrey[1]), cachewhite[1], cacheblack[1], cachecontrastboost, ramps + rampsize, rampsize);
-		BuildGammaTable16(1.0f, invpow(0.5, 1 - cachegrey[2]), cachewhite[2], cacheblack[2], cachecontrastboost, ramps + rampsize*2, rampsize);
-	}
-	else
-	{
-		BuildGammaTable16(1.0f, cachegamma, cachecontrast, cachebrightness, cachecontrastboost, ramps, rampsize);
-		BuildGammaTable16(1.0f, cachegamma, cachecontrast, cachebrightness, cachecontrastboost, ramps + rampsize, rampsize);
-		BuildGammaTable16(1.0f, cachegamma, cachecontrast, cachebrightness, cachecontrastboost, ramps + rampsize*2, rampsize);
-	}
+    if (cachecolorenable)
+    {
+        BuildGammaTable16(1.0f, invpow(0.5, 1 - cachegrey[0]), cachewhite[0], cacheblack[0], cachecontrastboost, ramps, rampsize);
+        BuildGammaTable16(1.0f, invpow(0.5, 1 - cachegrey[1]), cachewhite[1], cacheblack[1], cachecontrastboost, ramps + rampsize, rampsize);
+        BuildGammaTable16(1.0f, invpow(0.5, 1 - cachegrey[2]), cachewhite[2], cacheblack[2], cachecontrastboost, ramps + rampsize*2, rampsize);
+    }
+    else
+    {
+        BuildGammaTable16(1.0f, cachegamma, cachecontrast, cachebrightness, cachecontrastboost, ramps, rampsize);
+        BuildGammaTable16(1.0f, cachegamma, cachecontrast, cachebrightness, cachecontrastboost, ramps + rampsize, rampsize);
+        BuildGammaTable16(1.0f, cachegamma, cachecontrast, cachebrightness, cachecontrastboost, ramps + rampsize*2, rampsize);
+    }
 
-	if(vid.sRGB2D || vid.sRGB3D)
-	{
-		int i;
-		for(i = 0; i < 3*rampsize; ++i)
-			ramps[i] = (int)floor(bound(0.0f, Image_sRGBFloatFromLinearFloat(ramps[i] / 65535.0f), 1.0f) * 65535.0f + 0.5f);
-	}
+    if(vid.sRGB2D || vid.sRGB3D)
+    {
+        int i;
+        for(i = 0; i < 3*rampsize; ++i)
+            ramps[i] = (int)floor(bound(0.0f, Image_sRGBFloatFromLinearFloat(ramps[i] / 65535.0f), 1.0f) * 65535.0f + 0.5f);
+    }
 
-	// LordHavoc: this code came from Ben Winslow and Zinx Verituse, I have
-	// immensely butchered it to work with variable framerates and fit in with
-	// the rest of darkplaces.
-	if (v_psycho.integer)
-	{
-		int x, y;
-		float t;
-		static float n[3], nd[3], nt[3];
-		static int init = true;
-		unsigned short *ramp;
-		gamma_forcenextframe = true;
-		if (init)
-		{
-			init = false;
-			for (x = 0;x < 3;x++)
-			{
-				n[x] = lhrandom(0, 1);
-				nd[x] = (rand()&1)?-0.25:0.25;
-				nt[x] = lhrandom(1, 8.2);
-			}
-		}
+    // LordHavoc: this code came from Ben Winslow and Zinx Verituse, I have
+    // immensely butchered it to work with variable framerates and fit in with
+    // the rest of darkplaces.
+    if (v_psycho.integer)
+    {
+        int x, y;
+        float t;
+        static float n[3], nd[3], nt[3];
+        static int init = true;
+        unsigned short *ramp;
+        gamma_forcenextframe = true;
+        if (init)
+        {
+            init = false;
+            for (x = 0;x < 3;x++)
+            {
+                n[x] = lhrandom(0, 1);
+                nd[x] = (rand()&1)?-0.25:0.25;
+                nt[x] = lhrandom(1, 8.2);
+            }
+        }
 
-		for (x = 0;x < 3;x++)
-		{
-			nt[x] -= cl.realframetime;
-			if (nt[x] < 0)
-			{
-				nd[x] = -nd[x];
-				nt[x] += lhrandom(1, 8.2);
-			}
-			n[x] += nd[x] * cl.realframetime;
-			n[x] -= floor(n[x]);
-		}
+        for (x = 0;x < 3;x++)
+        {
+            nt[x] -= cl.realframetime;
+            if (nt[x] < 0)
+            {
+                nd[x] = -nd[x];
+                nt[x] += lhrandom(1, 8.2);
+            }
+            n[x] += nd[x] * cl.realframetime;
+            n[x] -= floor(n[x]);
+        }
 
-		for (x = 0, ramp = ramps;x < 3;x++)
-			for (y = 0, t = n[x] - 0.75f;y < rampsize;y++, t += 0.75f * (2.0f / rampsize))
-				*ramp++ = (unsigned short)(cos(t*(M_PI*2.0)) * 32767.0f + 32767.0f);
-	}
+        for (x = 0, ramp = ramps;x < 3;x++)
+            for (y = 0, t = n[x] - 0.75f;y < rampsize;y++, t += 0.75f * (2.0f / rampsize))
+                *ramp++ = (unsigned short)(cos(t*(M_PI*2.0)) * 32767.0f + 32767.0f);
+    }
 }
 
 void VID_UpdateGamma(qboolean force, int rampsize)
 {
-	cvar_t *c;
-	float f;
-	int wantgamma;
-	qboolean gamma_changed = false;
+    cvar_t *c;
+    float f;
+    int wantgamma;
+    qboolean gamma_changed = false;
 
-	// LordHavoc: don't mess with gamma tables if running dedicated
-	if (cls.state == ca_dedicated)
-		return;
+    // LordHavoc: don't mess with gamma tables if running dedicated
+    if (cls.state == ca_dedicated)
+        return;
 
-	wantgamma = v_hwgamma.integer;
-	switch(vid.renderpath)
-	{
-	case RENDERPATH_GL20:
-	case RENDERPATH_D3D9:
-	case RENDERPATH_D3D10:
-	case RENDERPATH_D3D11:
-	case RENDERPATH_SOFT:
-	case RENDERPATH_GLES2:
-		if (v_glslgamma.integer)
-			wantgamma = 0;
-		break;
-	case RENDERPATH_GL11:
-	case RENDERPATH_GL13:
-	case RENDERPATH_GLES1:
-		break;
-	}
-	if(!vid_activewindow)
-		wantgamma = 0;
+    wantgamma = v_hwgamma.integer;
+    switch(vid.renderpath)
+    {
+    case RENDERPATH_GL20:
+    case RENDERPATH_D3D9:
+    case RENDERPATH_D3D10:
+    case RENDERPATH_D3D11:
+    case RENDERPATH_SOFT:
+    case RENDERPATH_GLES2:
+        if (v_glslgamma.integer)
+            wantgamma = 0;
+        break;
+    case RENDERPATH_GL11:
+    case RENDERPATH_GL13:
+    case RENDERPATH_GLES1:
+        break;
+    }
+    if(!vid_activewindow)
+        wantgamma = 0;
 #define BOUNDCVAR(cvar, m1, m2) c = &(cvar);f = bound(m1, c->value, m2);if (c->value != f) Cvar_SetValueQuick(c, f);
-	BOUNDCVAR(v_gamma, 0.1, 5);
-	BOUNDCVAR(v_contrast, 0.2, 5);
-	BOUNDCVAR(v_brightness, -v_contrast.value * 0.8, 0.8);
-	//BOUNDCVAR(v_contrastboost, 0.0625, 16);
-	BOUNDCVAR(v_color_black_r, 0, 0.8);
-	BOUNDCVAR(v_color_black_g, 0, 0.8);
-	BOUNDCVAR(v_color_black_b, 0, 0.8);
-	BOUNDCVAR(v_color_grey_r, 0, 0.95);
-	BOUNDCVAR(v_color_grey_g, 0, 0.95);
-	BOUNDCVAR(v_color_grey_b, 0, 0.95);
-	BOUNDCVAR(v_color_white_r, 1, 5);
-	BOUNDCVAR(v_color_white_g, 1, 5);
-	BOUNDCVAR(v_color_white_b, 1, 5);
+    BOUNDCVAR(v_gamma, 0.1, 5);
+    BOUNDCVAR(v_contrast, 0.2, 5);
+    BOUNDCVAR(v_brightness, -v_contrast.value * 0.8, 0.8);
+    //BOUNDCVAR(v_contrastboost, 0.0625, 16);
+    BOUNDCVAR(v_color_black_r, 0, 0.8);
+    BOUNDCVAR(v_color_black_g, 0, 0.8);
+    BOUNDCVAR(v_color_black_b, 0, 0.8);
+    BOUNDCVAR(v_color_grey_r, 0, 0.95);
+    BOUNDCVAR(v_color_grey_g, 0, 0.95);
+    BOUNDCVAR(v_color_grey_b, 0, 0.95);
+    BOUNDCVAR(v_color_white_r, 1, 5);
+    BOUNDCVAR(v_color_white_g, 1, 5);
+    BOUNDCVAR(v_color_white_b, 1, 5);
 #undef BOUNDCVAR
 
-	// set vid_gammatables_trivial to true if the current settings would generate the identity gamma table
-	vid_gammatables_trivial = false;
-	if(v_psycho.integer == 0)
-	if(v_contrastboost.value == 1)
-	if(!vid.sRGB2D)
-	if(!vid.sRGB3D)
-	{
-		if(v_color_enable.integer)
-		{
-			if(v_color_black_r.value == 0)
-			if(v_color_black_g.value == 0)
-			if(v_color_black_b.value == 0)
-			if(fabs(v_color_grey_r.value - 0.5) < 1e-6)
-			if(fabs(v_color_grey_g.value - 0.5) < 1e-6)
-			if(fabs(v_color_grey_b.value - 0.5) < 1e-6)
-			if(v_color_white_r.value == 1)
-			if(v_color_white_g.value == 1)
-			if(v_color_white_b.value == 1)
-				vid_gammatables_trivial = true;
-		}
-		else
-		{
-			if(v_gamma.value == 1)
-			if(v_contrast.value == 1)
-			if(v_brightness.value == 0)
-				vid_gammatables_trivial = true;
-		}
-	}
+    // set vid_gammatables_trivial to true if the current settings would generate the identity gamma table
+    vid_gammatables_trivial = false;
+    if(v_psycho.integer == 0)
+    if(v_contrastboost.value == 1)
+    if(!vid.sRGB2D)
+    if(!vid.sRGB3D)
+    {
+        if(v_color_enable.integer)
+        {
+            if(v_color_black_r.value == 0)
+            if(v_color_black_g.value == 0)
+            if(v_color_black_b.value == 0)
+            if(fabs(v_color_grey_r.value - 0.5) < 1e-6)
+            if(fabs(v_color_grey_g.value - 0.5) < 1e-6)
+            if(fabs(v_color_grey_b.value - 0.5) < 1e-6)
+            if(v_color_white_r.value == 1)
+            if(v_color_white_g.value == 1)
+            if(v_color_white_b.value == 1)
+                vid_gammatables_trivial = true;
+        }
+        else
+        {
+            if(v_gamma.value == 1)
+            if(v_contrast.value == 1)
+            if(v_brightness.value == 0)
+                vid_gammatables_trivial = true;
+        }
+    }
 
 #define GAMMACHECK(cache, value) if (cache != (value)) gamma_changed = true;cache = (value)
-	if(v_psycho.integer)
-		gamma_changed = true;
-	GAMMACHECK(cachegamma      , v_gamma.value);
-	GAMMACHECK(cachecontrast   , v_contrast.value);
-	GAMMACHECK(cachebrightness , v_brightness.value);
-	GAMMACHECK(cachecontrastboost, v_contrastboost.value);
-	GAMMACHECK(cachecolorenable, v_color_enable.integer);
-	GAMMACHECK(cacheblack[0]   , v_color_black_r.value);
-	GAMMACHECK(cacheblack[1]   , v_color_black_g.value);
-	GAMMACHECK(cacheblack[2]   , v_color_black_b.value);
-	GAMMACHECK(cachegrey[0]    , v_color_grey_r.value);
-	GAMMACHECK(cachegrey[1]    , v_color_grey_g.value);
-	GAMMACHECK(cachegrey[2]    , v_color_grey_b.value);
-	GAMMACHECK(cachewhite[0]   , v_color_white_r.value);
-	GAMMACHECK(cachewhite[1]   , v_color_white_g.value);
-	GAMMACHECK(cachewhite[2]   , v_color_white_b.value);
+    if(v_psycho.integer)
+        gamma_changed = true;
+    GAMMACHECK(cachegamma      , v_gamma.value);
+    GAMMACHECK(cachecontrast   , v_contrast.value);
+    GAMMACHECK(cachebrightness , v_brightness.value);
+    GAMMACHECK(cachecontrastboost, v_contrastboost.value);
+    GAMMACHECK(cachecolorenable, v_color_enable.integer);
+    GAMMACHECK(cacheblack[0]   , v_color_black_r.value);
+    GAMMACHECK(cacheblack[1]   , v_color_black_g.value);
+    GAMMACHECK(cacheblack[2]   , v_color_black_b.value);
+    GAMMACHECK(cachegrey[0]    , v_color_grey_r.value);
+    GAMMACHECK(cachegrey[1]    , v_color_grey_g.value);
+    GAMMACHECK(cachegrey[2]    , v_color_grey_b.value);
+    GAMMACHECK(cachewhite[0]   , v_color_white_r.value);
+    GAMMACHECK(cachewhite[1]   , v_color_white_g.value);
+    GAMMACHECK(cachewhite[2]   , v_color_white_b.value);
 
-	if(gamma_changed)
-		++vid_gammatables_serial;
+    if(gamma_changed)
+        ++vid_gammatables_serial;
 
-	GAMMACHECK(cachehwgamma    , wantgamma);
+    GAMMACHECK(cachehwgamma    , wantgamma);
 #undef GAMMACHECK
 
-	if (!force && !gamma_forcenextframe && !gamma_changed)
-		return;
+    if (!force && !gamma_forcenextframe && !gamma_changed)
+        return;
 
-	gamma_forcenextframe = false;
+    gamma_forcenextframe = false;
 
-	if (cachehwgamma)
-	{
-		if (!vid_usinghwgamma)
-		{
-			vid_usinghwgamma = true;
-			if (vid_gammarampsize != rampsize || !vid_gammaramps)
-			{
-				vid_gammarampsize = rampsize;
-				if (vid_gammaramps)
-					Z_Free(vid_gammaramps);
-				vid_gammaramps = (unsigned short *)Z_Malloc(6 * vid_gammarampsize * sizeof(unsigned short));
-				vid_systemgammaramps = vid_gammaramps + 3 * vid_gammarampsize;
-			}
-			VID_GetGamma(vid_systemgammaramps, vid_gammarampsize);
-		}
+    if (cachehwgamma)
+    {
+        if (!vid_usinghwgamma)
+        {
+            vid_usinghwgamma = true;
+            if (vid_gammarampsize != rampsize || !vid_gammaramps)
+            {
+                vid_gammarampsize = rampsize;
+                if (vid_gammaramps)
+                    Z_Free(vid_gammaramps);
+                vid_gammaramps = (unsigned short *)Z_Malloc(6 * vid_gammarampsize * sizeof(unsigned short));
+                vid_systemgammaramps = vid_gammaramps + 3 * vid_gammarampsize;
+            }
+            VID_GetGamma(vid_systemgammaramps, vid_gammarampsize);
+        }
 
-		VID_BuildGammaTables(vid_gammaramps, vid_gammarampsize);
+        VID_BuildGammaTables(vid_gammaramps, vid_gammarampsize);
 
-		// set vid_hardwaregammasupported to true if VID_SetGamma succeeds, OR if vid_hwgamma is >= 2 (forced gamma - ignores driver return value)
-		Cvar_SetValueQuick(&vid_hardwaregammasupported, VID_SetGamma(vid_gammaramps, vid_gammarampsize) || cachehwgamma >= 2);
-		// if custom gamma ramps failed (Windows stupidity), restore to system gamma
-		if(!vid_hardwaregammasupported.integer)
-		{
-			if (vid_usinghwgamma)
-			{
-				vid_usinghwgamma = false;
-				VID_SetGamma(vid_systemgammaramps, vid_gammarampsize);
-			}
-		}
-	}
-	else
-	{
-		if (vid_usinghwgamma)
-		{
-			vid_usinghwgamma = false;
-			VID_SetGamma(vid_systemgammaramps, vid_gammarampsize);
-		}
-	}
+        // set vid_hardwaregammasupported to true if VID_SetGamma succeeds, OR if vid_hwgamma is >= 2 (forced gamma - ignores driver return value)
+        Cvar_SetValueQuick(&vid_hardwaregammasupported, VID_SetGamma(vid_gammaramps, vid_gammarampsize) || cachehwgamma >= 2);
+        // if custom gamma ramps failed (Windows stupidity), restore to system gamma
+        if(!vid_hardwaregammasupported.integer)
+        {
+            if (vid_usinghwgamma)
+            {
+                vid_usinghwgamma = false;
+                VID_SetGamma(vid_systemgammaramps, vid_gammarampsize);
+            }
+        }
+    }
+    else
+    {
+        if (vid_usinghwgamma)
+        {
+            vid_usinghwgamma = false;
+            VID_SetGamma(vid_systemgammaramps, vid_gammarampsize);
+        }
+    }
 }
 
 void VID_RestoreSystemGamma(void)
 {
-	if (vid_usinghwgamma)
-	{
-		vid_usinghwgamma = false;
-		Cvar_SetValueQuick(&vid_hardwaregammasupported, VID_SetGamma(vid_systemgammaramps, vid_gammarampsize));
-		// force gamma situation to be reexamined next frame
-		gamma_forcenextframe = true;
-	}
+    if (vid_usinghwgamma)
+    {
+        vid_usinghwgamma = false;
+        Cvar_SetValueQuick(&vid_hardwaregammasupported, VID_SetGamma(vid_systemgammaramps, vid_gammarampsize));
+        // force gamma situation to be reexamined next frame
+        gamma_forcenextframe = true;
+    }
 }
 
 #ifdef WIN32
 static dllfunction_t xinputdllfuncs[] =
 {
-	{"XInputGetState", (void **) &qXInputGetState},
-	{"XInputGetKeystroke", (void **) &qXInputGetKeystroke},
-	{NULL, NULL}
+    {"XInputGetState", (void **) &qXInputGetState},
+    {"XInputGetKeystroke", (void **) &qXInputGetKeystroke},
+    {NULL, NULL}
 };
 static const char* xinputdllnames [] =
 {
-	"xinput1_3.dll",
-	"xinput1_2.dll",
-	"xinput1_1.dll",
-	NULL
+    "xinput1_3.dll",
+    "xinput1_2.dll",
+    "xinput1_1.dll",
+    NULL
 };
 static dllhandle_t xinputdll_dll = NULL;
 #endif
@@ -1715,225 +1715,225 @@ static dllhandle_t xinputdll_dll = NULL;
 void VID_Shared_Init(void)
 {
 #ifdef SSE_POSSIBLE
-	if (Sys_HaveSSE2())
-	{
-		Con_Printf("DPSOFTRAST available (SSE2 instructions detected)\n");
-		Cvar_RegisterVariable(&vid_soft);
-		Cvar_RegisterVariable(&vid_soft_threads);
-		Cvar_RegisterVariable(&vid_soft_interlace);
-	}
-	else
-		Con_Printf("DPSOFTRAST not available (SSE2 disabled or not detected)\n");
+    if (Sys_HaveSSE2())
+    {
+        Con_Printf("DPSOFTRAST available (SSE2 instructions detected)\n");
+        Cvar_RegisterVariable(&vid_soft);
+        Cvar_RegisterVariable(&vid_soft_threads);
+        Cvar_RegisterVariable(&vid_soft_interlace);
+    }
+    else
+        Con_Printf("DPSOFTRAST not available (SSE2 disabled or not detected)\n");
 #else
-	Con_Printf("DPSOFTRAST not available (SSE2 not compiled in)\n");
+    Con_Printf("DPSOFTRAST not available (SSE2 not compiled in)\n");
 #endif
 
-	Cvar_RegisterVariable(&vid_hardwaregammasupported);
-	Cvar_RegisterVariable(&gl_info_vendor);
-	Cvar_RegisterVariable(&gl_info_renderer);
-	Cvar_RegisterVariable(&gl_info_version);
-	Cvar_RegisterVariable(&gl_info_extensions);
-	Cvar_RegisterVariable(&gl_info_platform);
-	Cvar_RegisterVariable(&gl_info_driver);
-	Cvar_RegisterVariable(&v_gamma);
-	Cvar_RegisterVariable(&v_brightness);
-	Cvar_RegisterVariable(&v_contrastboost);
-	Cvar_RegisterVariable(&v_contrast);
+    Cvar_RegisterVariable(&vid_hardwaregammasupported);
+    Cvar_RegisterVariable(&gl_info_vendor);
+    Cvar_RegisterVariable(&gl_info_renderer);
+    Cvar_RegisterVariable(&gl_info_version);
+    Cvar_RegisterVariable(&gl_info_extensions);
+    Cvar_RegisterVariable(&gl_info_platform);
+    Cvar_RegisterVariable(&gl_info_driver);
+    Cvar_RegisterVariable(&v_gamma);
+    Cvar_RegisterVariable(&v_brightness);
+    Cvar_RegisterVariable(&v_contrastboost);
+    Cvar_RegisterVariable(&v_contrast);
 
-	Cvar_RegisterVariable(&v_color_enable);
-	Cvar_RegisterVariable(&v_color_black_r);
-	Cvar_RegisterVariable(&v_color_black_g);
-	Cvar_RegisterVariable(&v_color_black_b);
-	Cvar_RegisterVariable(&v_color_grey_r);
-	Cvar_RegisterVariable(&v_color_grey_g);
-	Cvar_RegisterVariable(&v_color_grey_b);
-	Cvar_RegisterVariable(&v_color_white_r);
-	Cvar_RegisterVariable(&v_color_white_g);
-	Cvar_RegisterVariable(&v_color_white_b);
+    Cvar_RegisterVariable(&v_color_enable);
+    Cvar_RegisterVariable(&v_color_black_r);
+    Cvar_RegisterVariable(&v_color_black_g);
+    Cvar_RegisterVariable(&v_color_black_b);
+    Cvar_RegisterVariable(&v_color_grey_r);
+    Cvar_RegisterVariable(&v_color_grey_g);
+    Cvar_RegisterVariable(&v_color_grey_b);
+    Cvar_RegisterVariable(&v_color_white_r);
+    Cvar_RegisterVariable(&v_color_white_g);
+    Cvar_RegisterVariable(&v_color_white_b);
 
-	Cvar_RegisterVariable(&v_hwgamma);
-	Cvar_RegisterVariable(&v_glslgamma);
-	Cvar_RegisterVariable(&v_glslgamma_2d);
+    Cvar_RegisterVariable(&v_hwgamma);
+    Cvar_RegisterVariable(&v_glslgamma);
+    Cvar_RegisterVariable(&v_glslgamma_2d);
 
-	Cvar_RegisterVariable(&v_psycho);
+    Cvar_RegisterVariable(&v_psycho);
 
-	Cvar_RegisterVariable(&vid_fullscreen);
-	Cvar_RegisterVariable(&vid_width);
-	Cvar_RegisterVariable(&vid_height);
-	Cvar_RegisterVariable(&vid_bitsperpixel);
-	Cvar_RegisterVariable(&vid_samples);
-	Cvar_RegisterVariable(&vid_refreshrate);
-	Cvar_RegisterVariable(&vid_userefreshrate);
-	Cvar_RegisterVariable(&vid_stereobuffer);
-	Cvar_RegisterVariable(&vid_touchscreen_density);
-	Cvar_RegisterVariable(&vid_touchscreen_xdpi);
-	Cvar_RegisterVariable(&vid_touchscreen_ydpi);
-	Cvar_RegisterVariable(&vid_vsync);
-	Cvar_RegisterVariable(&vid_mouse);
-	Cvar_RegisterVariable(&vid_grabkeyboard);
-	Cvar_RegisterVariable(&vid_touchscreen);
-	Cvar_RegisterVariable(&vid_touchscreen_showkeyboard);
-	Cvar_RegisterVariable(&vid_touchscreen_supportshowkeyboard);
-	Cvar_RegisterVariable(&vid_stick_mouse);
-	Cvar_RegisterVariable(&vid_resizable);
-	Cvar_RegisterVariable(&vid_desktopfullscreen);
-	Cvar_RegisterVariable(&vid_minwidth);
-	Cvar_RegisterVariable(&vid_minheight);
-	Cvar_RegisterVariable(&vid_gl13);
-	Cvar_RegisterVariable(&vid_gl20);
-	Cvar_RegisterVariable(&gl_finish);
-	Cvar_RegisterVariable(&vid_sRGB);
-	Cvar_RegisterVariable(&vid_sRGB_fallback);
+    Cvar_RegisterVariable(&vid_fullscreen);
+    Cvar_RegisterVariable(&vid_width);
+    Cvar_RegisterVariable(&vid_height);
+    Cvar_RegisterVariable(&vid_bitsperpixel);
+    Cvar_RegisterVariable(&vid_samples);
+    Cvar_RegisterVariable(&vid_refreshrate);
+    Cvar_RegisterVariable(&vid_userefreshrate);
+    Cvar_RegisterVariable(&vid_stereobuffer);
+    Cvar_RegisterVariable(&vid_touchscreen_density);
+    Cvar_RegisterVariable(&vid_touchscreen_xdpi);
+    Cvar_RegisterVariable(&vid_touchscreen_ydpi);
+    Cvar_RegisterVariable(&vid_vsync);
+    Cvar_RegisterVariable(&vid_mouse);
+    Cvar_RegisterVariable(&vid_grabkeyboard);
+    Cvar_RegisterVariable(&vid_touchscreen);
+    Cvar_RegisterVariable(&vid_touchscreen_showkeyboard);
+    Cvar_RegisterVariable(&vid_touchscreen_supportshowkeyboard);
+    Cvar_RegisterVariable(&vid_stick_mouse);
+    Cvar_RegisterVariable(&vid_resizable);
+    Cvar_RegisterVariable(&vid_desktopfullscreen);
+    Cvar_RegisterVariable(&vid_minwidth);
+    Cvar_RegisterVariable(&vid_minheight);
+    Cvar_RegisterVariable(&vid_gl13);
+    Cvar_RegisterVariable(&vid_gl20);
+    Cvar_RegisterVariable(&gl_finish);
+    Cvar_RegisterVariable(&vid_sRGB);
+    Cvar_RegisterVariable(&vid_sRGB_fallback);
 
-	Cvar_RegisterVariable(&joy_active);
+    Cvar_RegisterVariable(&joy_active);
 #ifdef WIN32
-	Cvar_RegisterVariable(&joy_xinputavailable);
+    Cvar_RegisterVariable(&joy_xinputavailable);
 #endif
-	Cvar_RegisterVariable(&joy_detected);
-	Cvar_RegisterVariable(&joy_enable);
-	Cvar_RegisterVariable(&joy_index);
-	Cvar_RegisterVariable(&joy_axisforward);
-	Cvar_RegisterVariable(&joy_axisside);
-	Cvar_RegisterVariable(&joy_axisup);
-	Cvar_RegisterVariable(&joy_axispitch);
-	Cvar_RegisterVariable(&joy_axisyaw);
-	//Cvar_RegisterVariable(&joy_axisroll);
-	Cvar_RegisterVariable(&joy_deadzoneforward);
-	Cvar_RegisterVariable(&joy_deadzoneside);
-	Cvar_RegisterVariable(&joy_deadzoneup);
-	Cvar_RegisterVariable(&joy_deadzonepitch);
-	Cvar_RegisterVariable(&joy_deadzoneyaw);
-	//Cvar_RegisterVariable(&joy_deadzoneroll);
-	Cvar_RegisterVariable(&joy_sensitivityforward);
-	Cvar_RegisterVariable(&joy_sensitivityside);
-	Cvar_RegisterVariable(&joy_sensitivityup);
-	Cvar_RegisterVariable(&joy_sensitivitypitch);
-	Cvar_RegisterVariable(&joy_sensitivityyaw);
-	//Cvar_RegisterVariable(&joy_sensitivityroll);
-	Cvar_RegisterVariable(&joy_axiskeyevents);
-	Cvar_RegisterVariable(&joy_axiskeyevents_deadzone);
-	Cvar_RegisterVariable(&joy_x360_axisforward);
-	Cvar_RegisterVariable(&joy_x360_axisside);
-	Cvar_RegisterVariable(&joy_x360_axisup);
-	Cvar_RegisterVariable(&joy_x360_axispitch);
-	Cvar_RegisterVariable(&joy_x360_axisyaw);
-	//Cvar_RegisterVariable(&joy_x360_axisroll);
-	Cvar_RegisterVariable(&joy_x360_deadzoneforward);
-	Cvar_RegisterVariable(&joy_x360_deadzoneside);
-	Cvar_RegisterVariable(&joy_x360_deadzoneup);
-	Cvar_RegisterVariable(&joy_x360_deadzonepitch);
-	Cvar_RegisterVariable(&joy_x360_deadzoneyaw);
-	//Cvar_RegisterVariable(&joy_x360_deadzoneroll);
-	Cvar_RegisterVariable(&joy_x360_sensitivityforward);
-	Cvar_RegisterVariable(&joy_x360_sensitivityside);
-	Cvar_RegisterVariable(&joy_x360_sensitivityup);
-	Cvar_RegisterVariable(&joy_x360_sensitivitypitch);
-	Cvar_RegisterVariable(&joy_x360_sensitivityyaw);
-	//Cvar_RegisterVariable(&joy_x360_sensitivityroll);
+    Cvar_RegisterVariable(&joy_detected);
+    Cvar_RegisterVariable(&joy_enable);
+    Cvar_RegisterVariable(&joy_index);
+    Cvar_RegisterVariable(&joy_axisforward);
+    Cvar_RegisterVariable(&joy_axisside);
+    Cvar_RegisterVariable(&joy_axisup);
+    Cvar_RegisterVariable(&joy_axispitch);
+    Cvar_RegisterVariable(&joy_axisyaw);
+    //Cvar_RegisterVariable(&joy_axisroll);
+    Cvar_RegisterVariable(&joy_deadzoneforward);
+    Cvar_RegisterVariable(&joy_deadzoneside);
+    Cvar_RegisterVariable(&joy_deadzoneup);
+    Cvar_RegisterVariable(&joy_deadzonepitch);
+    Cvar_RegisterVariable(&joy_deadzoneyaw);
+    //Cvar_RegisterVariable(&joy_deadzoneroll);
+    Cvar_RegisterVariable(&joy_sensitivityforward);
+    Cvar_RegisterVariable(&joy_sensitivityside);
+    Cvar_RegisterVariable(&joy_sensitivityup);
+    Cvar_RegisterVariable(&joy_sensitivitypitch);
+    Cvar_RegisterVariable(&joy_sensitivityyaw);
+    //Cvar_RegisterVariable(&joy_sensitivityroll);
+    Cvar_RegisterVariable(&joy_axiskeyevents);
+    Cvar_RegisterVariable(&joy_axiskeyevents_deadzone);
+    Cvar_RegisterVariable(&joy_x360_axisforward);
+    Cvar_RegisterVariable(&joy_x360_axisside);
+    Cvar_RegisterVariable(&joy_x360_axisup);
+    Cvar_RegisterVariable(&joy_x360_axispitch);
+    Cvar_RegisterVariable(&joy_x360_axisyaw);
+    //Cvar_RegisterVariable(&joy_x360_axisroll);
+    Cvar_RegisterVariable(&joy_x360_deadzoneforward);
+    Cvar_RegisterVariable(&joy_x360_deadzoneside);
+    Cvar_RegisterVariable(&joy_x360_deadzoneup);
+    Cvar_RegisterVariable(&joy_x360_deadzonepitch);
+    Cvar_RegisterVariable(&joy_x360_deadzoneyaw);
+    //Cvar_RegisterVariable(&joy_x360_deadzoneroll);
+    Cvar_RegisterVariable(&joy_x360_sensitivityforward);
+    Cvar_RegisterVariable(&joy_x360_sensitivityside);
+    Cvar_RegisterVariable(&joy_x360_sensitivityup);
+    Cvar_RegisterVariable(&joy_x360_sensitivitypitch);
+    Cvar_RegisterVariable(&joy_x360_sensitivityyaw);
+    //Cvar_RegisterVariable(&joy_x360_sensitivityroll);
 
 #ifdef WIN32
-	Sys_LoadLibrary(xinputdllnames, &xinputdll_dll, xinputdllfuncs);
+    Sys_LoadLibrary(xinputdllnames, &xinputdll_dll, xinputdllfuncs);
 #endif
 
-	Cmd_AddCommand("force_centerview", Force_CenterView_f, "recenters view (stops looking up/down)");
-	Cmd_AddCommand("vid_restart", VID_Restart_f, "restarts video system (closes and reopens the window, restarts renderer)");
+    Cmd_AddCommand("force_centerview", Force_CenterView_f, "recenters view (stops looking up/down)");
+    Cmd_AddCommand("vid_restart", VID_Restart_f, "restarts video system (closes and reopens the window, restarts renderer)");
 }
 
 static int VID_Mode(int fullscreen, int width, int height, int bpp, float refreshrate, int stereobuffer, int samples)
 {
-	viddef_mode_t mode;
-	char vabuf[1024];
+    viddef_mode_t mode;
+    char vabuf[1024];
 
-	memset(&mode, 0, sizeof(mode));
-	mode.fullscreen = fullscreen != 0;
-	mode.width = width;
-	mode.height = height;
-	mode.bitsperpixel = bpp;
-	mode.refreshrate = vid_userefreshrate.integer ? max(1, refreshrate) : 0;
-	mode.userefreshrate = vid_userefreshrate.integer != 0;
-	mode.stereobuffer = stereobuffer != 0;
-	mode.samples = samples;
-	cl_ignoremousemoves = 2;
-	VID_ClearExtensions();
+    memset(&mode, 0, sizeof(mode));
+    mode.fullscreen = fullscreen != 0;
+    mode.width = width;
+    mode.height = height;
+    mode.bitsperpixel = bpp;
+    mode.refreshrate = vid_userefreshrate.integer ? max(1, refreshrate) : 0;
+    mode.userefreshrate = vid_userefreshrate.integer != 0;
+    mode.stereobuffer = stereobuffer != 0;
+    mode.samples = samples;
+    cl_ignoremousemoves = 2;
+    VID_ClearExtensions();
 
-	vid.samples = vid.mode.samples;
-	if (VID_InitMode(&mode))
-	{
-		// accept the (possibly modified) mode
-		vid.mode = mode;
-		vid.fullscreen     = vid.mode.fullscreen;
-		vid.width          = vid.mode.width;
-		vid.height         = vid.mode.height;
-		vid.bitsperpixel   = vid.mode.bitsperpixel;
-		vid.refreshrate    = vid.mode.refreshrate;
-		vid.userefreshrate = vid.mode.userefreshrate;
-		vid.stereobuffer   = vid.mode.stereobuffer;
-		vid.stencil        = vid.mode.bitsperpixel > 16;
-		vid.sRGB2D         = vid_sRGB.integer >= 1 && vid.sRGBcapable2D;
-		vid.sRGB3D         = vid_sRGB.integer >= 1 && vid.sRGBcapable3D;
+    vid.samples = vid.mode.samples;
+    if (VID_InitMode(&mode))
+    {
+        // accept the (possibly modified) mode
+        vid.mode = mode;
+        vid.fullscreen     = vid.mode.fullscreen;
+        vid.width          = vid.mode.width;
+        vid.height         = vid.mode.height;
+        vid.bitsperpixel   = vid.mode.bitsperpixel;
+        vid.refreshrate    = vid.mode.refreshrate;
+        vid.userefreshrate = vid.mode.userefreshrate;
+        vid.stereobuffer   = vid.mode.stereobuffer;
+        vid.stencil        = vid.mode.bitsperpixel > 16;
+        vid.sRGB2D         = vid_sRGB.integer >= 1 && vid.sRGBcapable2D;
+        vid.sRGB3D         = vid_sRGB.integer >= 1 && vid.sRGBcapable3D;
 
-		switch(vid.renderpath)
-		{
-		case RENDERPATH_GL11:
-		case RENDERPATH_GL13:
-		case RENDERPATH_GL20:
+        switch(vid.renderpath)
+        {
+        case RENDERPATH_GL11:
+        case RENDERPATH_GL13:
+        case RENDERPATH_GL20:
 #ifdef GL_STEREO
-			{
-				GLboolean stereo;
-				qglGetBooleanv(GL_STEREO, &stereo);
-				vid.stereobuffer = stereo != 0;
-			}
+            {
+                GLboolean stereo;
+                qglGetBooleanv(GL_STEREO, &stereo);
+                vid.stereobuffer = stereo != 0;
+            }
 #endif
-			break;
-		default:
-			vid.stereobuffer = false;
-			break;
-		}
+            break;
+        default:
+            vid.stereobuffer = false;
+            break;
+        }
 
-		if(
-			(vid_sRGB_fallback.integer >= 3) // force fallback
-			||
-			(vid_sRGB_fallback.integer >= 2 && // fallback if framebuffer is 8bit
-				!(r_viewfbo.integer >= 2 && vid.support.ext_framebuffer_object && vid.support.arb_texture_non_power_of_two && vid.samples < 2))
-		)
-			vid.sRGB2D = vid.sRGB3D = false;
+        if(
+            (vid_sRGB_fallback.integer >= 3) // force fallback
+            ||
+            (vid_sRGB_fallback.integer >= 2 && // fallback if framebuffer is 8bit
+                !(r_viewfbo.integer >= 2 && vid.support.ext_framebuffer_object && vid.support.arb_texture_non_power_of_two && vid.samples < 2))
+        )
+            vid.sRGB2D = vid.sRGB3D = false;
 
-		if(vid.samples != vid.mode.samples)
-			Con_Printf("NOTE: requested %dx AA, got %dx AA\n", vid.mode.samples, vid.samples);
+        if(vid.samples != vid.mode.samples)
+            Con_Printf("NOTE: requested %dx AA, got %dx AA\n", vid.mode.samples, vid.samples);
 
-		Con_Printf("Video Mode: %s %dx%dx%dx%.2fhz%s%s\n", mode.fullscreen ? "fullscreen" : "window", mode.width, mode.height, mode.bitsperpixel, mode.refreshrate, mode.stereobuffer ? " stereo" : "", mode.samples > 1 ? va(vabuf, sizeof(vabuf), " (%ix AA)", mode.samples) : "");
+        Con_Printf("Video Mode: %s %dx%dx%dx%.2fhz%s%s\n", mode.fullscreen ? "fullscreen" : "window", mode.width, mode.height, mode.bitsperpixel, mode.refreshrate, mode.stereobuffer ? " stereo" : "", mode.samples > 1 ? va(vabuf, sizeof(vabuf), " (%ix AA)", mode.samples) : "");
 
-		Cvar_SetValueQuick(&vid_fullscreen, vid.mode.fullscreen);
-		Cvar_SetValueQuick(&vid_width, vid.mode.width);
-		Cvar_SetValueQuick(&vid_height, vid.mode.height);
-		Cvar_SetValueQuick(&vid_bitsperpixel, vid.mode.bitsperpixel);
-		Cvar_SetValueQuick(&vid_samples, vid.mode.samples);
-		if(vid_userefreshrate.integer)
-			Cvar_SetValueQuick(&vid_refreshrate, vid.mode.refreshrate);
-		Cvar_SetValueQuick(&vid_stereobuffer, vid.stereobuffer ? 1 : 0);
+        Cvar_SetValueQuick(&vid_fullscreen, vid.mode.fullscreen);
+        Cvar_SetValueQuick(&vid_width, vid.mode.width);
+        Cvar_SetValueQuick(&vid_height, vid.mode.height);
+        Cvar_SetValueQuick(&vid_bitsperpixel, vid.mode.bitsperpixel);
+        Cvar_SetValueQuick(&vid_samples, vid.mode.samples);
+        if(vid_userefreshrate.integer)
+            Cvar_SetValueQuick(&vid_refreshrate, vid.mode.refreshrate);
+        Cvar_SetValueQuick(&vid_stereobuffer, vid.stereobuffer ? 1 : 0);
 
-		if (vid_touchscreen.integer)
-		{
-			in_windowmouse_x = vid_width.value / 2.f;
-			in_windowmouse_y = vid_height.value / 2.f;
-		}
+        if (vid_touchscreen.integer)
+        {
+            in_windowmouse_x = vid_width.value / 2.f;
+            in_windowmouse_y = vid_height.value / 2.f;
+        }
 
-		return true;
-	}
-	else
-		return false;
+        return true;
+    }
+    else
+        return false;
 }
 
 static void VID_OpenSystems(void)
 {
-	R_Modules_Start();
-	S_Startup();
+    R_Modules_Start();
+    S_Startup();
 }
 
 static void VID_CloseSystems(void)
 {
-	S_Shutdown();
-	R_Modules_Shutdown();
+    S_Shutdown();
+    R_Modules_Shutdown();
 }
 
 qboolean vid_commandlinecheck = true;
@@ -1941,239 +1941,239 @@ extern qboolean vid_opened;
 
 void VID_Restart_f(void)
 {
-	char vabuf[1024];
-	char vabuf2[1024];
-	// don't crash if video hasn't started yet
-	if (vid_commandlinecheck)
-		return;
+    char vabuf[1024];
+    char vabuf2[1024];
+    // don't crash if video hasn't started yet
+    if (vid_commandlinecheck)
+        return;
 
-	if (!vid_opened)
-	{
-		SCR_BeginLoadingPlaque(false);
-		return;
-	}
+    if (!vid_opened)
+    {
+        SCR_BeginLoadingPlaque(false);
+        return;
+    }
 
-	Con_Printf("VID_Restart: changing from %s %dx%dx%dbpp%s%s, to %s %dx%dx%dbpp%s%s.\n",
-		vid.mode.fullscreen ? "fullscreen" : "window", vid.mode.width, vid.mode.height, vid.mode.bitsperpixel, vid.mode.fullscreen && vid.mode.userefreshrate ? va(vabuf, sizeof(vabuf), "x%.2fhz", vid.mode.refreshrate) : "", vid.mode.samples > 1 ? va(vabuf2, sizeof(vabuf2), " (%ix AA)", vid.mode.samples) : "",
-		vid_fullscreen.integer ? "fullscreen" : "window", vid_width.integer, vid_height.integer, vid_bitsperpixel.integer, vid_fullscreen.integer && vid_userefreshrate.integer ? va(vabuf, sizeof(vabuf), "x%.2fhz", vid_refreshrate.value) : "", vid_samples.integer > 1 ? va(vabuf2, sizeof(vabuf2), " (%ix AA)", vid_samples.integer) : "");
-	VID_CloseSystems();
-	VID_Shutdown();
-	if (!VID_Mode(vid_fullscreen.integer, vid_width.integer, vid_height.integer, vid_bitsperpixel.integer, vid_refreshrate.value, vid_stereobuffer.integer, vid_samples.integer))
-	{
-		Con_Print("Video mode change failed\n");
-		if (!VID_Mode(vid.mode.fullscreen, vid.mode.width, vid.mode.height, vid.mode.bitsperpixel, vid.mode.refreshrate, vid.mode.stereobuffer, vid.mode.samples))
-			Sys_Error("Unable to restore to last working video mode");
-	}
-	VID_OpenSystems();
+    Con_Printf("VID_Restart: changing from %s %dx%dx%dbpp%s%s, to %s %dx%dx%dbpp%s%s.\n",
+        vid.mode.fullscreen ? "fullscreen" : "window", vid.mode.width, vid.mode.height, vid.mode.bitsperpixel, vid.mode.fullscreen && vid.mode.userefreshrate ? va(vabuf, sizeof(vabuf), "x%.2fhz", vid.mode.refreshrate) : "", vid.mode.samples > 1 ? va(vabuf2, sizeof(vabuf2), " (%ix AA)", vid.mode.samples) : "",
+        vid_fullscreen.integer ? "fullscreen" : "window", vid_width.integer, vid_height.integer, vid_bitsperpixel.integer, vid_fullscreen.integer && vid_userefreshrate.integer ? va(vabuf, sizeof(vabuf), "x%.2fhz", vid_refreshrate.value) : "", vid_samples.integer > 1 ? va(vabuf2, sizeof(vabuf2), " (%ix AA)", vid_samples.integer) : "");
+    VID_CloseSystems();
+    VID_Shutdown();
+    if (!VID_Mode(vid_fullscreen.integer, vid_width.integer, vid_height.integer, vid_bitsperpixel.integer, vid_refreshrate.value, vid_stereobuffer.integer, vid_samples.integer))
+    {
+        Con_Print("Video mode change failed\n");
+        if (!VID_Mode(vid.mode.fullscreen, vid.mode.width, vid.mode.height, vid.mode.bitsperpixel, vid.mode.refreshrate, vid.mode.stereobuffer, vid.mode.samples))
+            Sys_Error("Unable to restore to last working video mode");
+    }
+    VID_OpenSystems();
 }
 
 const char *vidfallbacks[][2] =
 {
-	{"vid_stereobuffer", "0"},
-	{"vid_samples", "1"},
-	{"vid_userefreshrate", "0"},
-	{"vid_width", "640"},
-	{"vid_height", "480"},
-	{"vid_bitsperpixel", "16"},
-	{NULL, NULL}
+    {"vid_stereobuffer", "0"},
+    {"vid_samples", "1"},
+    {"vid_userefreshrate", "0"},
+    {"vid_width", "640"},
+    {"vid_height", "480"},
+    {"vid_bitsperpixel", "16"},
+    {NULL, NULL}
 };
 
 // this is only called once by Host_StartVideo and again on each FS_GameDir_f
 void VID_Start(void)
 {
-	int i, width, height, success;
-	if (vid_commandlinecheck)
-	{
-		// interpret command-line parameters
-		vid_commandlinecheck = false;
+    int i, width, height, success;
+    if (vid_commandlinecheck)
+    {
+        // interpret command-line parameters
+        vid_commandlinecheck = false;
 // COMMANDLINEOPTION: Video: -window performs +vid_fullscreen 0
-		if (COM_CheckParm("-window") || COM_CheckParm("-safe"))
-			Cvar_SetValueQuick(&vid_fullscreen, false);
+        if (COM_CheckParm("-window") || COM_CheckParm("-safe"))
+            Cvar_SetValueQuick(&vid_fullscreen, false);
 // COMMANDLINEOPTION: Video: -fullscreen performs +vid_fullscreen 1
-		if (COM_CheckParm("-fullscreen"))
-			Cvar_SetValueQuick(&vid_fullscreen, true);
-		width = 0;
-		height = 0;
+        if (COM_CheckParm("-fullscreen"))
+            Cvar_SetValueQuick(&vid_fullscreen, true);
+        width = 0;
+        height = 0;
 // COMMANDLINEOPTION: Video: -width <pixels> performs +vid_width <pixels> and also +vid_height <pixels*3/4> if only -width is specified (example: -width 1024 sets 1024x768 mode)
-		if ((i = COM_CheckParm("-width")) != 0)
-			width = atoi(com_argv[i+1]);
+        if ((i = COM_CheckParm("-width")) != 0)
+            width = atoi(com_argv[i+1]);
 // COMMANDLINEOPTION: Video: -height <pixels> performs +vid_height <pixels> and also +vid_width <pixels*4/3> if only -height is specified (example: -height 768 sets 1024x768 mode)
-		if ((i = COM_CheckParm("-height")) != 0)
-			height = atoi(com_argv[i+1]);
-		if (width == 0)
-			width = height * 4 / 3;
-		if (height == 0)
-			height = width * 3 / 4;
-		if (width)
-			Cvar_SetValueQuick(&vid_width, width);
-		if (height)
-			Cvar_SetValueQuick(&vid_height, height);
+        if ((i = COM_CheckParm("-height")) != 0)
+            height = atoi(com_argv[i+1]);
+        if (width == 0)
+            width = height * 4 / 3;
+        if (height == 0)
+            height = width * 3 / 4;
+        if (width)
+            Cvar_SetValueQuick(&vid_width, width);
+        if (height)
+            Cvar_SetValueQuick(&vid_height, height);
 // COMMANDLINEOPTION: Video: -bpp <bits> performs +vid_bitsperpixel <bits> (example -bpp 32 or -bpp 16)
-		if ((i = COM_CheckParm("-bpp")) != 0)
-			Cvar_SetQuick(&vid_bitsperpixel, com_argv[i+1]);
+        if ((i = COM_CheckParm("-bpp")) != 0)
+            Cvar_SetQuick(&vid_bitsperpixel, com_argv[i+1]);
 // COMMANDLINEOPTION: Video: -density <multiplier> performs +vid_touchscreen_density <multiplier> (example -density 1 or -density 1.5)
-		if ((i = COM_CheckParm("-density")) != 0)
-			Cvar_SetQuick(&vid_touchscreen_density, com_argv[i+1]);
+        if ((i = COM_CheckParm("-density")) != 0)
+            Cvar_SetQuick(&vid_touchscreen_density, com_argv[i+1]);
 // COMMANDLINEOPTION: Video: -xdpi <dpi> performs +vid_touchscreen_xdpi <dpi> (example -xdpi 160 or -xdpi 320)
-		if ((i = COM_CheckParm("-touchscreen_xdpi")) != 0)
-			Cvar_SetQuick(&vid_touchscreen_xdpi, com_argv[i+1]);
+        if ((i = COM_CheckParm("-touchscreen_xdpi")) != 0)
+            Cvar_SetQuick(&vid_touchscreen_xdpi, com_argv[i+1]);
 // COMMANDLINEOPTION: Video: -ydpi <dpi> performs +vid_touchscreen_ydpi <dpi> (example -ydpi 160 or -ydpi 320)
-		if ((i = COM_CheckParm("-touchscreen_ydpi")) != 0)
-			Cvar_SetQuick(&vid_touchscreen_ydpi, com_argv[i+1]);
-	}
+        if ((i = COM_CheckParm("-touchscreen_ydpi")) != 0)
+            Cvar_SetQuick(&vid_touchscreen_ydpi, com_argv[i+1]);
+    }
 
-	success = VID_Mode(vid_fullscreen.integer, vid_width.integer, vid_height.integer, vid_bitsperpixel.integer, vid_refreshrate.value, vid_stereobuffer.integer, vid_samples.integer);
-	if (!success)
-	{
-		Con_Print("Desired video mode fail, trying fallbacks...\n");
-		for (i = 0;!success && vidfallbacks[i][0] != NULL;i++)
-		{
-			Cvar_Set(vidfallbacks[i][0], vidfallbacks[i][1]);
-			success = VID_Mode(vid_fullscreen.integer, vid_width.integer, vid_height.integer, vid_bitsperpixel.integer, vid_refreshrate.value, vid_stereobuffer.integer, vid_samples.integer);
-		}
-		if (!success)
-			Sys_Error("Video modes failed");
-	}
-	VID_OpenSystems();
+    success = VID_Mode(vid_fullscreen.integer, vid_width.integer, vid_height.integer, vid_bitsperpixel.integer, vid_refreshrate.value, vid_stereobuffer.integer, vid_samples.integer);
+    if (!success)
+    {
+        Con_Print("Desired video mode fail, trying fallbacks...\n");
+        for (i = 0;!success && vidfallbacks[i][0] != NULL;i++)
+        {
+            Cvar_Set(vidfallbacks[i][0], vidfallbacks[i][1]);
+            success = VID_Mode(vid_fullscreen.integer, vid_width.integer, vid_height.integer, vid_bitsperpixel.integer, vid_refreshrate.value, vid_stereobuffer.integer, vid_samples.integer);
+        }
+        if (!success)
+            Sys_Error("Video modes failed");
+    }
+    VID_OpenSystems();
 }
 
 void VID_Stop(void)
 {
-	VID_CloseSystems();
-	VID_Shutdown();
+    VID_CloseSystems();
+    VID_Shutdown();
 }
 
 static int VID_SortModes_Compare(const void *a_, const void *b_)
 {
-	vid_mode_t *a = (vid_mode_t *) a_;
-	vid_mode_t *b = (vid_mode_t *) b_;
-	if(a->width > b->width)
-		return +1;
-	if(a->width < b->width)
-		return -1;
-	if(a->height > b->height)
-		return +1;
-	if(a->height < b->height)
-		return -1;
-	if(a->refreshrate > b->refreshrate)
-		return +1;
-	if(a->refreshrate < b->refreshrate)
-		return -1;
-	if(a->bpp > b->bpp)
-		return +1;
-	if(a->bpp < b->bpp)
-		return -1;
-	if(a->pixelheight_num * b->pixelheight_denom > a->pixelheight_denom * b->pixelheight_num)
-		return +1;
-	if(a->pixelheight_num * b->pixelheight_denom < a->pixelheight_denom * b->pixelheight_num)
-		return -1;
-	return 0;
+    vid_mode_t *a = (vid_mode_t *) a_;
+    vid_mode_t *b = (vid_mode_t *) b_;
+    if(a->width > b->width)
+        return +1;
+    if(a->width < b->width)
+        return -1;
+    if(a->height > b->height)
+        return +1;
+    if(a->height < b->height)
+        return -1;
+    if(a->refreshrate > b->refreshrate)
+        return +1;
+    if(a->refreshrate < b->refreshrate)
+        return -1;
+    if(a->bpp > b->bpp)
+        return +1;
+    if(a->bpp < b->bpp)
+        return -1;
+    if(a->pixelheight_num * b->pixelheight_denom > a->pixelheight_denom * b->pixelheight_num)
+        return +1;
+    if(a->pixelheight_num * b->pixelheight_denom < a->pixelheight_denom * b->pixelheight_num)
+        return -1;
+    return 0;
 }
 size_t VID_SortModes(vid_mode_t *modes, size_t count, qboolean usebpp, qboolean userefreshrate, qboolean useaspect)
 {
-	size_t i;
-	if(count == 0)
-		return 0;
-	// 1. sort them
-	qsort(modes, count, sizeof(*modes), VID_SortModes_Compare);
-	// 2. remove duplicates
-	for(i = 0; i < count; ++i)
-	{
-		if(modes[i].width && modes[i].height)
-		{
-			if(i == 0)
-				continue;
-			if(modes[i].width != modes[i-1].width)
-				continue;
-			if(modes[i].height != modes[i-1].height)
-				continue;
-			if(userefreshrate)
-				if(modes[i].refreshrate != modes[i-1].refreshrate)
-					continue;
-			if(usebpp)
-				if(modes[i].bpp != modes[i-1].bpp)
-					continue;
-			if(useaspect)
-				if(modes[i].pixelheight_num * modes[i-1].pixelheight_denom != modes[i].pixelheight_denom * modes[i-1].pixelheight_num)
-					continue;
-		}
-		// a dupe, or a bogus mode!
-		if(i < count-1)
-			memmove(&modes[i], &modes[i+1], sizeof(*modes) * (count-1 - i));
-		--i; // check this index again, as mode i+1 is now here
-		--count;
-	}
-	return count;
+    size_t i;
+    if(count == 0)
+        return 0;
+    // 1. sort them
+    qsort(modes, count, sizeof(*modes), VID_SortModes_Compare);
+    // 2. remove duplicates
+    for(i = 0; i < count; ++i)
+    {
+        if(modes[i].width && modes[i].height)
+        {
+            if(i == 0)
+                continue;
+            if(modes[i].width != modes[i-1].width)
+                continue;
+            if(modes[i].height != modes[i-1].height)
+                continue;
+            if(userefreshrate)
+                if(modes[i].refreshrate != modes[i-1].refreshrate)
+                    continue;
+            if(usebpp)
+                if(modes[i].bpp != modes[i-1].bpp)
+                    continue;
+            if(useaspect)
+                if(modes[i].pixelheight_num * modes[i-1].pixelheight_denom != modes[i].pixelheight_denom * modes[i-1].pixelheight_num)
+                    continue;
+        }
+        // a dupe, or a bogus mode!
+        if(i < count-1)
+            memmove(&modes[i], &modes[i+1], sizeof(*modes) * (count-1 - i));
+        --i; // check this index again, as mode i+1 is now here
+        --count;
+    }
+    return count;
 }
 
 void VID_Soft_SharedSetup(void)
 {
-	gl_platform = "DPSOFTRAST";
-	gl_platformextensions = "";
+    gl_platform = "DPSOFTRAST";
+    gl_platformextensions = "";
 
-	gl_renderer = "DarkPlaces-Soft";
-	gl_vendor = "Forest Hale";
-	gl_version = "0.0";
-	gl_extensions = "";
+    gl_renderer = "DarkPlaces-Soft";
+    gl_vendor = "Forest Hale";
+    gl_version = "0.0";
+    gl_extensions = "";
 
-	// clear the extension flags
-	memset(&vid.support, 0, sizeof(vid.support));
-	Cvar_SetQuick(&gl_info_extensions, "");
+    // clear the extension flags
+    memset(&vid.support, 0, sizeof(vid.support));
+    Cvar_SetQuick(&gl_info_extensions, "");
 
-	// DPSOFTRAST requires BGRA
-	vid.forcetextype = TEXTYPE_BGRA;
+    // DPSOFTRAST requires BGRA
+    vid.forcetextype = TEXTYPE_BGRA;
 
-	vid.forcevbo = false;
-	vid.support.arb_depth_texture = true;
-	vid.support.arb_draw_buffers = true;
-	vid.support.arb_occlusion_query = true;
-	vid.support.arb_query_buffer_object = false;
-	vid.support.arb_shadow = true;
-	//vid.support.arb_texture_compression = true;
-	vid.support.arb_texture_cube_map = true;
-	vid.support.arb_texture_non_power_of_two = false;
-	vid.support.arb_vertex_buffer_object = true;
-	vid.support.ext_blend_subtract = true;
-	vid.support.ext_draw_range_elements = true;
-	vid.support.ext_framebuffer_object = true;
+    vid.forcevbo = false;
+    vid.support.arb_depth_texture = true;
+    vid.support.arb_draw_buffers = true;
+    vid.support.arb_occlusion_query = true;
+    vid.support.arb_query_buffer_object = false;
+    vid.support.arb_shadow = true;
+    //vid.support.arb_texture_compression = true;
+    vid.support.arb_texture_cube_map = true;
+    vid.support.arb_texture_non_power_of_two = false;
+    vid.support.arb_vertex_buffer_object = true;
+    vid.support.ext_blend_subtract = true;
+    vid.support.ext_draw_range_elements = true;
+    vid.support.ext_framebuffer_object = true;
 
-	vid.support.ext_texture_3d = true;
-	//vid.support.ext_texture_compression_s3tc = true;
-	vid.support.ext_texture_filter_anisotropic = true;
-	vid.support.ati_separate_stencil = true;
-	vid.support.ext_texture_srgb = false;
+    vid.support.ext_texture_3d = true;
+    //vid.support.ext_texture_compression_s3tc = true;
+    vid.support.ext_texture_filter_anisotropic = true;
+    vid.support.ati_separate_stencil = true;
+    vid.support.ext_texture_srgb = false;
 
-	vid.maxtexturesize_2d = 16384;
-	vid.maxtexturesize_3d = 512;
-	vid.maxtexturesize_cubemap = 16384;
-	vid.texunits = 4;
-	vid.teximageunits = 32;
-	vid.texarrayunits = 8;
-	vid.max_anisotropy = 1;
-	vid.maxdrawbuffers = 4;
+    vid.maxtexturesize_2d = 16384;
+    vid.maxtexturesize_3d = 512;
+    vid.maxtexturesize_cubemap = 16384;
+    vid.texunits = 4;
+    vid.teximageunits = 32;
+    vid.texarrayunits = 8;
+    vid.max_anisotropy = 1;
+    vid.maxdrawbuffers = 4;
 
-	vid.texunits = bound(4, vid.texunits, MAX_TEXTUREUNITS);
-	vid.teximageunits = bound(16, vid.teximageunits, MAX_TEXTUREUNITS);
-	vid.texarrayunits = bound(8, vid.texarrayunits, MAX_TEXTUREUNITS);
-	Con_DPrintf("Using DarkPlaces Software Rasterizer rendering path\n");
-	vid.renderpath = RENDERPATH_SOFT;
-	vid.sRGBcapable2D = false;
-	vid.sRGBcapable3D = false;
-	vid.useinterleavedarrays = false;
+    vid.texunits = bound(4, vid.texunits, MAX_TEXTUREUNITS);
+    vid.teximageunits = bound(16, vid.teximageunits, MAX_TEXTUREUNITS);
+    vid.texarrayunits = bound(8, vid.texarrayunits, MAX_TEXTUREUNITS);
+    Con_DPrintf("Using DarkPlaces Software Rasterizer rendering path\n");
+    vid.renderpath = RENDERPATH_SOFT;
+    vid.sRGBcapable2D = false;
+    vid.sRGBcapable3D = false;
+    vid.useinterleavedarrays = false;
 
-	Cvar_SetQuick(&gl_info_vendor, gl_vendor);
-	Cvar_SetQuick(&gl_info_renderer, gl_renderer);
-	Cvar_SetQuick(&gl_info_version, gl_version);
-	Cvar_SetQuick(&gl_info_platform, gl_platform ? gl_platform : "");
-	Cvar_SetQuick(&gl_info_driver, gl_driver);
+    Cvar_SetQuick(&gl_info_vendor, gl_vendor);
+    Cvar_SetQuick(&gl_info_renderer, gl_renderer);
+    Cvar_SetQuick(&gl_info_version, gl_version);
+    Cvar_SetQuick(&gl_info_platform, gl_platform ? gl_platform : "");
+    Cvar_SetQuick(&gl_info_driver, gl_driver);
 
-	// LordHavoc: report supported extensions
+    // LordHavoc: report supported extensions
 #ifdef CONFIG_MENU
-	Con_DPrintf("\nQuakeC extensions for server and client: %s\nQuakeC extensions for menu: %s\n", vm_sv_extensions, vm_m_extensions );
+    Con_DPrintf("\nQuakeC extensions for server and client: %s\nQuakeC extensions for menu: %s\n", vm_sv_extensions, vm_m_extensions );
 #else
-	Con_DPrintf("\nQuakeC extensions for server and client: %s\n", vm_sv_extensions );
+    Con_DPrintf("\nQuakeC extensions for server and client: %s\n", vm_sv_extensions );
 #endif
 
-	// clear to black (loading plaque will be seen over this)
-	GL_Clear(GL_COLOR_BUFFER_BIT, NULL, 1.0f, 128);
+    // clear to black (loading plaque will be seen over this)
+    GL_Clear(GL_COLOR_BUFFER_BIT, NULL, 1.0f, 128);
 }

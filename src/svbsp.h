@@ -7,41 +7,41 @@
 
 typedef struct svbsp_node_s
 {
-	// notes:
-	// leaf nodes are not stored, these are always structural nodes
-	// (they always have a plane and two children)
-	// children[] can be -1 for empty leaf or -2 for shadow leaf, >= 0 is node
-	// parent can be -1 if this is the root node, >= 0 is a node
-	int parent, children[2], padding;
-	// node plane, splits space
-	float plane[4];
+    // notes:
+    // leaf nodes are not stored, these are always structural nodes
+    // (they always have a plane and two children)
+    // children[] can be -1 for empty leaf or -2 for shadow leaf, >= 0 is node
+    // parent can be -1 if this is the root node, >= 0 is a node
+    int parent, children[2], padding;
+    // node plane, splits space
+    float plane[4];
 }
 svbsp_node_t;
 
 typedef struct svbsp_s
 {
-	// lightsource or view origin
-	float origin[3];
-	// current number of nodes in the svbsp
-	int numnodes;
-	// how big the nodes array is
-	int maxnodes;
-	// first node is the root node
-	svbsp_node_t *nodes;
-	// non-zero indicates that an insertion failed because of lack of nodes
-	int ranoutofnodes;
-	// tree statistics
-	// note: do not use multithreading when gathering statistics!
-	// (the code updating these counters is not thread-safe, increments may
-	//  sometimes fail when multithreaded)
-	int stat_occluders_rejected;
-	int stat_occluders_accepted;
-	int stat_occluders_fragments_rejected;
-	int stat_occluders_fragments_accepted;
-	int stat_queries_rejected;
-	int stat_queries_accepted;
-	int stat_queries_fragments_rejected;
-	int stat_queries_fragments_accepted;
+    // lightsource or view origin
+    float origin[3];
+    // current number of nodes in the svbsp
+    int numnodes;
+    // how big the nodes array is
+    int maxnodes;
+    // first node is the root node
+    svbsp_node_t *nodes;
+    // non-zero indicates that an insertion failed because of lack of nodes
+    int ranoutofnodes;
+    // tree statistics
+    // note: do not use multithreading when gathering statistics!
+    // (the code updating these counters is not thread-safe, increments may
+    //  sometimes fail when multithreaded)
+    int stat_occluders_rejected;
+    int stat_occluders_accepted;
+    int stat_occluders_fragments_rejected;
+    int stat_occluders_fragments_accepted;
+    int stat_queries_rejected;
+    int stat_queries_accepted;
+    int stat_queries_fragments_rejected;
+    int stat_queries_fragments_accepted;
 }
 svbsp_t;
 

@@ -8,10 +8,10 @@
 
 typedef struct patchinfo_s
 {
-	int xsize, ysize;
-	struct {
-		int xtess, ytess;
-	} lods[PATCH_LODS_NUM];
+    int xsize, ysize;
+    struct {
+        int xtess, ytess;
+    } lods[PATCH_LODS_NUM];
 } patchinfo_t;
 
 // Calculate number of resulting vertex rows/columns by given patch size and tesselation factor

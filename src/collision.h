@@ -4,63 +4,63 @@
 
 typedef union plane_s
 {
-	struct
-	{
-		vec3_t	normal;
-		vec_t	dist;
-	};
-	vec4_t normal_and_dist;
+    struct
+    {
+        vec3_t    normal;
+        vec_t    dist;
+    };
+    vec4_t normal_and_dist;
 }
 plane_t;
 
 struct texture_s;
 typedef struct trace_s
 {
-	// if true, the entire trace was in solid (see hitsupercontentsmask)
-	int allsolid;
-	// if true, the initial point was in solid (see hitsupercontentsmask)
-	int startsolid;
-	// this is set to true in world.c if startsolid was set in a trace against world
-	int worldstartsolid;
-	// this is set to true in world.c if startsolid was set in a trace against a SOLID_BSP entity, in other words this is true if the entity is stuck in a door or wall, but not if stuck in another normal entity
-	int bmodelstartsolid;
-	// if true, the trace passed through empty somewhere
-	// (set only by Q1BSP tracing)
-	int inopen;
-	// if true, the trace passed through water/slime/lava somewhere
-	// (set only by Q1BSP tracing)
-	int inwater;
-	// fraction of the total distance that was traveled before impact
-	// in case of impact this is actually nudged a bit off the surface
-	// (1.0 = did not hit anything)
-	double fraction;
-	// final position of the trace (simply a point between start and end)
-	double endpos[3];
-	// surface normal at impact (not really correct for edge collisions)
-	plane_t plane;
-	// entity the surface is on
-	// (not set by trace functions, only by physics)
-	void *ent;
-	// which SUPERCONTENTS bits to collide with, I.E. to consider solid
-	// (this also affects startsolid/allsolid)
-	int hitsupercontentsmask;
-	// deliberately skip surfaces matching this mask (e.g. SUPERCONTENTS_SKY allows you to bypass sky surfaces in q1bsp/q2bsp which are SUPERCONTENTS_SKY | SUPERCONTENTS_SOLID)
-	int skipsupercontentsmask;
-	// the supercontents mask at the start point
-	int startsupercontents;
-	// the supercontents of the impacted surface
-	int hitsupercontents;
-	// the q3 surfaceflags of the impacted surface
-	int hitq3surfaceflags;
-	// the texture of the impacted surface
-	const struct texture_s *hittexture;
-	// initially false, set when the start leaf is found
-	// (set only by Q1BSP tracing and entity box tracing)
-	int startfound;
-	// if startsolid, contains the minimum penetration depth found in the
-	// trace, and the normal needed to push it out of that solid
-	double startdepth;
-	double startdepthnormal[3];
+    // if true, the entire trace was in solid (see hitsupercontentsmask)
+    int allsolid;
+    // if true, the initial point was in solid (see hitsupercontentsmask)
+    int startsolid;
+    // this is set to true in world.c if startsolid was set in a trace against world
+    int worldstartsolid;
+    // this is set to true in world.c if startsolid was set in a trace against a SOLID_BSP entity, in other words this is true if the entity is stuck in a door or wall, but not if stuck in another normal entity
+    int bmodelstartsolid;
+    // if true, the trace passed through empty somewhere
+    // (set only by Q1BSP tracing)
+    int inopen;
+    // if true, the trace passed through water/slime/lava somewhere
+    // (set only by Q1BSP tracing)
+    int inwater;
+    // fraction of the total distance that was traveled before impact
+    // in case of impact this is actually nudged a bit off the surface
+    // (1.0 = did not hit anything)
+    double fraction;
+    // final position of the trace (simply a point between start and end)
+    double endpos[3];
+    // surface normal at impact (not really correct for edge collisions)
+    plane_t plane;
+    // entity the surface is on
+    // (not set by trace functions, only by physics)
+    void *ent;
+    // which SUPERCONTENTS bits to collide with, I.E. to consider solid
+    // (this also affects startsolid/allsolid)
+    int hitsupercontentsmask;
+    // deliberately skip surfaces matching this mask (e.g. SUPERCONTENTS_SKY allows you to bypass sky surfaces in q1bsp/q2bsp which are SUPERCONTENTS_SKY | SUPERCONTENTS_SOLID)
+    int skipsupercontentsmask;
+    // the supercontents mask at the start point
+    int startsupercontents;
+    // the supercontents of the impacted surface
+    int hitsupercontents;
+    // the q3 surfaceflags of the impacted surface
+    int hitq3surfaceflags;
+    // the texture of the impacted surface
+    const struct texture_s *hittexture;
+    // initially false, set when the start leaf is found
+    // (set only by Q1BSP tracing and entity box tracing)
+    int startfound;
+    // if startsolid, contains the minimum penetration depth found in the
+    // trace, and the normal needed to push it out of that solid
+    double startdepth;
+    double startdepthnormal[3];
 }
 trace_t;
 
@@ -74,62 +74,62 @@ void Collision_Cache_NewFrame(void);
 
 typedef struct colpointf_s
 {
-	vec3_t v;
+    vec3_t v;
 }
 colpointf_t;
 
 typedef struct colplanef_s
 {
-	const struct texture_s *texture;
-	int q3surfaceflags;
-	union
-	{
-		struct
-		{
-			vec3_t normal;
-			vec_t dist;
-		};
-		vec4_t normal_and_dist;
-	};
+    const struct texture_s *texture;
+    int q3surfaceflags;
+    union
+    {
+        struct
+        {
+            vec3_t normal;
+            vec_t dist;
+        };
+        vec4_t normal_and_dist;
+    };
 }
 colplanef_t;
 
 typedef struct colbrushf_s
 {
-	// culling box
-	vec3_t mins;
-	vec3_t maxs;
-	// used to avoid tracing against the same brush more than once per sweep
-	int markframe;
-	// the content flags of this brush
-	int supercontents;
-	// bounding planes (face planes) of this brush
-	int numplanes;
-	colplanef_t *planes;
-	// edge directions (normals) of this brush
-	int numedgedirs;
-	colpointf_t *edgedirs;
-	// points (corners) of this brush
-	int numpoints;
-	colpointf_t *points;
-	// renderable triangles representing this brush, using the points
-	int numtriangles;
-	int *elements;
-	// texture data for cases where an edgedir is used
-	const struct texture_s *texture;
-	int q3surfaceflags;
-	// optimized collisions for common cases
-	int isaabb; // indicates this is an axis aligned box
-	int hasaabbplanes; // indicates this has precomputed planes for AABB collisions
+    // culling box
+    vec3_t mins;
+    vec3_t maxs;
+    // used to avoid tracing against the same brush more than once per sweep
+    int markframe;
+    // the content flags of this brush
+    int supercontents;
+    // bounding planes (face planes) of this brush
+    int numplanes;
+    colplanef_t *planes;
+    // edge directions (normals) of this brush
+    int numedgedirs;
+    colpointf_t *edgedirs;
+    // points (corners) of this brush
+    int numpoints;
+    colpointf_t *points;
+    // renderable triangles representing this brush, using the points
+    int numtriangles;
+    int *elements;
+    // texture data for cases where an edgedir is used
+    const struct texture_s *texture;
+    int q3surfaceflags;
+    // optimized collisions for common cases
+    int isaabb; // indicates this is an axis aligned box
+    int hasaabbplanes; // indicates this has precomputed planes for AABB collisions
 }
 colbrushf_t;
 
 typedef struct colboxbrushf_s
 {
-	colpointf_t points[8];
-	colpointf_t edgedirs[6];
-	colplanef_t planes[6];
-	colbrushf_t brush;
+    colpointf_t points[8];
+    colpointf_t edgedirs[6];
+    colplanef_t planes[6];
+    colbrushf_t brush;
 }
 colboxbrushf_t;
 

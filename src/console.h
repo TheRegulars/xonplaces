@@ -99,25 +99,25 @@ void Log_Printf(const char *logfilename, const char *fmt, ...) DP_FUNC_PRINTF(2)
 
 typedef struct con_lineinfo_s
 {
-	char *start;
-	size_t len;
-	int mask;
+    char *start;
+    size_t len;
+    int mask;
 
-	/// used only by console.c
-	double addtime;
-	int height; ///< recalculated line height when needed (-1 to unset)
+    /// used only by console.c
+    double addtime;
+    int height; ///< recalculated line height when needed (-1 to unset)
 }
 con_lineinfo_t;
 
 typedef struct conbuffer_s
 {
-	qboolean active;
-	int textsize;
-	char *text;
-	int maxlines;
-	con_lineinfo_t *lines;
-	int lines_first;
-	int lines_count; ///< cyclic buffer
+    qboolean active;
+    int textsize;
+    char *text;
+    int maxlines;
+    con_lineinfo_t *lines;
+    int lines_first;
+    int lines_count; ///< cyclic buffer
 }
 conbuffer_t;
 

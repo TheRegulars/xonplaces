@@ -39,61 +39,61 @@
 
 typedef enum textype_e
 {
-	// 8bit paletted
-	TEXTYPE_PALETTE,
-	// 32bit RGBA
-	TEXTYPE_RGBA,
-	// 32bit BGRA (preferred format due to faster uploads on most hardware)
-	TEXTYPE_BGRA,
-	// 8bit ALPHA (used for freetype fonts)
-	TEXTYPE_ALPHA,
-	// 4x4 block compressed 15bit color (4 bits per pixel)
-	TEXTYPE_DXT1,
-	// 4x4 block compressed 15bit color plus 1bit alpha (4 bits per pixel)
-	TEXTYPE_DXT1A,
-	// 4x4 block compressed 15bit color plus 8bit alpha (8 bits per pixel)
-	TEXTYPE_DXT3,
-	// 4x4 block compressed 15bit color plus 8bit alpha (8 bits per pixel)
-	TEXTYPE_DXT5,
+    // 8bit paletted
+    TEXTYPE_PALETTE,
+    // 32bit RGBA
+    TEXTYPE_RGBA,
+    // 32bit BGRA (preferred format due to faster uploads on most hardware)
+    TEXTYPE_BGRA,
+    // 8bit ALPHA (used for freetype fonts)
+    TEXTYPE_ALPHA,
+    // 4x4 block compressed 15bit color (4 bits per pixel)
+    TEXTYPE_DXT1,
+    // 4x4 block compressed 15bit color plus 1bit alpha (4 bits per pixel)
+    TEXTYPE_DXT1A,
+    // 4x4 block compressed 15bit color plus 8bit alpha (8 bits per pixel)
+    TEXTYPE_DXT3,
+    // 4x4 block compressed 15bit color plus 8bit alpha (8 bits per pixel)
+    TEXTYPE_DXT5,
 
-	// default compressed type for GLES2
-	TEXTYPE_ETC1,
+    // default compressed type for GLES2
+    TEXTYPE_ETC1,
 
-	// 8bit paletted in sRGB colorspace
-	TEXTYPE_SRGB_PALETTE,
-	// 32bit RGBA in sRGB colorspace
-	TEXTYPE_SRGB_RGBA,
-	// 32bit BGRA (preferred format due to faster uploads on most hardware) in sRGB colorspace
-	TEXTYPE_SRGB_BGRA,
-	// 4x4 block compressed 15bit color (4 bits per pixel) in sRGB colorspace
-	TEXTYPE_SRGB_DXT1,
-	// 4x4 block compressed 15bit color plus 1bit alpha (4 bits per pixel) in sRGB colorspace
-	TEXTYPE_SRGB_DXT1A,
-	// 4x4 block compressed 15bit color plus 8bit alpha (8 bits per pixel) in sRGB colorspace
-	TEXTYPE_SRGB_DXT3,
-	// 4x4 block compressed 15bit color plus 8bit alpha (8 bits per pixel) in sRGB colorspace
-	TEXTYPE_SRGB_DXT5,
+    // 8bit paletted in sRGB colorspace
+    TEXTYPE_SRGB_PALETTE,
+    // 32bit RGBA in sRGB colorspace
+    TEXTYPE_SRGB_RGBA,
+    // 32bit BGRA (preferred format due to faster uploads on most hardware) in sRGB colorspace
+    TEXTYPE_SRGB_BGRA,
+    // 4x4 block compressed 15bit color (4 bits per pixel) in sRGB colorspace
+    TEXTYPE_SRGB_DXT1,
+    // 4x4 block compressed 15bit color plus 1bit alpha (4 bits per pixel) in sRGB colorspace
+    TEXTYPE_SRGB_DXT1A,
+    // 4x4 block compressed 15bit color plus 8bit alpha (8 bits per pixel) in sRGB colorspace
+    TEXTYPE_SRGB_DXT3,
+    // 4x4 block compressed 15bit color plus 8bit alpha (8 bits per pixel) in sRGB colorspace
+    TEXTYPE_SRGB_DXT5,
 
-	// this represents the same format as the framebuffer, for fast copies
-	TEXTYPE_COLORBUFFER,
-	// this represents an RGBA half_float texture (4 16bit floats)
-	TEXTYPE_COLORBUFFER16F,
-	// this represents an RGBA float texture (4 32bit floats)
-	TEXTYPE_COLORBUFFER32F,
-	// depth-stencil buffer (or texture)
-	TEXTYPE_DEPTHBUFFER16,
-	// depth-stencil buffer (or texture)
-	TEXTYPE_DEPTHBUFFER24,
-	// 32bit D24S8 buffer (24bit depth, 8bit stencil), not supported on OpenGL ES
-	TEXTYPE_DEPTHBUFFER24STENCIL8,
-	// shadowmap-friendly format with depth comparison (not supported on some hardware)
-	TEXTYPE_SHADOWMAP16_COMP,
-	// shadowmap-friendly format with raw reading (not supported on some hardware)
-	TEXTYPE_SHADOWMAP16_RAW,
-	// shadowmap-friendly format with depth comparison (not supported on some hardware)
-	TEXTYPE_SHADOWMAP24_COMP,
-	// shadowmap-friendly format with raw reading (not supported on some hardware)
-	TEXTYPE_SHADOWMAP24_RAW,
+    // this represents the same format as the framebuffer, for fast copies
+    TEXTYPE_COLORBUFFER,
+    // this represents an RGBA half_float texture (4 16bit floats)
+    TEXTYPE_COLORBUFFER16F,
+    // this represents an RGBA float texture (4 32bit floats)
+    TEXTYPE_COLORBUFFER32F,
+    // depth-stencil buffer (or texture)
+    TEXTYPE_DEPTHBUFFER16,
+    // depth-stencil buffer (or texture)
+    TEXTYPE_DEPTHBUFFER24,
+    // 32bit D24S8 buffer (24bit depth, 8bit stencil), not supported on OpenGL ES
+    TEXTYPE_DEPTHBUFFER24STENCIL8,
+    // shadowmap-friendly format with depth comparison (not supported on some hardware)
+    TEXTYPE_SHADOWMAP16_COMP,
+    // shadowmap-friendly format with raw reading (not supported on some hardware)
+    TEXTYPE_SHADOWMAP16_RAW,
+    // shadowmap-friendly format with depth comparison (not supported on some hardware)
+    TEXTYPE_SHADOWMAP24_COMP,
+    // shadowmap-friendly format with raw reading (not supported on some hardware)
+    TEXTYPE_SHADOWMAP24_RAW,
 }
 textype_t;
 
@@ -110,30 +110,30 @@ textype_t;
 // contents of this structure are mostly private to gl_textures.c
 typedef struct rtexture_s
 {
-	// this is exposed (rather than private) for speed reasons only
-	int texnum; // GL texture slot number
-	int renderbuffernum; // GL renderbuffer slot number
-	qboolean dirty; // indicates that R_RealGetTexture should be called
-	qboolean glisdepthstencil; // indicates that FBO attachment has to be GL_DEPTH_STENCIL_ATTACHMENT
-	int gltexturetypeenum; // used by R_Mesh_TexBind
-	// d3d stuff the backend needs
-	void *d3dtexture;
-	void *d3dsurface;
+    // this is exposed (rather than private) for speed reasons only
+    int texnum; // GL texture slot number
+    int renderbuffernum; // GL renderbuffer slot number
+    qboolean dirty; // indicates that R_RealGetTexture should be called
+    qboolean glisdepthstencil; // indicates that FBO attachment has to be GL_DEPTH_STENCIL_ATTACHMENT
+    int gltexturetypeenum; // used by R_Mesh_TexBind
+    // d3d stuff the backend needs
+    void *d3dtexture;
+    void *d3dsurface;
 #ifdef SUPPORTD3D
-	qboolean d3disrendertargetsurface;
-	qboolean d3disdepthstencilsurface;
-	int d3dformat;
-	int d3dusage;
-	int d3dpool;
-	int d3daddressu;
-	int d3daddressv;
-	int d3daddressw;
-	int d3dmagfilter;
-	int d3dminfilter;
-	int d3dmipfilter;
-	int d3dmaxmiplevelfilter;
-	int d3dmipmaplodbias;
-	int d3dmaxmiplevel;
+    qboolean d3disrendertargetsurface;
+    qboolean d3disdepthstencilsurface;
+    int d3dformat;
+    int d3dusage;
+    int d3dpool;
+    int d3daddressu;
+    int d3daddressv;
+    int d3daddressw;
+    int d3dmagfilter;
+    int d3dminfilter;
+    int d3dmipfilter;
+    int d3dmaxmiplevelfilter;
+    int d3dmipmaplodbias;
+    int d3dmaxmiplevel;
 #endif
 }
 rtexture_t;
@@ -141,7 +141,7 @@ rtexture_t;
 // contents of this structure are private to gl_textures.c
 typedef struct rtexturepool_s
 {
-	int useless;
+    int useless;
 }
 rtexturepool_t;
 
