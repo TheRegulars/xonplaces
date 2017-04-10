@@ -145,7 +145,6 @@ CONSTANTS
 #define ZIP_CDIR_CHUNK_BASE_SIZE    46
 #define ZIP_LOCAL_CHUNK_BASE_SIZE    30
 
-#ifdef LINK_TO_ZLIB
 #include <zlib.h>
 
 #define qz_inflate inflate
@@ -156,70 +155,6 @@ CONSTANTS
 #define qz_deflateEnd deflateEnd
 #define qz_deflate deflate
 #define Z_MEMLEVEL_DEFAULT 8
-#else
-
-// Zlib constants (from zlib.h)
-#define Z_SYNC_FLUSH    2
-#define MAX_WBITS        15
-#define Z_OK            0
-#define Z_STREAM_END    1
-#define Z_STREAM_ERROR  (-2)
-#define Z_DATA_ERROR    (-3)
-#define Z_MEM_ERROR     (-4)
-#define Z_BUF_ERROR     (-5)
-#define ZLIB_VERSION    "1.2.3"
-
-#define Z_BINARY 0
-#define Z_DEFLATED 8
-#define Z_MEMLEVEL_DEFAULT 8
-
-#define Z_NULL 0
-#define Z_DEFAULT_COMPRESSION (-1)
-#define Z_NO_FLUSH 0
-#define Z_SYNC_FLUSH 2
-#define Z_FULL_FLUSH 3
-#define Z_FINISH 4
-
-// Uncomment the following line if the zlib DLL you have still uses
-// the 1.1.x series calling convention on Win32 (WINAPI)
-//#define ZLIB_USES_WINAPI
-
-
-/*
-=============================================================================
-
-TYPES
-
-=============================================================================
-*/
-
-/*! Zlib stream (from zlib.h)
- * \warning: some pointers we don't use directly have
- * been cast to "void*" for a matter of simplicity
- */
-typedef struct
-{
-    unsigned char            *next_in;    ///< next input byte
-    unsigned int    avail_in;    ///< number of bytes available at next_in
-    unsigned long    total_in;    ///< total nb of input bytes read so far
-
-    unsigned char            *next_out;    ///< next output byte should be put there
-    unsigned int    avail_out;    ///< remaining free space at next_out
-    unsigned long    total_out;    ///< total nb of bytes output so far
-
-    char            *msg;        ///< last error message, NULL if no error
-    void            *state;        ///< not visible by applications
-
-    void            *zalloc;    ///< used to allocate the internal state
-    void            *zfree;        ///< used to free the internal state
-    void            *opaque;    ///< private data object passed to zalloc and zfree
-
-    int                data_type;    ///< best guess about the data type: ascii or binary
-    unsigned long    adler;        ///< adler32 value of the uncompressed data
-    unsigned long    reserved;    ///< reserved for future use
-} z_stream;
-#endif
-
 
 /// inside a package (PAK or PK3)
 #define QFILE_FLAG_PACKED (1 << 0)
@@ -395,46 +330,11 @@ PRIVATE FUNCTIONS - PK3 HANDLING
 =============================================================================
 */
 
-#ifndef LINK_TO_ZLIB
-// Functions exported from zlib
-#if defined(WIN32) && defined(ZLIB_USES_WINAPI)
-# define ZEXPORT WINAPI
-#else
-# define ZEXPORT
-#endif
-
-static int (ZEXPORT *qz_inflate) (z_stream* strm, int flush);
-static int (ZEXPORT *qz_inflateEnd) (z_stream* strm);
-static int (ZEXPORT *qz_inflateInit2_) (z_stream* strm, int windowBits, const char *version, int stream_size);
-static int (ZEXPORT *qz_inflateReset) (z_stream* strm);
-static int (ZEXPORT *qz_deflateInit2_) (z_stream* strm, int level, int method, int windowBits, int memLevel, int strategy, const char *version, int stream_size);
-static int (ZEXPORT *qz_deflateEnd) (z_stream* strm);
-static int (ZEXPORT *qz_deflate) (z_stream* strm, int flush);
-#endif
-
 #define qz_inflateInit2(strm, windowBits) \
         qz_inflateInit2_((strm), (windowBits), ZLIB_VERSION, sizeof(z_stream))
 #define qz_deflateInit2(strm, level, method, windowBits, memLevel, strategy) \
         qz_deflateInit2_((strm), (level), (method), (windowBits), (memLevel), (strategy), ZLIB_VERSION, sizeof(z_stream))
 
-#ifndef LINK_TO_ZLIB
-//        qz_deflateInit_((strm), (level), ZLIB_VERSION, sizeof(z_stream))
-
-static dllfunction_t zlibfuncs[] =
-{
-    {"inflate",            (void **) &qz_inflate},
-    {"inflateEnd",        (void **) &qz_inflateEnd},
-    {"inflateInit2_",    (void **) &qz_inflateInit2_},
-    {"inflateReset",    (void **) &qz_inflateReset},
-    {"deflateInit2_",   (void **) &qz_deflateInit2_},
-    {"deflateEnd",      (void **) &qz_deflateEnd},
-    {"deflate",         (void **) &qz_deflate},
-    {NULL, NULL}
-};
-
-/// Handle for Zlib DLL
-static dllhandle_t zlib_dll = NULL;
-#endif
 
 #ifdef WIN32
 static HRESULT (WINAPI *qSHGetFolderPath) (HWND hwndOwner, int nFolder, HANDLE hToken, DWORD dwFlags, LPTSTR pszPath);
@@ -485,76 +385,6 @@ static const char* ole32dllnames [] =
 static dllhandle_t ole32_dll = NULL;
 #endif
 
-/*
-====================
-PK3_CloseLibrary
-
-Unload the Zlib DLL
-====================
-*/
-static void PK3_CloseLibrary (void)
-{
-#ifndef LINK_TO_ZLIB
-    Sys_UnloadLibrary (&zlib_dll);
-#endif
-}
-
-
-/*
-====================
-PK3_OpenLibrary
-
-Try to load the Zlib DLL
-====================
-*/
-static qboolean PK3_OpenLibrary (void)
-{
-#ifdef LINK_TO_ZLIB
-    return true;
-#else
-    const char* dllnames [] =
-    {
-#if defined(WIN32)
-# ifdef ZLIB_USES_WINAPI
-        "zlibwapi.dll",
-        "zlib.dll",
-# else
-        "zlib1.dll",
-# endif
-#elif defined(MACOSX)
-        "libz.dylib",
-#else
-        "libz.so.1",
-        "libz.so",
-#endif
-        NULL
-    };
-
-    // Already loaded?
-    if (zlib_dll)
-        return true;
-
-    // Load the DLL
-    return Sys_LoadLibrary (dllnames, &zlib_dll, zlibfuncs);
-#endif
-}
-
-/*
-====================
-FS_HasZlib
-
-See if zlib is available
-====================
-*/
-qboolean FS_HasZlib(void)
-{
-#ifdef LINK_TO_ZLIB
-    return true;
-#else
-    PK3_OpenLibrary(); // to be safe
-    return (zlib_dll != 0);
-#endif
-}
 
 /*
 ====================
@@ -1801,7 +1631,6 @@ FS_Init_SelfPack
 */
 void FS_Init_SelfPack (void)
 {
-    PK3_OpenLibrary ();
     fs_mempool = Mem_AllocPool("file management", 0, NULL);
 
     // Load darkplaces.opt from the FS.
@@ -2201,7 +2030,6 @@ void FS_Shutdown (void)
     //  by the OS anyway)
     FS_ClearSearchPath();
     Mem_FreePool (&fs_mempool);
-    PK3_CloseLibrary ();
 
 #ifdef WIN32
     Sys_UnloadLibrary (&shfolder_dll);
@@ -2358,17 +2186,6 @@ static qfile_t *FS_OpenPackedFile (pack_t* pack, int pack_ind)
     if (! (pfile->flags & PACKFILE_FLAG_TRUEOFFS))
         if (!PK3_GetTrueFileOffset (pfile, pack))
             return NULL;
-
-#ifndef LINK_TO_ZLIB
-    // No Zlib DLL = no compressed files
-    if (!zlib_dll && (pfile->flags & PACKFILE_FLAG_DEFLATED))
-    {
-        Con_Printf("WARNING: can't open the compressed file %s\n"
-                    "You need the Zlib DLL to use compressed files\n",
-                    pfile->name);
-        return NULL;
-    }
-#endif
 
     // LordHavoc: FILEDESC_SEEK affects all duplicates of a handle so we do it before
     // the dup() call to avoid having to close the dup_handle on error here
@@ -3977,10 +3794,6 @@ unsigned char *FS_Deflate(const unsigned char *data, size_t size, size_t *deflat
     unsigned char *tmp;
 
     *deflated_size = 0;
-#ifndef LINK_TO_ZLIB
-    if(!zlib_dll)
-        return NULL;
-#endif
 
     memset(&strm, 0, sizeof(strm));
     strm.zalloc = Z_NULL;
@@ -4075,10 +3888,6 @@ unsigned char *FS_Inflate(const unsigned char *data, size_t size, size_t *inflat
     sizebuf_t outbuf;
 
     *inflated_size = 0;
-#ifndef LINK_TO_ZLIB
-    if(!zlib_dll)
-        return NULL;
-#endif
 
     memset(&outbuf, 0, sizeof(outbuf));
     outbuf.data = (unsigned char *) Mem_Alloc(tempmempool, sizeof(tmp));

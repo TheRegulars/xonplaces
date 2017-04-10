@@ -428,7 +428,6 @@ extern cvar_t sessionid;
 # define DP_OS_STR        "android"
 # define USE_GLES2        1
 # define USE_RWOPS        1
-# define LINK_TO_ZLIB    1
 # define LINK_TO_LIBVORBIS 1
 # define DP_MOBILETOUCH    1
 # define DP_FREETYPE_STATIC 1
@@ -436,7 +435,6 @@ extern cvar_t sessionid;
 # define DP_OS_NAME        "iPhoneOS"
 # define DP_OS_STR        "iphoneos"
 # define USE_GLES2        1
-# define LINK_TO_ZLIB    1
 # define LINK_TO_LIBVORBIS 1
 # define DP_MOBILETOUCH    1
 # define DP_FREETYPE_STATIC 1
