@@ -229,22 +229,24 @@ PREPEND(ABS_SOURCE_CLIENT_SDL ${SOURCE_ROOT} ${SOURCE_CLIENT_SDL})
 PREPEND(ABS_SOURCE_CLIENT_GLX ${SOURCE_ROOT} ${SOURCE_CLIENT_GLX})
 
 # load common libraries
+find_package(CURL REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(JPEG REQUIRED)
 # TODO: Use static version of d0_blindid
-
 if (COMPILE_SERVER)
     add_executable(darkplaces-dedicated ${ABS_SOURCE_SERVER} ${ABS_SOURCE_COMMON})
     add_dependencies(darkplaces-dedicated d0_blindid)
     target_compile_definitions(darkplaces-dedicated PRIVATE ${COMPILE_DEFS})
     target_include_directories(darkplaces-dedicated PRIVATE
-            ${D0_BLINDID_INCLUDE}
+        ${D0_BLINDID_INCLUDE}
+        ${CURL_INCLUDE_DIRS}
         ${ZLIB_INCLUDE_DIRS}
         ${JPEG_INLUDE_DIR}
     )
     target_link_libraries(darkplaces-dedicated PRIVATE
         ${LIBS_COMMON}
         ${D0_BLINID_LIBS}
+        ${CURL_LIBRARIES}
         ${ZLIB_LIBRARIES}
         ${JPEG_LIBRARIES}
     )
@@ -268,6 +270,7 @@ if (COMPILE_CLIENT)
         )
         target_include_directories(darkplaces-glx PRIVATE
             ${D0_BLINDID_INCLUDE}
+            ${CURL_INCLUDE_DIRS}
             ${ZLIB_INCLUDE_DIRS}
             ${JPEG_INLUDE_DIR}
             ${X11_X11_INCLUDE_DIR}
@@ -276,6 +279,7 @@ if (COMPILE_CLIENT)
         target_link_libraries(darkplaces-glx PRIVATE
             ${LIBS_COMMON}
             ${D0_BLINID_LIBS}
+            ${CURL_LIBRARIES}
             ${ZLIB_LIBRARIES}
             ${JPEG_LIBRARIES}
             ${X11_X11_LIB}
@@ -300,6 +304,7 @@ if (COMPILE_CLIENT)
         )
         target_include_directories(darkplaces-sdl PRIVATE
             ${D0_BLINDID_INCLUDE}
+            ${CURL_INCLUDE_DIRS}
             ${ZLIB_INCLUDE_DIRS}
             ${JPEG_INLUDE_DIR}
             ${SDL2_INCLUDE_DIR}
@@ -307,6 +312,7 @@ if (COMPILE_CLIENT)
         target_link_libraries(darkplaces-sdl PRIVATE
             ${LIBS_COMMON}
             ${D0_BLINID_LIBS}
+            ${CURL_LIBRARIES}
             ${ZLIB_LIBRARIES}
             ${ZLIB_LIBRARIES}
             ${JPEG_LIBRARIES}
