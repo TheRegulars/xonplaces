@@ -820,9 +820,7 @@ static void r_textures_start(void)
     texturemempool = Mem_AllocPool("texture management", 0, NULL);
     Mem_ExpandableArray_NewArray(&texturearray, texturemempool, sizeof(gltexture_t), 512);
 
-    // Disable JPEG screenshots if the DLL isn't loaded
-    if (! JPEG_OpenLibrary ())
-        Cvar_SetValueQuick (&scr_screenshot_jpeg, 0);
+    // Disable PNG screenshots if the DLL isn't loaded
     if (! PNG_OpenLibrary ())
         Cvar_SetValueQuick (&scr_screenshot_png, 0);
 }
@@ -830,8 +828,6 @@ static void r_textures_start(void)
 static void r_textures_shutdown(void)
 {
     rtexturepool_t *temp;
-
-    JPEG_CloseLibrary ();
 
     while(gltexturepoolchain)
     {
