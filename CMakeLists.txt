@@ -55,6 +55,7 @@ option(COMPILE_CD            "Enable CD player support" ON)
 option(COMPILE_VIDEO_CAPTURE "Enable video capture" ON)
 option(COMPILE_UTILS         "Enable compilling of various utils" OFF)
 option(STATIC_LINK_D0        "Link statically with d0 blind id" OFF)
+option(CPACK_PACKAGING       "Build package with CPACK" OFF)
 
 # Global build params
 SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib:$ORIGIN/lib:$ORIGIN/")
@@ -350,4 +351,31 @@ if(COMPILE_UTILS)
     target_include_directories(crypto-keygen PRIVATE ${D0_BLINDID_INCLUDE})
     target_link_libraries(crypto-keygen PRIVATE ${LIBS_COMMON} ${D0_LIBS})
     install(TARGETS crypto-keygen RUNTIME DESTINATION bin)
+endif()
+
+if(CPACK_PACKAGING)
+    string(TIMESTAMP PACKAGE_DATE "%Y-%m-%d" UTC)
+    set(CPACK_PACKAGE_NAME "${PROJECT_NAME}")
+    set(CPACK_PACKAGE_VERSION_MAJOR "0")
+    set(CPACK_PACKAGE_VERSION_MINOR "1")
+    set(CPACK_PACKAGE_VERSION_PATCH "1")
+    set(CPACK_PACKAGE_VERSION
+        "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}"
+    )
+    set(CPACK_PACKAGE_FILE_NAME
+        "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${PACKAGE_DATE}"
+    )
+    set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Slava Bacherikov")
+    set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "Darkplaces game engine")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS
+        "libc6 (>= 2.11), zlib1g (>= 1:1.1.4), libcurl3-gnutls (>= 7.16.2)"
+    )
+    if(DP_CLIENT_SDL)
+        set(CPACK_DEBIAN_PACKAGE_DEPENDS
+            "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libsdl2-2.0-0 (>= 2.0.4)"
+        )
+    endif()
+    # TODO: set generators depending on platform
+    set(CPACK_GENERATOR "TGZ" "ZIP" "DEB" "RPM")
+    include(CPack)
 endif()
