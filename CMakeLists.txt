@@ -45,6 +45,7 @@ set(D0_BLINID_LIB_RIJDAEL_STATIC "${install_dir}/lib/libd0_rijndael.a")
 set(D0_BLINID_ID_LIB_STATIC "${install_dir}/lib/libd0_blind_id.a")
 set(D0_BLINID_LIBS_STATIC ${D0_BLINID_LIB_RIJDAEL_STATIC} ${D0_BLINID_ID_LIB_STATIC})
 set(D0_BLINDID_INCLUDE "${CMAKE_SOURCE_DIR}")
+file(GLOB D0_BLINDID_INSTALL_LIBS "${install_dir}/lib/lib*.so*")
 
 
 option(COMPILE_CLIENT        "Build client code" ON)
@@ -53,6 +54,10 @@ option(COMPILE_MENU          "Enable game menu" ON)
 option(COMPILE_CD            "Enable CD player support" ON)
 option(COMPILE_VIDEO_CAPTURE "Enable video capture" ON)
 option(COMPILE_UTILS         "Enable compilling of various utils" OFF)
+option(STATIC_LINK_D0        "Link statically with d0 blind id" OFF)
+
+# Global build params
+SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib:$ORIGIN/lib:$ORIGIN/")
 
 # detect client type
 SET(DP_CLIENT_GLX OFF)
@@ -66,7 +71,6 @@ if(COMPILE_CLIENT)
     endif()
     # TODO: Implement other video backends
 endif()
-
 
 set(SOURCE_COMMON
     builddate.c
@@ -163,7 +167,6 @@ set(SOURCE_CLIENT_SDL)
 set(COMPILE_DEFS "-DLINK_TO_CRYPTO -DLINK_TO_CRYPTO_RIJNDAEL")
 set(COMPILE_DEFS_CLIENT)
 
-
 if (COMPILE_MENU)
     list(APPEND COMPILE_DEFS_CLIENT "-DCONFIG_MENU")
     list(APPEND SOURCE_CLIENT_COMMON menu.c menu.h mprogdefs.h mvm_cmds.c)
@@ -232,7 +235,23 @@ PREPEND(ABS_SOURCE_CLIENT_GLX ${SOURCE_ROOT} ${SOURCE_CLIENT_GLX})
 find_package(CURL REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(JPEG REQUIRED)
-# TODO: Use static version of d0_blindid
+
+if (STATIC_LINK_D0)
+    # TODO: Make separate script: FindGMP
+    set(GMP_PREFIX "" CACHE PATH "Path to GMP prefix")
+    find_library(GMP_LIBRARY NAMES gmp PATHS
+        ${GMP_PREFIX}/lib
+        /usr/lib
+        /usr/local/lib
+        /opt/lib
+        /opt/local/lib
+    )
+    set(D0_LIBS ${D0_BLINID_LIBS_STATIC} ${GMP_LIBRARY})
+else()
+    set(D0_LIBS ${D0_BLINID_LIBS})
+    install(FILES ${D0_BLINDID_INSTALL_LIBS} DESTINATION lib)
+endif()
+
 if (COMPILE_SERVER)
     add_executable(darkplaces-dedicated ${ABS_SOURCE_SERVER} ${ABS_SOURCE_COMMON})
     add_dependencies(darkplaces-dedicated d0_blindid)
@@ -245,12 +264,14 @@ if (COMPILE_SERVER)
     )
     target_link_libraries(darkplaces-dedicated PRIVATE
         ${LIBS_COMMON}
-        ${D0_BLINID_LIBS}
+        ${D0_LIBS}
         ${CURL_LIBRARIES}
         ${ZLIB_LIBRARIES}
         ${JPEG_LIBRARIES}
     )
+    install(TARGETS darkplaces-dedicated RUNTIME DESTINATION bin)
 endif ()
+
 if (COMPILE_CLIENT)
     if (DP_CLIENT_GLX)
         find_package(Threads REQUIRED)
@@ -278,7 +299,7 @@ if (COMPILE_CLIENT)
         )
         target_link_libraries(darkplaces-glx PRIVATE
             ${LIBS_COMMON}
-            ${D0_BLINID_LIBS}
+            ${D0_LIBS}
             ${CURL_LIBRARIES}
             ${ZLIB_LIBRARIES}
             ${JPEG_LIBRARIES}
@@ -289,6 +310,7 @@ if (COMPILE_CLIENT)
             ${ALSA_LIBRARY}
             Threads::Threads
         )
+        install(TARGETS darkplaces-glx RUNTIME DESTINATION bin)
     endif()
     if (DP_CLIENT_SDL)
         find_package(SDL2 REQUIRED)
@@ -311,13 +333,14 @@ if (COMPILE_CLIENT)
         )
         target_link_libraries(darkplaces-sdl PRIVATE
             ${LIBS_COMMON}
-            ${D0_BLINID_LIBS}
+            ${D0_LIBS}
             ${CURL_LIBRARIES}
             ${ZLIB_LIBRARIES}
             ${ZLIB_LIBRARIES}
             ${JPEG_LIBRARIES}
             ${SDL2_LIBRARY}
         )
+        install(TARGETS darkplaces-sdl RUNTIME DESTINATION bin)
     endif()
 endif ()
 
@@ -325,5 +348,6 @@ if(COMPILE_UTILS)
     add_executable(crypto-keygen ${CRYPTO_KEYGEN_SOURCE})
     add_dependencies(crypto-keygen d0_blindid)
     target_include_directories(crypto-keygen PRIVATE ${D0_BLINDID_INCLUDE})
-    target_link_libraries(crypto-keygen PRIVATE ${LIBS_COMMON} ${D0_BLINID_LIBS})
+    target_link_libraries(crypto-keygen PRIVATE ${LIBS_COMMON} ${D0_LIBS})
+    install(TARGETS crypto-keygen RUNTIME DESTINATION bin)
 endif()
