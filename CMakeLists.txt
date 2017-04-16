@@ -4,11 +4,39 @@ project(darkplaces C)
 set(SOURCE_ROOT "${PROJECT_SOURCE_DIR}/src")
 include(ExternalProject)
 
-# change optimizations for gcc
-if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-    set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -fno-strict-aliasing \
-    -fno-math-errno -ffinite-math-only -fno-rounding-math  \
+if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -DNDEBUG
+    -fno-strict-aliasing -fno-math-errno -ffinite-math-only -fno-rounding-math \
     -fno-signaling-nans -fno-trapping-math")
+elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+    # Use LTO when building using release with clang
+    # NOTE: This requires llvm-ar and gold plugin
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -DNDEBUG
+    -fno-strict-aliasing -fno-math-errno -ffinite-math-only -fno-trapping-math \
+    -flto")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-flto")
+endif()
+
+# Add NativeRelease build type
+set(CMAKE_C_FLAGS_NATIVERELEASE
+    "${CMAKE_C_FLAGS_RELEASE}" CACHE STRING "C flags for native build")
+set(CMAKE_EXE_LINKER_FLAGS_NATIVERELEASE
+    "${CMAKE_EXE_LINKER_FLAGS_RELEASE}" CACHE STRING "linker flags for native build")
+mark_as_advanced(
+    CMAKE_C_FLAGS_NATIVERELEASE
+    CMAKE_EXE_LINKER_FLAGS_NATIVERELEASE
+)
+
+if("${CMAKE_C_COMPILER_ID}" MATCHES "^(GNU|Clang)$")
+    set(CMAKE_C_FLAGS_NATIVERELEASE
+        "${CMAKE_C_FLAGS_NATIVERELEASE} -march=native")
+endif()
+
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+        "Debug" "Release" "NativeRelease" "MinSizeRel" "RelWithDebInfo")
 endif()
 
 FUNCTION(PREPEND var prefix)
@@ -19,13 +47,66 @@ FUNCTION(PREPEND var prefix)
    SET(${var} "${listVar}" PARENT_SCOPE)
 ENDFUNCTION(PREPEND)
 
+
+# Start of d0_blindid
+set(D0_BLINDID_C_FLAGS "$ENV{CFLAGS}" CACHE STRING "C flags for d0_blind_id")
+set(D0_BLINDID_EXE_LINKER_FLAGS
+    "$ENV{LDFLAGS}" CACHE STRING "linker flags for d0_blind_id")
+set(D0_BLINDID_C_FLAGS_RELEASE
+    "${D0_BLINDID_C_FLAGS}" CACHE STRING
+    "C flags for d0_blind_id Release build"
+)
+set(D0_BLINDID_EXE_LINKER_FLAGS_RELEASE
+    "${D0_BLINDID_EXE_LINKER_FLAGS}" CACHE STRING
+    "linker flags for d0_blind_id Release build"
+)
+
+if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+    set(D0_BLINDID_C_FLAGS_RELEASE "${D0_BLINDID_C_FLAGS_RELEASE} -O3")
+elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+    set(D0_BLINDID_C_FLAGS_RELEASE "${D0_BLINDID_C_FLAGS_RELEASE} -O3 -flto")
+    set(D0_BLINDID_EXE_LINKER_FLAGS_RELEASE "-flto")
+endif()
+
+set(D0_BLINDID_C_FLAGS_NATIVERELEASE
+    "${D0_BLINDID_C_FLAGS_RELEASE}" CACHE STRING
+    "C flags for d0_blind_id NativeRelease build"
+)
+set(D0_BLINDID_EXE_LINKER_FLAGS_NATIVERELEASE
+    "${D0_BLINDID_EXE_LINKER_FLAGS_RELEASE}" CACHE STRING
+    "linker flags for d0_blind_id NativeRelease build"
+)
+
+if("${CMAKE_C_COMPILER_ID}" MATCHES "^(GNU|Clang)$")
+    set(D0_BLINDID_C_FLAGS_NATIVERELEASE
+        "${D0_BLINDID_C_FLAGS_RELEASE} -march=native")
+endif()
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(_D0_BLIND_C_FLAGS "${D0_BLINDID_C_FLAGS}")
+    set(_D0_BLIND_EXE_LINKER_FLAGS "${D0_BLINDID_EXE_LINKER_FLAGS}")
+else()
+    string(TOUPPER "${CMAKE_BUILD_TYPE}" _TEMP_BUILD_TYPE)
+    set(_D0_BLIND_C_FLAGS "${D0_BLINDID_C_FLAGS_${_TEMP_BUILD_TYPE}}")
+    set(_D0_BLIND_EXE_LINKER_FLAGS
+        "${D0_BLINDID_EXE_LINKER_FLAGS_${_TEMP_BUILD_TYPE}}")
+endif()
+
+
 ExternalProject_Add(d0_blindid
     GIT_SUBMODULES    "d0_blind_id"
     SOURCE_DIR        "${CMAKE_SOURCE_DIR}/d0_blind_id/"
-    CONFIGURE_COMMAND ${CMAKE_SOURCE_DIR}/d0_blind_id/configure --prefix=<INSTALL_DIR>
+    CONFIGURE_COMMAND "${CMAKE_COMMAND}" -E env
+                            AR=${CMAKE_AR}
+                            CC=${CMAKE_C_COMPILER}
+                            LDFLAGS=${_D0_BLIND_EXE_LINKER_FLAGS}
+                            CFLAGS=${_D0_BLIND_C_FLAGS}
+                      ${CMAKE_SOURCE_DIR}/d0_blind_id/configure --prefix=<INSTALL_DIR>
     BUILD_COMMAND     "${MAKE}"
     BUILD_IN_SOURCE   1
     LOG_BUILD         1
+    LOG_CONFIGURE     1
+    LOG               1
 )
 
 ExternalProject_Add_Step(d0_blindid autoconf
@@ -46,6 +127,16 @@ set(D0_BLINID_ID_LIB_STATIC "${install_dir}/lib/libd0_blind_id.a")
 set(D0_BLINID_LIBS_STATIC ${D0_BLINID_LIB_RIJDAEL_STATIC} ${D0_BLINID_ID_LIB_STATIC})
 set(D0_BLINDID_INCLUDE "${CMAKE_SOURCE_DIR}")
 file(GLOB D0_BLINDID_INSTALL_LIBS "${install_dir}/lib/lib*.so*")
+mark_as_advanced(
+    D0_BLINDID_C_FLAGS
+    D0_BLINDID_EXE_LINKER_FLAGS
+    D0_BLINDID_C_FLAGS_RELEASE
+    D0_BLINDID_EXE_LINKER_FLAGS_RELEASE
+    D0_BLINDID_C_FLAGS_NATIVERELEASE
+    D0_BLINDID_EXE_LINKER_FLAGS_NATIVERELEASE
+)
+
+# end of d0_blindid
 
 
 option(COMPILE_CLIENT        "Build client code" ON)
@@ -247,6 +338,7 @@ if (STATIC_LINK_D0)
         /opt/lib
         /opt/local/lib
     )
+    mark_as_advanced(GMP_PREFIX GMP_LIBRARY)
     set(D0_LIBS ${D0_BLINID_LIBS_STATIC} ${GMP_LIBRARY})
 else()
     set(D0_LIBS ${D0_BLINID_LIBS})
