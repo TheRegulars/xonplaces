@@ -2510,66 +2510,6 @@ static void MaxPlayers_f(void)
         Cvar_Set ("deathmatch", "1");
 }
 
-/*
-=====================
-Host_PQRcon_f
-
-ProQuake rcon support
-=====================
-*/
-static void Host_PQRcon_f (void)
-{
-    int n;
-    const char *e;
-    lhnetsocket_t *mysocket;
-
-    if (Cmd_Argc() == 1)
-    {
-        Con_Printf("%s: Usage: %s command\n", Cmd_Argv(0), Cmd_Argv(0));
-        return;
-    }
-
-    if (!rcon_password.string || !rcon_password.string[0] || rcon_secure.integer > 0)
-    {
-        Con_Printf ("You must set rcon_password before issuing an pqrcon command, and rcon_secure must be 0.\n");
-        return;
-    }
-
-    e = strchr(rcon_password.string, ' ');
-    n = e ? e-rcon_password.string : (int)strlen(rcon_password.string);
-
-    if (cls.netcon)
-        cls.rcon_address = cls.netcon->peeraddress;
-    else
-    {
-        if (!rcon_address.string[0])
-        {
-            Con_Printf ("You must either be connected, or set the rcon_address cvar to issue rcon commands\n");
-            return;
-        }
-        LHNETADDRESS_FromString(&cls.rcon_address, rcon_address.string, sv_netport.integer);
-    }
-    mysocket = NetConn_ChooseClientSocketForAddress(&cls.rcon_address);
-    if (mysocket)
-    {
-        sizebuf_t buf;
-        unsigned char bufdata[64];
-        buf.data = bufdata;
-        SZ_Clear(&buf);
-        MSG_WriteLong(&buf, 0);
-        MSG_WriteByte(&buf, CCREQ_RCON);
-        SZ_Write(&buf, (const unsigned char*)rcon_password.string, n);
-        MSG_WriteByte(&buf, 0); // terminate the (possibly partial) string
-        MSG_WriteString(&buf, Cmd_Args());
-        StoreBigLong(buf.data, NETFLAG_CTL | (buf.cursize & NETFLAG_LENGTH_MASK));
-        NetConn_Write(mysocket, buf.data, buf.cursize, &cls.rcon_address);
-        SZ_Clear(&buf);
-    }
-}
-
-//=============================================================================
-
-// QuakeWorld commands
 
 /*
 =====================
@@ -3031,7 +2971,6 @@ void Host_InitCommands (void)
     Cvar_RegisterVariable (&rcon_secure_challengetimeout);
     Cmd_AddCommand ("rcon", Host_Rcon_f, "sends a command to the server console (if your rcon_password matches the server's rcon_password), or to the address specified by rcon_address when not connected (again rcon_password must match the server's); note: if rcon_secure is set, client and server clocks must be synced e.g. via NTP");
     Cmd_AddCommand ("srcon", Host_Rcon_f, "sends a command to the server console (if your rcon_password matches the server's rcon_password), or to the address specified by rcon_address when not connected (again rcon_password must match the server's); this always works as if rcon_secure is set; note: client and server clocks must be synced e.g. via NTP");
-    Cmd_AddCommand ("pqrcon", Host_PQRcon_f, "sends a command to a proquake server console (if your rcon_password matches the server's rcon_password), or to the address specified by rcon_address when not connected (again rcon_password must match the server's)");
     Cmd_AddCommand ("user", Host_User_f, "prints additional information about a player number or name on the scoreboard");
     Cmd_AddCommand ("users", Host_Users_f, "prints additional information about all players on the scoreboard");
     Cmd_AddCommand ("fullserverinfo", Host_FullServerinfo_f, "internal use only, sent by server to client to update client's local copy of serverinfo string");

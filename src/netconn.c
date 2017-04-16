@@ -2425,7 +2425,7 @@ allow:
     return va(vabuf, sizeof(vabuf), "%srcon", restricted ? "restricted " : "");
 }
 
-static void RCon_Execute(lhnetsocket_t *mysocket, lhnetaddress_t *peeraddress, const char *addressstring2, const char *userlevel, const char *s, const char *endpos, qboolean proquakeprotocol)
+static void RCon_Execute(lhnetsocket_t *mysocket, lhnetaddress_t *peeraddress, const char *addressstring2, const char *userlevel, const char *s, const char *endpos)
 {
     if(userlevel)
     {
@@ -2442,7 +2442,7 @@ static void RCon_Execute(lhnetsocket_t *mysocket, lhnetaddress_t *peeraddress, c
         Con_Printf("\n");
 
         if (!host_client || !host_client->netconnection || LHNETADDRESS_GetAddressType(&host_client->netconnection->peeraddress) != LHNETADDRESSTYPE_LOOP)
-            Con_Rcon_Redirect_Init(mysocket, peeraddress, proquakeprotocol);
+            Con_Rcon_Redirect_Init(mysocket, peeraddress);
         while(s != endpos)
         {
             size_t l = strlen(s);
@@ -2776,7 +2776,7 @@ static int NetConn_ServerParsePacket(lhnetsocket_t *mysocket, unsigned char *dat
             ++s;
 
             userlevel = RCon_Authenticate(peeraddress, password, s, endpos, hmac_mdfour_time_matching, timeval, endpos - timeval - 1); // not including the appended \0 into the HMAC
-            RCon_Execute(mysocket, peeraddress, addressstring2, userlevel, s, endpos, false);
+            RCon_Execute(mysocket, peeraddress, addressstring2, userlevel, s, endpos);
             return true;
         }
         if (length >= 42 && !memcmp(string, "srcon HMAC-MD4 CHALLENGE ", 25))
@@ -2791,7 +2791,7 @@ static int NetConn_ServerParsePacket(lhnetsocket_t *mysocket, unsigned char *dat
             ++s;
 
             userlevel = RCon_Authenticate(peeraddress, password, s, endpos, hmac_mdfour_challenge_matching, challenge, endpos - challenge - 1); // not including the appended \0 into the HMAC
-            RCon_Execute(mysocket, peeraddress, addressstring2, userlevel, s, endpos, false);
+            RCon_Execute(mysocket, peeraddress, addressstring2, userlevel, s, endpos);
             return true;
         }
         if (length >= 5 && !memcmp(string, "rcon ", 5))
@@ -2813,7 +2813,7 @@ static int NetConn_ServerParsePacket(lhnetsocket_t *mysocket, unsigned char *dat
             if (!ISWHITESPACE(password[0]))
             {
                 const char *userlevel = RCon_Authenticate(peeraddress, password, s, endpos, plaintext_matching, NULL, 0);
-                RCon_Execute(mysocket, peeraddress, addressstring2, userlevel, s, endpos, false);
+                RCon_Execute(mysocket, peeraddress, addressstring2, userlevel, s, endpos);
             }
             return true;
         }
