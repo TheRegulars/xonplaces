@@ -6,13 +6,13 @@ include(ExternalProject)
 
 if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -DNDEBUG
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -DNDEBUG \
     -fno-strict-aliasing -fno-math-errno -ffinite-math-only -fno-rounding-math \
     -fno-signaling-nans -fno-trapping-math")
 elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
     # Use LTO when building using release with clang
     # NOTE: This requires llvm-ar and gold plugin
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -DNDEBUG
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -DNDEBUG \
     -fno-strict-aliasing -fno-math-errno -ffinite-math-only -fno-trapping-math \
     -flto")
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-flto")
@@ -31,6 +31,10 @@ mark_as_advanced(
 if("${CMAKE_C_COMPILER_ID}" MATCHES "^(GNU|Clang)$")
     set(CMAKE_C_FLAGS_NATIVERELEASE
         "${CMAKE_C_FLAGS_NATIVERELEASE} -march=native")
+    set(CMAKE_C_FLAGS_DEBUG
+        "${CMAKE_C_FLAGS_DEBUG} -Wall -Werror=unused-variable \
+        -Werror=unused-function"
+    )
 endif()
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
