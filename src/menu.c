@@ -721,15 +721,12 @@ static void M_SinglePlayer_Draw (void)
     p = Draw_CachePic ("gfx/ttl_sgl");
 
     // Some mods don't have a single player mode
-    if (gamemode == GAME_GOODVSBAD2 || gamemode == GAME_BATTLEMECH)
+    if (gamemode == GAME_GOODVSBAD2)
     {
         M_DrawPic ((320 - p->width) / 2, 4, "gfx/ttl_sgl");
 
         M_DrawTextBox (60, 8 * 8, 23, 4);
-        if (gamemode == GAME_GOODVSBAD2)
-            M_Print(95, 10 * 8, "Good Vs Bad 2 is for");
-        else  // if (gamemode == GAME_BATTLEMECH)
-            M_Print(95, 10 * 8, "Battlemech is for");
+        M_Print(95, 10 * 8, "Good Vs Bad 2 is for");
         M_Print(83, 11 * 8, "multiplayer play only");
     }
     else
@@ -748,7 +745,7 @@ static void M_SinglePlayer_Draw (void)
 
 static void M_SinglePlayer_Key (int key, int ascii)
 {
-    if (gamemode == GAME_GOODVSBAD2 || gamemode == GAME_BATTLEMECH)
+    if (gamemode == GAME_GOODVSBAD2)
     {
         if (key == K_ESCAPE || key == K_ENTER)
             m_state = m_main;
@@ -3173,18 +3170,7 @@ static int M_ChooseQuitMessage(int request)
     case GAME_NORMAL:
     case GAME_HIPNOTIC:
     case GAME_ROGUE:
-    case GAME_QUOTH:
     case GAME_NEHAHRA:
-    case GAME_DEFEATINDETAIL2:
-        if (request-- == 0) return M_QuitMessage("Are you gonna quit","this game just like","everything else?",NULL,NULL,NULL,NULL,NULL);
-        if (request-- == 0) return M_QuitMessage("Milord, methinks that","thou art a lowly","quitter. Is this true?",NULL,NULL,NULL,NULL,NULL);
-        if (request-- == 0) return M_QuitMessage("Do I need to bust your","face open for trying","to quit?",NULL,NULL,NULL,NULL,NULL);
-        if (request-- == 0) return M_QuitMessage("Man, I oughta smack you","for trying to quit!","Press Y to get","smacked out.",NULL,NULL,NULL,NULL);
-        if (request-- == 0) return M_QuitMessage("Press Y to quit like a","big loser in life.","Press N to stay proud","and successful!",NULL,NULL,NULL,NULL);
-        if (request-- == 0) return M_QuitMessage("If you press Y to","quit, I will summon","Satan all over your","hard drive!",NULL,NULL,NULL,NULL);
-        if (request-- == 0) return M_QuitMessage("Um, Asmodeus dislikes","his children trying to","quit. Press Y to return","to your Tinkertoys.",NULL,NULL,NULL,NULL);
-        if (request-- == 0) return M_QuitMessage("If you quit now, I'll","throw a blanket-party","for you next time!",NULL,NULL,NULL,NULL,NULL);
-        break;
     case GAME_GOODVSBAD2:
         if (request-- == 0) return M_QuitMessage("Press Yes To Quit","...","Yes",NULL,NULL,NULL,NULL,NULL);
         if (request-- == 0) return M_QuitMessage("Do you really want to","Quit?","Play Good vs bad 3!",NULL,NULL,NULL,NULL,NULL);
@@ -3198,21 +3184,6 @@ static int M_ChooseQuitMessage(int request)
         if (request-- == 0) return M_QuitMessage("This game was made in","Nippon like the SS","announcer's saying ipon",NULL,NULL,NULL,NULL,NULL);
         if (request-- == 0) return M_QuitMessage("you","want to quit?",NULL,NULL,NULL,NULL,NULL,NULL);
         if (request-- == 0) return M_QuitMessage("Please stop playing","this stupid game",NULL,NULL,NULL,NULL,NULL,NULL);
-        break;
-    case GAME_BATTLEMECH:
-        if (request-- == 0) return M_QuitMessage("? WHY ?","Press Y to quit, N to keep fraggin'",NULL,NULL,NULL,NULL,NULL,NULL);
-        if (request-- == 0) return M_QuitMessage("Leave now and your mech is scrap!","Press Y to quit, N to keep fraggin'",NULL,NULL,NULL,NULL,NULL,NULL);
-        if (request-- == 0) return M_QuitMessage("Accept Defeat?","Press Y to quit, N to keep fraggin'",NULL,NULL,NULL,NULL,NULL,NULL);
-        if (request-- == 0) return M_QuitMessage("Wait! There are more mechs to destroy!","Press Y to quit, N to keep fraggin'",NULL,NULL,NULL,NULL,NULL,NULL);
-        if (request-- == 0) return M_QuitMessage("Where's your bloodlust?","Press Y to quit, N to keep fraggin'",NULL,NULL,NULL,NULL,NULL,NULL);
-        if (request-- == 0) return M_QuitMessage("Your mech here is way more impressive","than your car out there...","Press Y to quit, N to keep fraggin'",NULL,NULL,NULL,NULL,NULL);
-        if (request-- == 0) return M_QuitMessage("Quitting won't reduce your debt","Press Y to quit, N to keep fraggin'",NULL,NULL,NULL,NULL,NULL,NULL);
-        break;
-    case GAME_OPENQUARTZ:
-        if (request-- == 0) return M_QuitMessage("There is nothing like free beer!","Press Y to quit, N to stay",NULL,NULL,NULL,NULL,NULL,NULL);
-        if (request-- == 0) return M_QuitMessage("GNU is not Unix!","Press Y to quit, N to stay",NULL,NULL,NULL,NULL,NULL,NULL);
-        if (request-- == 0) return M_QuitMessage("You prefer free beer over free speech?","Press Y to quit, N to stay",NULL,NULL,NULL,NULL,NULL,NULL);
-        if (request-- == 0) return M_QuitMessage("Is OpenQuartz Propaganda?","Press Y to quit, N to stay",NULL,NULL,NULL,NULL,NULL,NULL);
         break;
     default:
         if (request-- == 0) return M_QuitMessage("Tired of fragging already?",NULL,NULL,NULL,NULL,NULL,NULL,NULL);
@@ -3817,73 +3788,6 @@ static episode_t goodvsbad2episodes[] =
     {"Levels? Bevels!", 0, 8},
 };
 
-static level_t battlemechlevels[] =
-{
-    {"start", "Parking Level"},
-    {"dm1", "Hot Dump"},                        // 1
-    {"dm2", "The Pits"},
-    {"dm3", "Dimber Died"},
-    {"dm4", "Fire in the Hole"},
-    {"dm5", "Clubhouses"},
-    {"dm6", "Army go Underground"},
-};
-
-static episode_t battlemechepisodes[] =
-{
-    {"Time for Battle", 0, 7},
-};
-
-static level_t openquartzlevels[] =
-{
-    {"start", "Welcome to Openquartz"},
-
-    {"void1", "The center of nowhere"},                        // 1
-    {"void2", "The place with no name"},
-    {"void3", "The lost supply base"},
-    {"void4", "Past the outer limits"},
-    {"void5", "Into the nonexistance"},
-    {"void6", "Void walk"},
-
-    {"vtest", "Warp Central"},
-    {"box", "The deathmatch box"},
-    {"bunkers", "Void command"},
-    {"house", "House of chaos"},
-    {"office", "Overnight office kill"},
-    {"am1", "The nameless chambers"},
-};
-
-static episode_t openquartzepisodes[] =
-{
-    {"Single Player", 0, 1},
-    {"Void Deathmatch", 1, 6},
-    {"Contrib", 7, 6},
-};
-
-static level_t defeatindetail2levels[] =
-{
-    {"atac3",    "River Crossing"},
-    {"atac4",    "Canyon Chaos"},
-    {"atac7",    "Desert Stormer"},
-};
-
-static episode_t defeatindetail2episodes[] =
-{
-    {"ATAC Campaign", 0, 3},
-};
-
-static level_t prydonlevels[] =
-{
-    {"curig2", "Capel Curig"},    // 0
-
-    {"tdastart", "Gateway"},                // 1
-};
-
-static episode_t prydonepisodes[] =
-{
-    {"Prydon Gate", 0, 1},
-    {"The Dark Age", 1, 1}
-};
-
 static gamelevels_t sharewarequakegame = {"Shareware Quake", quakelevels, quakeepisodes, 2};
 static gamelevels_t registeredquakegame = {"Quake", quakelevels, quakeepisodes, 7};
 static gamelevels_t hipnoticgame = {"Scourge of Armagon", hipnoticlevels, hipnoticepisodes, 6};
@@ -3891,10 +3795,6 @@ static gamelevels_t roguegame = {"Dissolution of Eternity", roguelevels, rogueep
 static gamelevels_t nehahragame = {"Nehahra", nehahralevels, nehahraepisodes, 4};
 static gamelevels_t transfusiongame = {"Transfusion", transfusionlevels, transfusionepisodes, 11};
 static gamelevels_t goodvsbad2game = {"Good Vs. Bad 2", goodvsbad2levels, goodvsbad2episodes, 1};
-static gamelevels_t battlemechgame = {"Battlemech", battlemechlevels, battlemechepisodes, 1};
-static gamelevels_t openquartzgame = {"OpenQuartz", openquartzlevels, openquartzepisodes, 3};
-static gamelevels_t defeatindetail2game = {"Defeat In Detail 2", defeatindetail2levels, defeatindetail2episodes, 1};
-static gamelevels_t prydongame = {"Prydon Gate", prydonlevels, prydonepisodes, 2};
 
 typedef struct gameinfo_s
 {
@@ -3909,14 +3809,9 @@ static gameinfo_t gamelist[] =
     {GAME_NORMAL, &sharewarequakegame, &registeredquakegame},
     {GAME_HIPNOTIC, &hipnoticgame, &hipnoticgame},
     {GAME_ROGUE, &roguegame, &roguegame},
-    {GAME_QUOTH, &sharewarequakegame, &registeredquakegame},
     {GAME_NEHAHRA, &nehahragame, &nehahragame},
     {GAME_TRANSFUSION, &transfusiongame, &transfusiongame},
     {GAME_GOODVSBAD2, &goodvsbad2game, &goodvsbad2game},
-    {GAME_BATTLEMECH, &battlemechgame, &battlemechgame},
-    {GAME_OPENQUARTZ, &openquartzgame, &openquartzgame},
-    {GAME_DEFEATINDETAIL2, &defeatindetail2game, &defeatindetail2game},
-    {GAME_PRYDON, &prydongame, &prydongame},
 };
 
 static gamelevels_t *gameoptions_levels  = NULL;
@@ -3980,15 +3875,6 @@ void M_GameOptions_Draw (void)
                 M_Print(160, 64, "Capture the Flag");
             else
                 M_Print(160, 64, "Blood Bath");
-        }
-        else if (gamemode == GAME_BATTLEMECH)
-        {
-            if (!deathmatch.integer)
-                Cvar_SetValue("deathmatch", 1);
-            if (deathmatch.integer == 2)
-                M_Print(160, 64, "Rambo Match");
-            else
-                M_Print(160, 64, "Deathmatch");
         }
         else
         {
@@ -4154,13 +4040,6 @@ static void M_NetStart_Change (int dir)
                     Cvar_SetValueQuick (&coop, 1);
                     Cvar_SetValueQuick (&deathmatch, 0);
             }
-        }
-        else if (gamemode == GAME_BATTLEMECH)
-        {
-            if (deathmatch.integer == 2) // changing from Rambo to Deathmatch
-                Cvar_SetValueQuick (&deathmatch, 0);
-            else // changing from Deathmatch to Rambo
-                Cvar_SetValueQuick (&deathmatch, 2);
         }
         else
         {

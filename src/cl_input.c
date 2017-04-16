@@ -1691,8 +1691,7 @@ CL_SendMove
 usercmd_t nullcmd; // for delta compression of qw moves
 void CL_SendMove(void)
 {
-    int i, j, packetloss;
-    int checksumindex;
+    int i, j;
     int bits;
     int maxusercmds;
     usercmd_t *cmd;

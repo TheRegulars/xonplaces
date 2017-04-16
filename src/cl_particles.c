@@ -1258,10 +1258,7 @@ static void CL_ParticleEffect_Fallback(int effectnameindex, float count, const v
                 Vector4Set(light, 3.0f, 1.5f, 0.5f, 200);
             else if (effectnameindex == EFFECT_TR_VORESPIKE)
             {
-                if (gamemode == GAME_PRYDON && !cl_particles_quake.integer)
-                    Vector4Set(light, 0.3f, 0.6f, 1.2f, 100);
-                else
-                    Vector4Set(light, 1.2f, 0.5f, 1.0f, 200);
+                Vector4Set(light, 1.2f, 0.5f, 1.0f, 200);
             }
             else if (effectnameindex == EFFECT_TR_NEXUIZPLASMA)
                 Vector4Set(light, 0.75f, 1.5f, 3.0f, 200);
@@ -1415,11 +1412,6 @@ static void CL_ParticleEffect_Fallback(int effectnameindex, float count, const v
                     {
                         dec = 6;
                         CL_NewParticle(center, pt_alphastatic, particlepalette[0 + (rand()&255)], particlepalette[0 + (rand()&255)], tex_particle, 6, 0, 255, 384, 0, 0, pos[0], pos[1], pos[2], 0, 0, 0, 0, 0, 0, 0, true, 0, 1, PBLEND_ALPHA, PARTICLE_BILLBOARD, -1, -1, -1, 1, 1, 0, 0, NULL);
-                    }
-                    else if (gamemode == GAME_PRYDON)
-                    {
-                        dec = 6;
-                        CL_NewParticle(center, pt_static, 0x103040, 0x204050, tex_particle, 6, 0, 64, 192, 0, 0, pos[0], pos[1], pos[2], 0, 0, 0, 0, 0, 0, 0, true, 0, 1, PBLEND_ADD, PARTICLE_BILLBOARD, -1, -1, -1, 1, 1, 0, 0, NULL);
                     }
                     else
                         CL_NewParticle(center, pt_static, 0x502030, 0x502030, tex_particle, 3, 0, 64, 192, 0, 0, pos[0], pos[1], pos[2], 0, 0, 0, 0, 0, 0, 0, true, 0, 1, PBLEND_ADD, PARTICLE_BILLBOARD, -1, -1, -1, 1, 1, 0, 0, NULL);

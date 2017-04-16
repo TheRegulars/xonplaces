@@ -551,7 +551,6 @@ static void Cmd_Exec(const char *filename)
         // hipnotic mission pack has issues with bobbing water entities 'jittering' between different heights on alternate frames at the default 0.0138889 ticrate, 0.02 avoids this issue
         // hipnotic mission pack has issues in their proximity mine sticking code, which causes them to bounce off.
         case GAME_HIPNOTIC:
-        case GAME_QUOTH:
             Cbuf_InsertText("\n"
 "sv_gameplayfix_blowupfallenzombies 0\n"
 "sv_gameplayfix_findradiusdistancetobox 0\n"
@@ -646,30 +645,6 @@ static void Cmd_Exec(const char *filename)
 "sys_ticrate 0.01388889\n"
 "sv_gameplayfix_q2airaccelerate 1\n"
 "sv_gameplayfix_stepmultipletimes 1\n"
-                );
-            break;
-        // Steel Storm: Burning Retribution csqc misinterprets CSQC_InputEvent if type is a value other than 0 or 1
-        case GAME_STEELSTORM:
-            Cbuf_InsertText("\n"
-"sv_gameplayfix_blowupfallenzombies 1\n"
-"sv_gameplayfix_findradiusdistancetobox 1\n"
-"sv_gameplayfix_grenadebouncedownslopes 1\n"
-"sv_gameplayfix_slidemoveprojectiles 1\n"
-"sv_gameplayfix_upwardvelocityclearsongroundflag 1\n"
-"sv_gameplayfix_setmodelrealbox 1\n"
-"sv_gameplayfix_droptofloorstartsolid 1\n"
-"sv_gameplayfix_droptofloorstartsolid_nudgetocorrect 1\n"
-"sv_gameplayfix_noairborncorpse 1\n"
-"sv_gameplayfix_noairborncorpse_allowsuspendeditems 1\n"
-"sv_gameplayfix_easierwaterjump 1\n"
-"sv_gameplayfix_delayprojectiles 1\n"
-"sv_gameplayfix_multiplethinksperframe 1\n"
-"sv_gameplayfix_fixedcheckwatertransition 1\n"
-"sv_gameplayfix_q1bsptracelinereportstexture 1\n"
-"sv_gameplayfix_swiminbmodels 1\n"
-"sv_gameplayfix_downtracesupportsongroundflag 1\n"
-"sys_ticrate 0.01388889\n"
-"cl_csqc_generatemousemoveevents 0\n"
                 );
             break;
         default:

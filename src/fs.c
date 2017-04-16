@@ -1329,12 +1329,6 @@ void FS_Rescan (void)
         else
             Con_Print("Playing registered version.\n");
         break;
-    case GAME_STEELSTORM:
-        if (registered.integer)
-            Con_Print("Playing registered version.\n");
-        else
-            Con_Print("Playing shareware version.\n");
-        break;
     default:
         break;
     }

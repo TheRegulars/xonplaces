@@ -1587,14 +1587,13 @@ static void NetConn_ClientParsePacket_ServerList_ParseDPList(lhnetaddress_t *sen
 static int NetConn_ClientParsePacket(lhnetsocket_t *mysocket, unsigned char *data, int length, lhnetaddress_t *peeraddress)
 {
     qboolean fromserver;
-    int ret, c;
+    int ret;
     char *string, addressstring2[128];
     char stringbuf[16384];
     char senddata[NET_HEADERSIZE+NET_MAXMESSAGE+CRYPTO_HEADERSIZE];
     size_t sendlength;
 #ifdef CONFIG_MENU
     char infostringvalue[MAX_INPUTLINE];
-    char ipstring[32];
     const char *s;
 #endif
 

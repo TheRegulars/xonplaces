@@ -920,20 +920,6 @@ imageformat_t imageformats_nopath[] =
     {NULL, NULL}
 };
 
-// GAME_DELUXEQUAKE only
-// VorteX: the point why i use such messy texture paths is
-// that GtkRadiant can't detect normal/gloss textures
-// and exclude them from texture browser
-// so i just use additional folder to store this textures
-imageformat_t imageformats_dq[] =
-{
-    {"%s.tga", LoadTGA_BGRA},
-    {"%s.jpg", JPEG_LoadImage_BGRA},
-    {"texturemaps/%s.tga", LoadTGA_BGRA},
-    {"texturemaps/%s.jpg", JPEG_LoadImage_BGRA},
-    {NULL, NULL}
-};
-
 imageformat_t imageformats_textures[] =
 {
     {"%s.tga", LoadTGA_BGRA},
@@ -989,8 +975,6 @@ unsigned char *loadimagepixelsbgra (const char *filename, qboolean complain, qbo
     }
     if (gamemode == GAME_TENEBRAE)
         firstformat = imageformats_tenebrae;
-    else if (gamemode == GAME_DELUXEQUAKE)
-        firstformat = imageformats_dq;
     else if (!strcasecmp(name, "textures"))
         firstformat = imageformats_textures;
     else if (!strcasecmp(name, "gfx"))

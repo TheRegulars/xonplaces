@@ -354,10 +354,6 @@ static void Host_Map_f (void)
         return;
     }
 
-    // GAME_DELUXEQUAKE - clear warpmark (used by QC)
-    if (gamemode == GAME_DELUXEQUAKE)
-        Cvar_Set("warpmark", "");
-
     cls.demonum = -1;        // stop demo loop in case this fails
 
     CL_Disconnect ();
@@ -2101,7 +2097,7 @@ static void Host_Give_f (void)
     case '8':
     case '9':
         // MED 01/04/97 added hipnotic give stuff
-        if (gamemode == GAME_HIPNOTIC || gamemode == GAME_QUOTH)
+        if (gamemode == GAME_HIPNOTIC)
         {
             if (t[0] == '6')
             {

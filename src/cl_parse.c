@@ -1058,7 +1058,6 @@ static void CL_ParseServerInfo (void)
     int i;
     protocolversion_t protocol;
     int nummodels, numsounds;
-    char vabuf[1024];
 
     // if we start loading a level and a video is still playing, stop it
     CL_VideoStop();
@@ -2504,9 +2503,7 @@ void CL_ParseServerMessage(void)
     unsigned char        cmdlog[32];
     const char        *cmdlogname[32], *temp;
     int            cmdindex, cmdcount = 0;
-    qboolean    qwplayerupdatereceived;
     qboolean    strip_pqc;
-    char vabuf[1024];
 
     // LordHavoc: moved demo message writing from before the packet parse to
     // after the packet parse so that CL_Stop_f can be called by cl_autodemo
