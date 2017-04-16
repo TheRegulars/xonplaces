@@ -1773,42 +1773,6 @@ static void Host_Pause_f (void)
     MSG_WriteByte(&sv.reliable_datagram, sv.paused);
 }
 
-/*
-======================
-Host_PModel_f
-LordHavoc: only supported for Nehahra, I personally think this is dumb, but Mindcrime won't listen.
-LordHavoc: correction, Mindcrime will be removing pmodel in the future, but it's still stuck here for compatibility.
-======================
-*/
-cvar_t cl_pmodel = {CVAR_SAVE | CVAR_NQUSERINFOHACK, "_cl_pmodel", "0", "internal storage cvar for current player model number in nehahra (changed by pmodel command)"};
-static void Host_PModel_f (void)
-{
-    prvm_prog_t *prog = SVVM_prog;
-    int i;
-
-    if (Cmd_Argc () == 1)
-    {
-        if (cmd_source == src_command)
-        {
-            Con_Printf("\"pmodel\" is \"%s\"\n", cl_pmodel.string);
-        }
-        return;
-    }
-    i = atoi(Cmd_Argv(1));
-
-    if (cmd_source == src_command)
-    {
-        if (cl_pmodel.integer == i)
-            return;
-        Cvar_SetValue ("_cl_pmodel", i);
-        if (cls.state == ca_connected)
-            Cmd_ForwardToServer ();
-        return;
-    }
-
-    PRVM_serveredictfloat(host_client->edict, pmodel) = i;
-}
-
 //===========================================================================
 
 
@@ -2949,8 +2913,6 @@ void Host_InitCommands (void)
     Cmd_AddCommand_WithClientCommand ("rate", Host_Rate_f, Host_Rate_f, "change your network connection speed");
     Cvar_RegisterVariable (&cl_rate_burstsize);
     Cmd_AddCommand_WithClientCommand ("rate_burstsize", Host_Rate_BurstSize_f, Host_Rate_BurstSize_f, "change your network connection speed");
-    Cvar_RegisterVariable (&cl_pmodel);
-    Cmd_AddCommand_WithClientCommand ("pmodel", Host_PModel_f, Host_PModel_f, "(Nehahra-only) change your player model choice");
 
     // BLACK: This isnt game specific anymore (it was GAME_NEXUIZ at first)
     Cvar_RegisterVariable (&cl_playermodel);
