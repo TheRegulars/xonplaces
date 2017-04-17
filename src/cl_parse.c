@@ -1464,10 +1464,7 @@ static void CL_ParseClientdata (void)
         }
         if (bits & (SU_PUNCHVEC1<<i))
         {
-            if (cls.protocol == PROTOCOL_DARKPLACES1 || cls.protocol == PROTOCOL_DARKPLACES2 || cls.protocol == PROTOCOL_DARKPLACES3 || cls.protocol == PROTOCOL_DARKPLACES4)
-                cl.mpunchvector[0][i] = MSG_ReadCoord16i(&cl_message);
-            else
-                cl.mpunchvector[0][i] = MSG_ReadCoord32f(&cl_message);
+            cl.mpunchvector[0][i] = MSG_ReadCoord32f(&cl_message);
         }
         if (bits & (SU_VELOCITY1<<i) )
         {
@@ -1481,26 +1478,9 @@ static void CL_ParseClientdata (void)
     cl.onground = (bits & SU_ONGROUND) != 0;
     cl.inwater = (bits & SU_INWATER) != 0;
 
-    if (cls.protocol == PROTOCOL_DARKPLACES5)
-    {
-        cl.stats[STAT_WEAPONFRAME] = (bits & SU_WEAPONFRAME) ? MSG_ReadShort(&cl_message) : 0;
-        cl.stats[STAT_ARMOR] = (bits & SU_ARMOR) ? MSG_ReadShort(&cl_message) : 0;
-        cl.stats[STAT_WEAPON] = (bits & SU_WEAPON) ? MSG_ReadShort(&cl_message) : 0;
-        cl.stats[STAT_HEALTH] = MSG_ReadShort(&cl_message);
-        cl.stats[STAT_AMMO] = MSG_ReadShort(&cl_message);
-        cl.stats[STAT_SHELLS] = MSG_ReadShort(&cl_message);
-        cl.stats[STAT_NAILS] = MSG_ReadShort(&cl_message);
-        cl.stats[STAT_ROCKETS] = MSG_ReadShort(&cl_message);
-        cl.stats[STAT_CELLS] = MSG_ReadShort(&cl_message);
-        cl.stats[STAT_ACTIVEWEAPON] = (unsigned short) MSG_ReadShort(&cl_message);
-    }
-
     if (bits & SU_VIEWZOOM)
     {
-        if (cls.protocol == PROTOCOL_DARKPLACES2 || cls.protocol == PROTOCOL_DARKPLACES3 || cls.protocol == PROTOCOL_DARKPLACES4)
-            cl.stats[STAT_VIEWZOOM] = MSG_ReadByte(&cl_message);
-        else
-            cl.stats[STAT_VIEWZOOM] = (unsigned short) MSG_ReadShort(&cl_message);
+        cl.stats[STAT_VIEWZOOM] = (unsigned short) MSG_ReadShort(&cl_message);
     }
 
     // viewzoom interpolation
@@ -2725,41 +2705,33 @@ void CL_ParseServerMessage(void)
             break;
 
         case svc_precache:
-            if (cls.protocol == PROTOCOL_DARKPLACES1 || cls.protocol == PROTOCOL_DARKPLACES2 || cls.protocol == PROTOCOL_DARKPLACES3)
+            i = (unsigned short)MSG_ReadShort(&cl_message);
+            char *s;
+            s = MSG_ReadString(&cl_message, cl_readstring, sizeof(cl_readstring));
+            if (i < 32768)
             {
-                // was svc_sound2 in protocols 1, 2, 3, removed in 4, 5, changed to svc_precache in 6
-                CL_ParseStartSoundPacket(true);
+                if (i >= 1 && i < MAX_MODELS)
+                {
+                    dp_model_t *model = Mod_ForName(s, false, false, s[0] == '*' ? cl.model_name[1] : NULL);
+                    if (!model)
+                        Con_DPrintf("svc_precache: Mod_ForName(\"%s\") failed\n", s);
+                    cl.model_precache[i] = model;
+                }
+                else
+                    Con_Printf("svc_precache: index %i outside range %i...%i\n", i, 1, MAX_MODELS);
             }
             else
             {
-                char *s;
-                i = (unsigned short)MSG_ReadShort(&cl_message);
-                s = MSG_ReadString(&cl_message, cl_readstring, sizeof(cl_readstring));
-                if (i < 32768)
+                i -= 32768;
+                if (i >= 1 && i < MAX_SOUNDS)
                 {
-                    if (i >= 1 && i < MAX_MODELS)
-                    {
-                        dp_model_t *model = Mod_ForName(s, false, false, s[0] == '*' ? cl.model_name[1] : NULL);
-                        if (!model)
-                            Con_DPrintf("svc_precache: Mod_ForName(\"%s\") failed\n", s);
-                        cl.model_precache[i] = model;
-                    }
-                    else
-                        Con_Printf("svc_precache: index %i outside range %i...%i\n", i, 1, MAX_MODELS);
+                    sfx_t *sfx = S_PrecacheSound (s, true, true);
+                    if (!sfx && snd_initialized.integer)
+                        Con_DPrintf("svc_precache: S_PrecacheSound(\"%s\") failed\n", s);
+                    cl.sound_precache[i] = sfx;
                 }
                 else
-                {
-                    i -= 32768;
-                    if (i >= 1 && i < MAX_SOUNDS)
-                    {
-                        sfx_t *sfx = S_PrecacheSound (s, true, true);
-                        if (!sfx && snd_initialized.integer)
-                            Con_DPrintf("svc_precache: S_PrecacheSound(\"%s\") failed\n", s);
-                        cl.sound_precache[i] = sfx;
-                    }
-                    else
-                        Con_Printf("svc_precache: index %i outside range %i...%i\n", i, 1, MAX_SOUNDS);
-                }
+                    Con_Printf("svc_precache: index %i outside range %i...%i\n", i, 1, MAX_SOUNDS);
             }
             break;
 
@@ -2957,12 +2929,7 @@ void CL_ParseServerMessage(void)
                 cls.signon = SIGNONS;
                 CL_SignonReply ();
             }
-            if (cls.protocol == PROTOCOL_DARKPLACES1 || cls.protocol == PROTOCOL_DARKPLACES2 || cls.protocol == PROTOCOL_DARKPLACES3)
-                EntityFrame_CL_ReadFrame();
-            else if (cls.protocol == PROTOCOL_DARKPLACES4)
-                EntityFrame4_CL_ReadFrame();
-            else
-                EntityFrame5_CL_ReadFrame();
+            EntityFrame5_CL_ReadFrame();
             break;
         case svc_csqcentities:
             CSQC_ReadEntities();

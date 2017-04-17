@@ -435,63 +435,6 @@ qboolean EntityFrameQuake_WriteFrame(sizebuf_t *msg, int maxsize, int numstates,
 // cleans up dead entities each frame after ReadEntity (which doesn't clear unused entities)
 void EntityFrameQuake_ISeeDeadEntities(void);
 
-/*
-PROTOCOL_DARKPLACES3
-server updates entities according to some (unmentioned) scheme.
-
-a frame consists of all visible entities, some of which are up to date,
-often some are not up to date.
-
-these entities are stored in a range (firstentity/endentity) of structs in the
-entitydata[] buffer.
-
-to make a commit the server performs these steps:
-1. duplicate oldest frame in database (this is the baseline) as new frame, and
-   write frame numbers (oldest frame's number, new frame's number) and eye
-   location to network packet (eye location is obsolete and will be removed in
-   future revisions)
-2. write an entity change to packet and modify new frame accordingly
-   (this repeats until packet is sufficiently full or new frame is complete)
-3. write terminator (0xFFFF) to network packet
-   (FIXME: this terminator value conflicts with MAX_EDICTS 32768...)
-
-to read a commit the client performs these steps:
-1. reads frame numbers from packet and duplicates baseline frame as new frame,
-   also reads eye location but does nothing with it (obsolete).
-2. delete frames older than the baseline which was used
-3. read entity changes from packet until terminator (0xFFFF) is encountered,
-   each change is applied to entity frame.
-4. sends ack framenumber to server as part of input packet
-
-if server receives ack message in put packet it performs these steps:
-1. remove all older frames from database.
-*/
-
-/*
-PROTOCOL_DARKPLACES4
-a frame consists of some visible entities in a range (this is stored as start and end, note that end may be less than start if it wrapped).
-
-these entities are stored in a range (firstentity/endentity) of structs in the entitydata[] buffer.
-
-to make a commit the server performs these steps:
-1. build an entity_frame_t using appropriate functions, containing (some of) the visible entities, this is passed to the Write function to send it.
-
-This documention is unfinished!
-the Write function performs these steps:
-1. check if entity frame is larger than MAX_ENTITYFRAME or is larger than available space in database, if so the baseline is defaults, otherwise it is the current baseline of the database.
-2. write differences of an entity compared to selected baseline.
-3. add entity to entity update in database.
-4. if there are more entities to write and packet is not full, go back to step 2.
-5. write terminator (0xFFFF) as entity number.
-6. return.
-
-
-
-
-
-server updates entities in looping ranges, a frame consists of a range of visible entities (not always all visible entities),
-*/
-
 #define MAX_ENTITY_HISTORY 64
 #define MAX_ENTITY_DATABASE (MAX_EDICTS * 2)
 

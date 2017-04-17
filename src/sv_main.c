@@ -864,12 +864,7 @@ void SV_SendServerinfo (client_t *client)
     memset(client->stats, 0, sizeof(client->stats));
     memset(client->statsdeltabits, 0, sizeof(client->statsdeltabits));
 
-    if (sv.protocol == PROTOCOL_DARKPLACES1 || sv.protocol == PROTOCOL_DARKPLACES2 || sv.protocol == PROTOCOL_DARKPLACES3)
-        client->entitydatabase = EntityFrame_AllocDatabase(sv_mempool);
-    else if (sv.protocol == PROTOCOL_DARKPLACES4)
-        client->entitydatabase4 = EntityFrame4_AllocDatabase(sv_mempool);
-    else
-        client->entitydatabase5 = EntityFrame5_AllocDatabase(sv_mempool);
+    client->entitydatabase5 = EntityFrame5_AllocDatabase(sv_mempool);
 
     // reset csqc entity versions
     for (i = 0;i < prog->max_edicts;i++)
@@ -2101,10 +2096,7 @@ void SV_WriteClientdataToMessage (client_t *client, prvm_edict_t *ent, sizebuf_t
         }
         if (bits & (SU_PUNCHVEC1<<i))
         {
-            if (sv.protocol == PROTOCOL_DARKPLACES1 || sv.protocol == PROTOCOL_DARKPLACES2 || sv.protocol == PROTOCOL_DARKPLACES3 || sv.protocol == PROTOCOL_DARKPLACES4)
-                MSG_WriteCoord16i(msg, punchvector[i]);
-            else
-                MSG_WriteCoord32f(msg, punchvector[i]);
+            MSG_WriteCoord32f(msg, punchvector[i]);
         }
         if (bits & (SU_VELOCITY1<<i))
         {
@@ -2114,25 +2106,6 @@ void SV_WriteClientdataToMessage (client_t *client, prvm_edict_t *ent, sizebuf_t
 
     if (bits & SU_ITEMS)
         MSG_WriteLong (msg, stats[STAT_ITEMS]);
-
-    if (sv.protocol == PROTOCOL_DARKPLACES5)
-    {
-        if (bits & SU_WEAPONFRAME)
-            MSG_WriteShort (msg, stats[STAT_WEAPONFRAME]);
-        if (bits & SU_ARMOR)
-            MSG_WriteShort (msg, stats[STAT_ARMOR]);
-        if (bits & SU_WEAPON)
-            MSG_WriteShort (msg, stats[STAT_WEAPON]);
-        MSG_WriteShort (msg, stats[STAT_HEALTH]);
-        MSG_WriteShort (msg, stats[STAT_AMMO]);
-        MSG_WriteShort (msg, stats[STAT_SHELLS]);
-        MSG_WriteShort (msg, stats[STAT_NAILS]);
-        MSG_WriteShort (msg, stats[STAT_ROCKETS]);
-        MSG_WriteShort (msg, stats[STAT_CELLS]);
-        MSG_WriteShort (msg, stats[STAT_ACTIVEWEAPON]);
-        if (bits & SU_VIEWZOOM)
-            MSG_WriteShort (msg, bound(0, stats[STAT_VIEWZOOM], 65535));
-    }
 }
 
 void SV_FlushBroadcastMessages(void)

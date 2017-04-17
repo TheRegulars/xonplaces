@@ -1649,11 +1649,9 @@ Sbar_DeathmatchOverlay
 */
 static float Sbar_PrintScoreboardItem(scoreboard_t *s, float x, float y)
 {
-    int minutes;
     qboolean myself = false;
     unsigned char *c;
     char vabuf[1024];
-    minutes = (int)((cl.intermission ? cl.completed_time - s->qw_entertime : cl.time - s->qw_entertime) / 60.0);
 
     if((s - cl.scores) == cl.playerentity - 1)
         myself = true;

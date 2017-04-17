@@ -1729,7 +1729,7 @@ static int NetConn_ClientParsePacket(lhnetsocket_t *mysocket, unsigned char *dat
 #ifdef CONFIG_MENU
             M_Update_Return_Reason("Accepted");
 #endif
-            NetConn_ConnectionEstablished(mysocket, peeraddress, PROTOCOL_DARKPLACES3);
+            NetConn_ConnectionEstablished(mysocket, peeraddress, PROTOCOL_DARKPLACES6);
             return true;
         }
         if (length > 7 && !memcmp(string, "reject ", 7) && cls.connect_trying)

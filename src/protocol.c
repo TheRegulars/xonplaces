@@ -66,11 +66,6 @@ protocolversioninfo[] =
 {
     { 3504, PROTOCOL_DARKPLACES7 , "DP7"},
     { 3503, PROTOCOL_DARKPLACES6 , "DP6"},
-    { 3502, PROTOCOL_DARKPLACES5 , "DP5"},
-    { 3501, PROTOCOL_DARKPLACES4 , "DP4"},
-    { 3500, PROTOCOL_DARKPLACES3 , "DP3"},
-    {   97, PROTOCOL_DARKPLACES2 , "DP2"},
-    {   96, PROTOCOL_DARKPLACES1 , "DP1"},
     {    0, PROTOCOL_UNKNOWN     , NULL}
 };
 
@@ -873,7 +868,10 @@ void EntityState_WriteExtendBits(sizebuf_t *msg, unsigned int bits)
 
 void EntityState_WriteFields(const entity_state_t *ent, sizebuf_t *msg, unsigned int bits)
 {
-    if (sv.protocol == PROTOCOL_DARKPLACES2)
+    // LordHavoc: have to write flags first, as they can modify protocol
+    if (bits & E_FLAGS)
+        MSG_WriteByte(msg, ent->flags);
+    if (ent->flags & RENDER_LOWPRECISION)
     {
         if (bits & E_ORIGIN1)
             MSG_WriteCoord16i(msg, ent->origin[0]);
@@ -884,46 +882,19 @@ void EntityState_WriteFields(const entity_state_t *ent, sizebuf_t *msg, unsigned
     }
     else
     {
-        // LordHavoc: have to write flags first, as they can modify protocol
-        if (bits & E_FLAGS)
-            MSG_WriteByte(msg, ent->flags);
-        if (ent->flags & RENDER_LOWPRECISION)
-        {
-            if (bits & E_ORIGIN1)
-                MSG_WriteCoord16i(msg, ent->origin[0]);
-            if (bits & E_ORIGIN2)
-                MSG_WriteCoord16i(msg, ent->origin[1]);
-            if (bits & E_ORIGIN3)
-                MSG_WriteCoord16i(msg, ent->origin[2]);
-        }
-        else
-        {
-            if (bits & E_ORIGIN1)
-                MSG_WriteCoord32f(msg, ent->origin[0]);
-            if (bits & E_ORIGIN2)
-                MSG_WriteCoord32f(msg, ent->origin[1]);
-            if (bits & E_ORIGIN3)
-                MSG_WriteCoord32f(msg, ent->origin[2]);
-        }
+        if (bits & E_ORIGIN1)
+            MSG_WriteCoord32f(msg, ent->origin[0]);
+        if (bits & E_ORIGIN2)
+            MSG_WriteCoord32f(msg, ent->origin[1]);
+        if (bits & E_ORIGIN3)
+            MSG_WriteCoord32f(msg, ent->origin[2]);
     }
-    if ((sv.protocol == PROTOCOL_DARKPLACES1 || sv.protocol == PROTOCOL_DARKPLACES2 || sv.protocol == PROTOCOL_DARKPLACES3 || sv.protocol == PROTOCOL_DARKPLACES4) && (ent->flags & RENDER_LOWPRECISION))
-    {
-        if (bits & E_ANGLE1)
-            MSG_WriteAngle8i(msg, ent->angles[0]);
-        if (bits & E_ANGLE2)
-            MSG_WriteAngle8i(msg, ent->angles[1]);
-        if (bits & E_ANGLE3)
-            MSG_WriteAngle8i(msg, ent->angles[2]);
-    }
-    else
-    {
-        if (bits & E_ANGLE1)
-            MSG_WriteAngle16i(msg, ent->angles[0]);
-        if (bits & E_ANGLE2)
-            MSG_WriteAngle16i(msg, ent->angles[1]);
-        if (bits & E_ANGLE3)
-            MSG_WriteAngle16i(msg, ent->angles[2]);
-    }
+    if (bits & E_ANGLE1)
+        MSG_WriteAngle16i(msg, ent->angles[0]);
+    if (bits & E_ANGLE2)
+        MSG_WriteAngle16i(msg, ent->angles[1]);
+    if (bits & E_ANGLE3)
+        MSG_WriteAngle16i(msg, ent->angles[2]);
     if (bits & E_MODEL1)
         MSG_WriteByte(msg, ent->modelindex & 0xFF);
     if (bits & E_MODEL2)
@@ -948,9 +919,6 @@ void EntityState_WriteFields(const entity_state_t *ent, sizebuf_t *msg, unsigned
         MSG_WriteByte(msg, ent->glowsize);
     if (bits & E_GLOWCOLOR)
         MSG_WriteByte(msg, ent->glowcolor);
-    if (sv.protocol == PROTOCOL_DARKPLACES2)
-        if (bits & E_FLAGS)
-            MSG_WriteByte(msg, ent->flags);
     if (bits & E_TAGATTACHMENT)
     {
         MSG_WriteShort(msg, ent->tagentity);
@@ -1018,7 +986,9 @@ int EntityState_ReadExtendBits(void)
 
 void EntityState_ReadFields(entity_state_t *e, unsigned int bits)
 {
-    if (cls.protocol == PROTOCOL_DARKPLACES2)
+    if (bits & E_FLAGS)
+        e->flags = MSG_ReadByte(&cl_message);
+    if (e->flags & RENDER_LOWPRECISION)
     {
         if (bits & E_ORIGIN1)
             e->origin[0] = MSG_ReadCoord16i(&cl_message);
@@ -1029,28 +999,14 @@ void EntityState_ReadFields(entity_state_t *e, unsigned int bits)
     }
     else
     {
-        if (bits & E_FLAGS)
-            e->flags = MSG_ReadByte(&cl_message);
-        if (e->flags & RENDER_LOWPRECISION)
-        {
-            if (bits & E_ORIGIN1)
-                e->origin[0] = MSG_ReadCoord16i(&cl_message);
-            if (bits & E_ORIGIN2)
-                e->origin[1] = MSG_ReadCoord16i(&cl_message);
-            if (bits & E_ORIGIN3)
-                e->origin[2] = MSG_ReadCoord16i(&cl_message);
-        }
-        else
-        {
-            if (bits & E_ORIGIN1)
-                e->origin[0] = MSG_ReadCoord32f(&cl_message);
-            if (bits & E_ORIGIN2)
-                e->origin[1] = MSG_ReadCoord32f(&cl_message);
-            if (bits & E_ORIGIN3)
-                e->origin[2] = MSG_ReadCoord32f(&cl_message);
-        }
+        if (bits & E_ORIGIN1)
+            e->origin[0] = MSG_ReadCoord32f(&cl_message);
+        if (bits & E_ORIGIN2)
+            e->origin[1] = MSG_ReadCoord32f(&cl_message);
+        if (bits & E_ORIGIN3)
+            e->origin[2] = MSG_ReadCoord32f(&cl_message);
     }
-    if ((cls.protocol == PROTOCOL_DARKPLACES5 || cls.protocol == PROTOCOL_DARKPLACES6) && !(e->flags & RENDER_LOWPRECISION))
+    if (cls.protocol == PROTOCOL_DARKPLACES6 && !(e->flags & RENDER_LOWPRECISION))
     {
         if (bits & E_ANGLE1)
             e->angles[0] = MSG_ReadAngle16i(&cl_message);
@@ -1092,9 +1048,6 @@ void EntityState_ReadFields(entity_state_t *e, unsigned int bits)
         e->glowsize = MSG_ReadByte(&cl_message);
     if (bits & E_GLOWCOLOR)
         e->glowcolor = MSG_ReadByte(&cl_message);
-    if (cls.protocol == PROTOCOL_DARKPLACES2)
-        if (bits & E_FLAGS)
-            e->flags = MSG_ReadByte(&cl_message);
     if (bits & E_TAGATTACHMENT)
     {
         e->tagentity = (unsigned short) MSG_ReadShort(&cl_message);
@@ -2916,7 +2869,7 @@ qboolean EntityFrame5_WriteFrame(sizebuf_t *msg, int maxsize, entityframe5_datab
     d->latestframenum = framenum;
     MSG_WriteByte(msg, svc_entities);
     MSG_WriteLong(msg, framenum);
-    if (sv.protocol != PROTOCOL_DARKPLACES1 && sv.protocol != PROTOCOL_DARKPLACES2 && sv.protocol != PROTOCOL_DARKPLACES3 && sv.protocol != PROTOCOL_DARKPLACES4 && sv.protocol != PROTOCOL_DARKPLACES5 && sv.protocol != PROTOCOL_DARKPLACES6)
+    if (sv.protocol != PROTOCOL_DARKPLACES6)
         MSG_WriteLong(msg, movesequence);
     for (priority = ENTITYFRAME5_PRIORITYLEVELS - 1;priority >= 0 && packetlog->numstates < ENTITYFRAME5_MAXSTATES;priority--)
     {
