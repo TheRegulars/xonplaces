@@ -1925,7 +1925,6 @@ static SDL_Surface *VID_WrapSDL_SetVideoMode(int screenwidth, int screenheight, 
 #else
 // Adding the OS independent XPM version --blub
 #include "darkplaces.xpm"
-#include "nexuiz.xpm"
 #if SDL_MAJOR_VERSION == 1
 #if SDL_VIDEO_DRIVER_X11 && !SDL_VIDEO_DRIVER_QUARTZ
 #include <SDL_syswm.h>
