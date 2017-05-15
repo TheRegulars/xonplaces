@@ -254,15 +254,8 @@ userdirmode_t;
 typedef enum gamemode_e
 {
     GAME_NORMAL,
-    GAME_HIPNOTIC,
-    GAME_ROGUE,
-    GAME_NEHAHRA,
     GAME_NEXUIZ,
     GAME_XONOTIC,
-    GAME_TRANSFUSION,
-    GAME_GOODVSBAD2,
-    GAME_TENEBRAE, // full of evil hackery
-    GAME_BLOODOMNICIDE,
     GAME_COUNT
 }
 gamemode_t;

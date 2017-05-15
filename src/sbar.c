@@ -274,56 +274,6 @@ static void sbar_start(void)
         sb_sbar = Draw_CachePic_Flags ("gfx/sbar", CACHEPICFLAG_QUIET);
         sb_ibar = Draw_CachePic_Flags ("gfx/ibar", CACHEPICFLAG_QUIET);
         sb_scorebar = Draw_CachePic_Flags ("gfx/scorebar", CACHEPICFLAG_QUIET);
-
-    //MED 01/04/97 added new hipnotic weapons
-        if (gamemode == GAME_HIPNOTIC)
-        {
-            hsb_weapons[0][0] = Draw_CachePic_Flags ("gfx/inv_laser", CACHEPICFLAG_QUIET);
-            hsb_weapons[0][1] = Draw_CachePic_Flags ("gfx/inv_mjolnir", CACHEPICFLAG_QUIET);
-            hsb_weapons[0][2] = Draw_CachePic_Flags ("gfx/inv_gren_prox", CACHEPICFLAG_QUIET);
-            hsb_weapons[0][3] = Draw_CachePic_Flags ("gfx/inv_prox_gren", CACHEPICFLAG_QUIET);
-            hsb_weapons[0][4] = Draw_CachePic_Flags ("gfx/inv_prox", CACHEPICFLAG_QUIET);
-
-            hsb_weapons[1][0] = Draw_CachePic_Flags ("gfx/inv2_laser", CACHEPICFLAG_QUIET);
-            hsb_weapons[1][1] = Draw_CachePic_Flags ("gfx/inv2_mjolnir", CACHEPICFLAG_QUIET);
-            hsb_weapons[1][2] = Draw_CachePic_Flags ("gfx/inv2_gren_prox", CACHEPICFLAG_QUIET);
-            hsb_weapons[1][3] = Draw_CachePic_Flags ("gfx/inv2_prox_gren", CACHEPICFLAG_QUIET);
-            hsb_weapons[1][4] = Draw_CachePic_Flags ("gfx/inv2_prox", CACHEPICFLAG_QUIET);
-
-            for (i = 0;i < 5;i++)
-            {
-                hsb_weapons[2+i][0] = Draw_CachePic_Flags (va(vabuf, sizeof(vabuf), "gfx/inva%i_laser",i+1), CACHEPICFLAG_QUIET);
-                hsb_weapons[2+i][1] = Draw_CachePic_Flags (va(vabuf, sizeof(vabuf), "gfx/inva%i_mjolnir",i+1), CACHEPICFLAG_QUIET);
-                hsb_weapons[2+i][2] = Draw_CachePic_Flags (va(vabuf, sizeof(vabuf), "gfx/inva%i_gren_prox",i+1), CACHEPICFLAG_QUIET);
-                hsb_weapons[2+i][3] = Draw_CachePic_Flags (va(vabuf, sizeof(vabuf), "gfx/inva%i_prox_gren",i+1), CACHEPICFLAG_QUIET);
-                hsb_weapons[2+i][4] = Draw_CachePic_Flags (va(vabuf, sizeof(vabuf), "gfx/inva%i_prox",i+1), CACHEPICFLAG_QUIET);
-            }
-
-            hsb_items[0] = Draw_CachePic_Flags ("gfx/sb_wsuit", CACHEPICFLAG_QUIET);
-            hsb_items[1] = Draw_CachePic_Flags ("gfx/sb_eshld", CACHEPICFLAG_QUIET);
-        }
-        else if (gamemode == GAME_ROGUE)
-        {
-            rsb_invbar[0] = Draw_CachePic_Flags ("gfx/r_invbar1", CACHEPICFLAG_QUIET);
-            rsb_invbar[1] = Draw_CachePic_Flags ("gfx/r_invbar2", CACHEPICFLAG_QUIET);
-
-            rsb_weapons[0] = Draw_CachePic_Flags ("gfx/r_lava", CACHEPICFLAG_QUIET);
-            rsb_weapons[1] = Draw_CachePic_Flags ("gfx/r_superlava", CACHEPICFLAG_QUIET);
-            rsb_weapons[2] = Draw_CachePic_Flags ("gfx/r_gren", CACHEPICFLAG_QUIET);
-            rsb_weapons[3] = Draw_CachePic_Flags ("gfx/r_multirock", CACHEPICFLAG_QUIET);
-            rsb_weapons[4] = Draw_CachePic_Flags ("gfx/r_plasma", CACHEPICFLAG_QUIET);
-
-            rsb_items[0] = Draw_CachePic_Flags ("gfx/r_shield1", CACHEPICFLAG_QUIET);
-            rsb_items[1] = Draw_CachePic_Flags ("gfx/r_agrav1", CACHEPICFLAG_QUIET);
-
-    // PGM 01/19/97 - team color border
-            rsb_teambord = Draw_CachePic_Flags ("gfx/r_teambord", CACHEPICFLAG_QUIET);
-    // PGM 01/19/97 - team color border
-
-            rsb_ammo[0] = Draw_CachePic_Flags ("gfx/r_ammolava", CACHEPICFLAG_QUIET);
-            rsb_ammo[1] = Draw_CachePic_Flags ("gfx/r_ammomulti", CACHEPICFLAG_QUIET);
-            rsb_ammo[2] = Draw_CachePic_Flags ("gfx/r_ammoplasma", CACHEPICFLAG_QUIET);
-        }
     }
 
     sb_ranking = Draw_CachePic_Flags ("gfx/ranking", CACHEPICFLAG_QUIET);
@@ -756,15 +706,7 @@ static void Sbar_DrawInventory (void)
     float time;
     int flashon;
 
-    if (gamemode == GAME_ROGUE)
-    {
-        if ( cl.stats[STAT_ACTIVEWEAPON] >= RIT_LAVA_NAILGUN )
-            Sbar_DrawAlphaPic (0, -24, rsb_invbar[0], sbar_alpha_bg.value);
-        else
-            Sbar_DrawAlphaPic (0, -24, rsb_invbar[1], sbar_alpha_bg.value);
-    }
-    else
-        Sbar_DrawAlphaPic (0, -24, sb_ibar, sbar_alpha_bg.value);
+    Sbar_DrawAlphaPic (0, -24, sb_ibar, sbar_alpha_bg.value);
 
     // weapons
     for (i=0 ; i<7 ; i++)
@@ -787,64 +729,6 @@ static void Sbar_DrawInventory (void)
         }
     }
 
-    // MED 01/04/97
-    // hipnotic weapons
-    if (gamemode == GAME_HIPNOTIC)
-    {
-        int grenadeflashing=0;
-        for (i=0 ; i<4 ; i++)
-        {
-            if (cl.stats[STAT_ITEMS] & (1<<hipweapons[i]) )
-            {
-                time = max(0, cl.item_gettime[hipweapons[i]]);
-                flashon = (int)((cl.time - time)*10);
-                if (flashon >= 10)
-                {
-                    if ( cl.stats[STAT_ACTIVEWEAPON] == (1<<hipweapons[i])  )
-                        flashon = 1;
-                    else
-                        flashon = 0;
-                }
-                else
-                    flashon = (flashon%5) + 2;
-
-                // check grenade launcher
-                if (i==2)
-                {
-                    if (cl.stats[STAT_ITEMS] & HIT_PROXIMITY_GUN)
-                    {
-                        if (flashon)
-                        {
-                            grenadeflashing = 1;
-                            Sbar_DrawPic (96, -16, hsb_weapons[flashon][2]);
-                        }
-                    }
-                }
-                else if (i==3)
-                {
-                    if (cl.stats[STAT_ITEMS] & (IT_SHOTGUN<<4))
-                    {
-                        if (!grenadeflashing)
-                            Sbar_DrawPic (96, -16, hsb_weapons[flashon][3]);
-                    }
-                    else
-                        Sbar_DrawPic (96, -16, hsb_weapons[flashon][4]);
-                }
-                else
-                    Sbar_DrawPic (176 + (i*24), -16, hsb_weapons[flashon][i]);
-            }
-        }
-    }
-
-    if (gamemode == GAME_ROGUE)
-    {
-        // check for powered up weapon.
-        if ( cl.stats[STAT_ACTIVEWEAPON] >= RIT_LAVA_NAILGUN )
-            for (i=0;i<5;i++)
-                if (cl.stats[STAT_ACTIVEWEAPON] == (RIT_LAVA_NAILGUN << i))
-                    Sbar_DrawPic ((i+2)*24, -16, rsb_weapons[i]);
-    }
-
     // ammo counts
     for (i=0 ; i<4 ; i++)
     {
@@ -864,33 +748,14 @@ static void Sbar_DrawInventory (void)
         if (cl.stats[STAT_ITEMS] & (1<<(17+i)))
         {
             //MED 01/04/97 changed keys
-            if (!(gamemode == GAME_HIPNOTIC) || (i>1))
+            if (i > 1)
                 Sbar_DrawPic (192 + i*16, -16, sb_items[i]);
         }
 
-    //MED 01/04/97 added hipnotic items
-    // hipnotic items
-    if (gamemode == GAME_HIPNOTIC)
-    {
-        for (i=0 ; i<2 ; i++)
-            if (cl.stats[STAT_ITEMS] & (1<<(24+i)))
-                Sbar_DrawPic (288 + i*16, -16, hsb_items[i]);
-    }
-
-    if (gamemode == GAME_ROGUE)
-    {
-        // new rogue items
-        for (i=0 ; i<2 ; i++)
-            if (cl.stats[STAT_ITEMS] & (1<<(29+i)))
-                Sbar_DrawPic (288 + i*16, -16, rsb_items[i]);
-    }
-    else
-    {
-        // sigils
-        for (i=0 ; i<4 ; i++)
-            if (cl.stats[STAT_ITEMS] & (1<<(28+i)))
-                Sbar_DrawPic (320-32 + i*8, -16, sb_sigil[i]);
-    }
+    // sigils
+    for (i=0 ; i<4 ; i++)
+        if (cl.stats[STAT_ITEMS] & (1<<(28+i)))
+            Sbar_DrawPic (320-32 + i*8, -16, sb_sigil[i]);
 }
 
 //=============================================================================
@@ -953,44 +818,6 @@ static void Sbar_DrawFace (void)
 {
     int f;
 
-// PGM 01/19/97 - team color drawing
-// PGM 03/02/97 - fixed so color swatch only appears in CTF modes
-    if (gamemode == GAME_ROGUE && !cl.islocalgame && (teamplay.integer > 3) && (teamplay.integer < 7))
-    {
-        char num[12];
-        scoreboard_t *s;
-        unsigned char *c;
-
-        s = &cl.scores[cl.viewentity - 1];
-        // draw background
-        Sbar_DrawPic (112, 0, rsb_teambord);
-        c = palette_rgb_pantsscoreboard[(s->colors & 0xf0) >> 4];
-        DrawQ_Fill (sbar_x + 113, vid_conheight.integer-SBAR_HEIGHT+3, 22, 9, c[0] * (1.0f / 255.0f), c[1] * (1.0f / 255.0f), c[2] * (1.0f / 255.0f), sbar_alpha_fg.value, 0);
-        c = palette_rgb_shirtscoreboard[s->colors & 0xf];
-        DrawQ_Fill (sbar_x + 113, vid_conheight.integer-SBAR_HEIGHT+12, 22, 9, c[0] * (1.0f / 255.0f), c[1] * (1.0f / 255.0f), c[2] * (1.0f / 255.0f), sbar_alpha_fg.value, 0);
-
-        // draw number
-        f = s->frags;
-        dpsnprintf (num, sizeof(num), "%3i",f);
-
-        if ((s->colors & 0xf0)==0)
-        {
-            if (num[0] != ' ')
-                Sbar_DrawCharacter(109, 3, 18 + num[0] - '0');
-            if (num[1] != ' ')
-                Sbar_DrawCharacter(116, 3, 18 + num[1] - '0');
-            if (num[2] != ' ')
-                Sbar_DrawCharacter(123, 3, 18 + num[2] - '0');
-        }
-        else
-        {
-            Sbar_DrawCharacter ( 109, 3, num[0]);
-            Sbar_DrawCharacter ( 116, 3, num[1]);
-            Sbar_DrawCharacter ( 123, 3, num[2]);
-        }
-
-        return;
-    }
 // PGM 01/19/97 - team color drawing
 
     if ( (cl.stats[STAT_ITEMS] & (IT_INVISIBILITY | IT_INVULNERABILITY) ) == (IT_INVISIBILITY | IT_INVULNERABILITY) )
@@ -1515,67 +1342,38 @@ void Sbar_Draw (void)
         {
             sbar_x = (vid_conwidth.integer - 320)/2;
             sbar_y = vid_conheight.integer - SBAR_HEIGHT;
-            // LordHavoc: changed to draw the deathmatch overlays in any multiplayer mode
-            //if (cl.gametype == GAME_DEATHMATCH && gamemode != GAME_TRANSFUSION)
 
             if (sb_lines > 24)
             {
-                if (gamemode != GAME_GOODVSBAD2)
-                    Sbar_DrawInventory ();
-                if (!cl.islocalgame && gamemode != GAME_TRANSFUSION)
+                Sbar_DrawInventory ();
+                if (!cl.islocalgame)
                     Sbar_DrawFrags ();
             }
 
             if (sb_showscores || (cl.stats[STAT_HEALTH] <= 0 && cl_deathscoreboard.integer))
             {
-                if (gamemode != GAME_GOODVSBAD2)
-                    Sbar_DrawAlphaPic (0, 0, sb_scorebar, sbar_alpha_bg.value);
+                Sbar_DrawAlphaPic (0, 0, sb_scorebar, sbar_alpha_bg.value);
                 Sbar_DrawScoreboard ();
             }
             else if (sb_lines)
             {
                 Sbar_DrawAlphaPic (0, 0, sb_sbar, sbar_alpha_bg.value);
 
-                // keys (hipnotic only)
-                //MED 01/04/97 moved keys here so they would not be overwritten
-                if (gamemode == GAME_HIPNOTIC)
-                {
-                    if (cl.stats[STAT_ITEMS] & IT_KEY1)
-                        Sbar_DrawPic (209, 3, sb_items[0]);
-                    if (cl.stats[STAT_ITEMS] & IT_KEY2)
-                        Sbar_DrawPic (209, 12, sb_items[1]);
-                }
                 // armor
-                if (gamemode != GAME_GOODVSBAD2)
+                if (cl.stats[STAT_ITEMS] & IT_INVULNERABILITY)
                 {
-                    if (cl.stats[STAT_ITEMS] & IT_INVULNERABILITY)
-                    {
-                        Sbar_DrawNum (24, 0, 666, 3, 1);
-                        Sbar_DrawPic (0, 0, sb_disc);
-                    }
-                    else
-                    {
-                        if (gamemode == GAME_ROGUE)
-                        {
-                            Sbar_DrawNum (24, 0, cl.stats[STAT_ARMOR], 3, cl.stats[STAT_ARMOR] <= 25);
-                            if (cl.stats[STAT_ITEMS] & RIT_ARMOR3)
-                                Sbar_DrawPic (0, 0, sb_armor[2]);
-                            else if (cl.stats[STAT_ITEMS] & RIT_ARMOR2)
-                                Sbar_DrawPic (0, 0, sb_armor[1]);
-                            else if (cl.stats[STAT_ITEMS] & RIT_ARMOR1)
-                                Sbar_DrawPic (0, 0, sb_armor[0]);
-                        }
-                        else
-                        {
-                            Sbar_DrawNum (24, 0, cl.stats[STAT_ARMOR], 3, cl.stats[STAT_ARMOR] <= 25);
-                            if (cl.stats[STAT_ITEMS] & IT_ARMOR3)
-                                Sbar_DrawPic (0, 0, sb_armor[2]);
-                            else if (cl.stats[STAT_ITEMS] & IT_ARMOR2)
-                                Sbar_DrawPic (0, 0, sb_armor[1]);
-                            else if (cl.stats[STAT_ITEMS] & IT_ARMOR1)
-                                Sbar_DrawPic (0, 0, sb_armor[0]);
-                        }
-                    }
+                    Sbar_DrawNum (24, 0, 666, 3, 1);
+                    Sbar_DrawPic (0, 0, sb_disc);
+                }
+                else
+                {
+                    Sbar_DrawNum (24, 0, cl.stats[STAT_ARMOR], 3, cl.stats[STAT_ARMOR] <= 25);
+                    if (cl.stats[STAT_ITEMS] & IT_ARMOR3)
+                        Sbar_DrawPic (0, 0, sb_armor[2]);
+                    else if (cl.stats[STAT_ITEMS] & IT_ARMOR2)
+                        Sbar_DrawPic (0, 0, sb_armor[1]);
+                    else if (cl.stats[STAT_ITEMS] & IT_ARMOR1)
+                        Sbar_DrawPic (0, 0, sb_armor[0]);
                 }
 
                 // face
@@ -1584,45 +1382,21 @@ void Sbar_Draw (void)
                 // health
                 Sbar_DrawNum (136, 0, cl.stats[STAT_HEALTH], 3, cl.stats[STAT_HEALTH] <= 25);
 
-                // ammo icon
-                if (gamemode == GAME_ROGUE)
-                {
-                    if (cl.stats[STAT_ITEMS] & RIT_SHELLS)
-                        Sbar_DrawPic (224, 0, sb_ammo[0]);
-                    else if (cl.stats[STAT_ITEMS] & RIT_NAILS)
-                        Sbar_DrawPic (224, 0, sb_ammo[1]);
-                    else if (cl.stats[STAT_ITEMS] & RIT_ROCKETS)
-                        Sbar_DrawPic (224, 0, sb_ammo[2]);
-                    else if (cl.stats[STAT_ITEMS] & RIT_CELLS)
-                        Sbar_DrawPic (224, 0, sb_ammo[3]);
-                    else if (cl.stats[STAT_ITEMS] & RIT_LAVA_NAILS)
-                        Sbar_DrawPic (224, 0, rsb_ammo[0]);
-                    else if (cl.stats[STAT_ITEMS] & RIT_PLASMA_AMMO)
-                        Sbar_DrawPic (224, 0, rsb_ammo[1]);
-                    else if (cl.stats[STAT_ITEMS] & RIT_MULTI_ROCKETS)
-                        Sbar_DrawPic (224, 0, rsb_ammo[2]);
-                }
-                else
-                {
-                    if (cl.stats[STAT_ITEMS] & IT_SHELLS)
-                        Sbar_DrawPic (224, 0, sb_ammo[0]);
-                    else if (cl.stats[STAT_ITEMS] & IT_NAILS)
-                        Sbar_DrawPic (224, 0, sb_ammo[1]);
-                    else if (cl.stats[STAT_ITEMS] & IT_ROCKETS)
-                        Sbar_DrawPic (224, 0, sb_ammo[2]);
-                    else if (cl.stats[STAT_ITEMS] & IT_CELLS)
-                        Sbar_DrawPic (224, 0, sb_ammo[3]);
-                }
+                if (cl.stats[STAT_ITEMS] & IT_SHELLS)
+                    Sbar_DrawPic (224, 0, sb_ammo[0]);
+                else if (cl.stats[STAT_ITEMS] & IT_NAILS)
+                    Sbar_DrawPic (224, 0, sb_ammo[1]);
+                else if (cl.stats[STAT_ITEMS] & IT_ROCKETS)
+                    Sbar_DrawPic (224, 0, sb_ammo[2]);
+                else if (cl.stats[STAT_ITEMS] & IT_CELLS)
+                    Sbar_DrawPic (224, 0, sb_ammo[3]);
 
                 Sbar_DrawNum (248, 0, cl.stats[STAT_AMMO], 3, cl.stats[STAT_AMMO] <= 10);
 
                 // LordHavoc: changed to draw the deathmatch overlays in any multiplayer mode
                 if ((!cl.islocalgame || cl.gametype != GAME_COOP))
                 {
-                    if (gamemode == GAME_TRANSFUSION)
-                        Sbar_MiniDeathmatchOverlay (0, 0);
-                    else
-                        Sbar_MiniDeathmatchOverlay (sbar_x + 324, vid_conheight.integer - 8*8);
+                    Sbar_MiniDeathmatchOverlay (sbar_x + 324, vid_conheight.integer - 8*8);
                     Sbar_Score(24);
                 }
             }
@@ -1770,10 +1544,7 @@ void Sbar_MiniDeathmatchOverlay (int x, int y)
     Sbar_SortFrags ();
 
     // decide where to print
-    if (gamemode == GAME_TRANSFUSION)
-        numlines = (vid_conwidth.integer - x + 127) / 128;
-    else
-        numlines = (vid_conheight.integer - y + 7) / 8;
+    numlines = (vid_conheight.integer - y + 7) / 8;
 
     // give up if there isn't room
     if (x >= vid_conwidth.integer || y >= vid_conheight.integer || numlines < 1)
@@ -1788,49 +1559,40 @@ void Sbar_MiniDeathmatchOverlay (int x, int y)
     range_end = scoreboardlines;
     teamsep = 0;
 
-    if (gamemode != GAME_TRANSFUSION)
-        if (Sbar_IsTeammatch ())
+    if (Sbar_IsTeammatch ())
+    {
+        // reserve space for the team scores
+        numlines -= teamlines;
+
+        // find first and last player of my team (only draw the team totals and my own team)
+        range_begin = range_end = i;
+        myteam = cl.scores[fragsort[i]].colors & 15;
+        while(range_begin > 0 && (cl.scores[fragsort[range_begin-1]].colors & 15) == myteam)
+            --range_begin;
+        while(range_end < scoreboardlines && (cl.scores[fragsort[range_end]].colors & 15) == myteam)
+            ++range_end;
+
+        // looks better than two players
+        if(numlines == 2)
         {
-            // reserve space for the team scores
-            numlines -= teamlines;
-
-            // find first and last player of my team (only draw the team totals and my own team)
-            range_begin = range_end = i;
-            myteam = cl.scores[fragsort[i]].colors & 15;
-            while(range_begin > 0 && (cl.scores[fragsort[range_begin-1]].colors & 15) == myteam)
-                --range_begin;
-            while(range_end < scoreboardlines && (cl.scores[fragsort[range_end]].colors & 15) == myteam)
-                ++range_end;
-
-            // looks better than two players
-            if(numlines == 2)
-            {
-                teamsep = 8;
-                numlines = 1;
-            }
+            teamsep = 8;
+            numlines = 1;
         }
+    }
 
     // figure out start
     i -= numlines/2;
     i = min(i, range_end - numlines);
     i = max(i, range_begin);
 
-    if (gamemode == GAME_TRANSFUSION)
-    {
-        for (;i < range_end && x < vid_conwidth.integer;i++)
-            x += 128 + (int)Sbar_PrintScoreboardItem(cl.scores + fragsort[i], x, y);
-    }
-    else
-    {
-        if(range_end - i < numlines) // won't draw to bottom?
-            y += 8 * (numlines - (range_end - i)); // bottom align
-        // show team scores first
-        for (j = 0;j < teamlines && y < vid_conheight.integer;j++)
-            y += (int)Sbar_PrintScoreboardItem((teams + teamsort[j]), x, y);
-        y += teamsep;
-        for (;i < range_end && y < vid_conheight.integer;i++)
-            y += (int)Sbar_PrintScoreboardItem(cl.scores + fragsort[i], x, y);
-    }
+    if(range_end - i < numlines) // won't draw to bottom?
+        y += 8 * (numlines - (range_end - i)); // bottom align
+    // show team scores first
+    for (j = 0;j < teamlines && y < vid_conheight.integer;j++)
+        y += (int)Sbar_PrintScoreboardItem((teams + teamsort[j]), x, y);
+    y += teamsep;
+    for (;i < range_end && y < vid_conheight.integer;i++)
+        y += (int)Sbar_PrintScoreboardItem(cl.scores + fragsort[i], x, y);
 }
 
 static int Sbar_TeamColorCompare(const void *t1_, const void *t2_)

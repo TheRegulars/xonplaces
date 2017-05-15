@@ -105,8 +105,6 @@ cvar_t chase_back = {CVAR_SAVE, "chase_back", "48", "chase cam distance from the
 cvar_t chase_up = {CVAR_SAVE, "chase_up", "24", "chase cam distance from the player"};
 cvar_t chase_active = {CVAR_SAVE, "chase_active", "0", "enables chase cam"};
 cvar_t chase_overhead = {CVAR_SAVE, "chase_overhead", "0", "chase cam looks straight down if this is not zero"};
-// GAME_GOODVSBAD2
-cvar_t chase_stevie = {0, "chase_stevie", "0", "(GOODVSBAD2 only) chase cam view from above"};
 
 cvar_t v_deathtilt = {0, "v_deathtilt", "1", "whether to use sideways view when dead"};
 cvar_t v_deathtiltangle = {0, "v_deathtiltangle", "80", "what roll angle to use when tilting the view while dead"};
@@ -625,14 +623,6 @@ void V_CalcRefdefUsing (const matrix4x4_t *entrendermatrix, const vec3_t clviewa
             }
             else
             {
-                if (gamemode == GAME_GOODVSBAD2 && chase_stevie.integer)
-                {
-                    // look straight down from high above
-                    viewangles[PITCH] = 90;
-                    camback = 2048;
-                    VectorSet(forward, 0, 0, -1);
-                }
-
                 // trace a little further so it hits a surface more consistently (to avoid 'snapping' on the edge of the range)
                 dist = -camback - 8;
                 chase_dest[0] = vieworg[0] + forward[0] * dist;
@@ -993,39 +983,36 @@ void V_CalcViewBlend(void)
             cl.cshifts[CSHIFT_CONTENTS].percent = 0;
         }
 
-        if (gamemode != GAME_TRANSFUSION)
+        if (cl.stats[STAT_ITEMS] & IT_QUAD)
         {
-            if (cl.stats[STAT_ITEMS] & IT_QUAD)
-            {
-                cl.cshifts[CSHIFT_POWERUP].destcolor[0] = 0;
-                cl.cshifts[CSHIFT_POWERUP].destcolor[1] = 0;
-                cl.cshifts[CSHIFT_POWERUP].destcolor[2] = 255;
-                cl.cshifts[CSHIFT_POWERUP].percent = 30;
-            }
-            else if (cl.stats[STAT_ITEMS] & IT_SUIT)
-            {
-                cl.cshifts[CSHIFT_POWERUP].destcolor[0] = 0;
-                cl.cshifts[CSHIFT_POWERUP].destcolor[1] = 255;
-                cl.cshifts[CSHIFT_POWERUP].destcolor[2] = 0;
-                cl.cshifts[CSHIFT_POWERUP].percent = 20;
-            }
-            else if (cl.stats[STAT_ITEMS] & IT_INVISIBILITY)
-            {
-                cl.cshifts[CSHIFT_POWERUP].destcolor[0] = 100;
-                cl.cshifts[CSHIFT_POWERUP].destcolor[1] = 100;
-                cl.cshifts[CSHIFT_POWERUP].destcolor[2] = 100;
-                cl.cshifts[CSHIFT_POWERUP].percent = 100;
-            }
-            else if (cl.stats[STAT_ITEMS] & IT_INVULNERABILITY)
-            {
-                cl.cshifts[CSHIFT_POWERUP].destcolor[0] = 255;
-                cl.cshifts[CSHIFT_POWERUP].destcolor[1] = 255;
-                cl.cshifts[CSHIFT_POWERUP].destcolor[2] = 0;
-                cl.cshifts[CSHIFT_POWERUP].percent = 30;
-            }
-            else
-                cl.cshifts[CSHIFT_POWERUP].percent = 0;
+            cl.cshifts[CSHIFT_POWERUP].destcolor[0] = 0;
+            cl.cshifts[CSHIFT_POWERUP].destcolor[1] = 0;
+            cl.cshifts[CSHIFT_POWERUP].destcolor[2] = 255;
+            cl.cshifts[CSHIFT_POWERUP].percent = 30;
         }
+        else if (cl.stats[STAT_ITEMS] & IT_SUIT)
+        {
+            cl.cshifts[CSHIFT_POWERUP].destcolor[0] = 0;
+            cl.cshifts[CSHIFT_POWERUP].destcolor[1] = 255;
+            cl.cshifts[CSHIFT_POWERUP].destcolor[2] = 0;
+            cl.cshifts[CSHIFT_POWERUP].percent = 20;
+        }
+        else if (cl.stats[STAT_ITEMS] & IT_INVISIBILITY)
+        {
+            cl.cshifts[CSHIFT_POWERUP].destcolor[0] = 100;
+            cl.cshifts[CSHIFT_POWERUP].destcolor[1] = 100;
+            cl.cshifts[CSHIFT_POWERUP].destcolor[2] = 100;
+            cl.cshifts[CSHIFT_POWERUP].percent = 100;
+        }
+        else if (cl.stats[STAT_ITEMS] & IT_INVULNERABILITY)
+        {
+            cl.cshifts[CSHIFT_POWERUP].destcolor[0] = 255;
+            cl.cshifts[CSHIFT_POWERUP].destcolor[1] = 255;
+            cl.cshifts[CSHIFT_POWERUP].destcolor[2] = 0;
+            cl.cshifts[CSHIFT_POWERUP].percent = 30;
+        }
+        else
+            cl.cshifts[CSHIFT_POWERUP].percent = 0;
 
         cl.cshifts[CSHIFT_VCSHIFT].destcolor[0] = v_cshift.destcolor[0];
         cl.cshifts[CSHIFT_VCSHIFT].destcolor[1] = v_cshift.destcolor[1];
@@ -1173,7 +1160,6 @@ void V_Init (void)
     Cvar_RegisterVariable (&chase_active);
     Cvar_RegisterVariable (&chase_overhead);
     Cvar_RegisterVariable (&chase_pitchangle);
-    Cvar_RegisterVariable (&chase_stevie);
 
     Cvar_RegisterVariable (&v_deathtilt);
     Cvar_RegisterVariable (&v_deathtiltangle);

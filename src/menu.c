@@ -33,8 +33,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 static cvar_t forceqmenu = { 0, "forceqmenu", "0", "enables the quake menu instead of the quakec menu.dat (if present)" };
 static cvar_t menu_progs = { 0, "menu_progs", "menu.dat", "name of quakec menu.dat file" };
 
-static int NehGameType;
-
 enum m_state_e m_state;
 char m_return_reason[128];
 
@@ -310,15 +308,6 @@ static void M_Demo_Draw (void)
     M_DrawCharacter (8, 16 + demo_cursor*8, 12+((int)(realtime*4)&1));
 }
 
-
-static void M_Menu_Demos_f (void)
-{
-    key_dest = key_menu;
-    m_state = m_demo;
-    m_entersound = true;
-}
-
-
 static void M_Demo_Key (int k, int ascii)
 {
     char vabuf[1024];
@@ -367,16 +356,7 @@ void M_Menu_Main_f (void)
     const char *s;
     s = "gfx/mainmenu";
 
-    if (gamemode == GAME_TRANSFUSION)
-    {
-        s = "gfx/menu/mainmenu1";
-        if (sv.active && !cl.intermission && cl.islocalgame)
-            MAIN_ITEMS = 8;
-        else
-            MAIN_ITEMS = 7;
-    }
-    else
-        MAIN_ITEMS = 5;
+    MAIN_ITEMS = 5;
 
     // check if the game data is missing and use a different main menu if so
     m_missingdata = !forceqmenu.integer && Draw_CachePic (s)->tex == r_texture_notexture;
@@ -419,44 +399,11 @@ static void M_Main_Draw (void)
         return;
     }
 
-    if (gamemode == GAME_TRANSFUSION) {
-        int y1, y2, y3;
-        M_Background(640, 480);
-        p = Draw_CachePic ("gfx/menu/tb-transfusion");
-        M_DrawPic (640/2 - p->width/2, 40, "gfx/menu/tb-transfusion");
-        y2 = 120;
-        // 8 rather than MAIN_ITEMS to skip a number and not miss the last option
-        for (y1 = 1; y1 <= 8; y1++)
-        {
-            if (MAIN_ITEMS == 7 && y1 == 4)
-                y1++;
-            M_DrawPic (0, y2, va(vabuf, sizeof(vabuf), "gfx/menu/mainmenu%i", y1));
-            y2 += 40;
-        }
-        if (MAIN_ITEMS == 7 && m_main_cursor > 2)
-            y3 = m_main_cursor + 2;
-        else
-            y3 = m_main_cursor + 1;
-        M_DrawPic (0, 120 + m_main_cursor * 40, va(vabuf, sizeof(vabuf), "gfx/menu/mainmenu%iselected", y3));
-        return;
-    }
-
     M_Background(320, 200);
     M_DrawPic (16, 4, "gfx/qplaque");
     p = Draw_CachePic ("gfx/ttl_main");
     M_DrawPic ( (320-p->width)/2, 4, "gfx/ttl_main");
-// Nehahra
-    if (gamemode == GAME_NEHAHRA)
-    {
-        if (NehGameType == TYPE_BOTH)
-            M_DrawPic (72, 32, "gfx/mainmenu");
-        else if (NehGameType == TYPE_GAME)
-            M_DrawPic (72, 32, "gfx/gamemenu");
-        else
-            M_DrawPic (72, 32, "gfx/demomenu");
-    }
-    else
-        M_DrawPic (72, 32, "gfx/mainmenu");
+    M_DrawPic (72, 32, "gfx/mainmenu");
 
     f = (int)(realtime * 10)%6;
 
@@ -506,165 +453,6 @@ static void M_Main_Key (int key, int ascii)
             case 1:
                 M_Menu_Quit_f ();
                 break;
-            }
-        }
-        else if (gamemode == GAME_NEHAHRA)
-        {
-            switch (NehGameType)
-            {
-            case TYPE_BOTH:
-                switch (m_main_cursor)
-                {
-                case 0:
-                    M_Menu_SinglePlayer_f ();
-                    break;
-
-                case 1:
-                    M_Menu_Demos_f ();
-                    break;
-
-                case 2:
-                    M_Menu_MultiPlayer_f ();
-                    break;
-
-                case 3:
-                    M_Menu_Options_f ();
-                    break;
-
-                case 4:
-                    key_dest = key_game;
-                    if (sv.active)
-                        Cbuf_AddText ("disconnect\n");
-                    Cbuf_AddText ("playdemo endcred\n");
-                    break;
-
-                case 5:
-                    M_Menu_Quit_f ();
-                    break;
-                }
-                break;
-            case TYPE_GAME:
-                switch (m_main_cursor)
-                {
-                case 0:
-                    M_Menu_SinglePlayer_f ();
-                    break;
-
-                case 1:
-                    M_Menu_MultiPlayer_f ();
-                    break;
-
-                case 2:
-                    M_Menu_Options_f ();
-                    break;
-
-                case 3:
-                    key_dest = key_game;
-                    if (sv.active)
-                        Cbuf_AddText ("disconnect\n");
-                    Cbuf_AddText ("playdemo endcred\n");
-                    break;
-
-                case 4:
-                    M_Menu_Quit_f ();
-                    break;
-                }
-                break;
-            case TYPE_DEMO:
-                switch (m_main_cursor)
-                {
-                case 0:
-                    M_Menu_Demos_f ();
-                    break;
-
-                case 1:
-                    key_dest = key_game;
-                    if (sv.active)
-                        Cbuf_AddText ("disconnect\n");
-                    Cbuf_AddText ("playdemo endcred\n");
-                    break;
-
-                case 2:
-                    M_Menu_Options_f ();
-                    break;
-
-                case 3:
-                    M_Menu_Quit_f ();
-                    break;
-                }
-                break;
-            }
-        }
-        else if (gamemode == GAME_TRANSFUSION) {
-            if (MAIN_ITEMS == 7)
-            {
-                switch (m_main_cursor)
-                {
-                case 0:
-                    M_Menu_Transfusion_Episode_f ();
-                    break;
-
-                case 1:
-                    M_Menu_MultiPlayer_f ();
-                    break;
-
-                case 2:
-                    M_Menu_Options_f ();
-                    break;
-
-                case 3:
-                    M_Menu_Load_f ();
-                    break;
-
-                case 4:
-                    M_Menu_Help_f ();
-                    break;
-
-                case 5:
-                    M_Menu_Credits_f ();
-                    break;
-
-                case 6:
-                    M_Menu_Quit_f ();
-                    break;
-                }
-            }
-            else
-            {
-                switch (m_main_cursor)
-                {
-                case 0:
-                    M_Menu_Transfusion_Episode_f ();
-                    break;
-
-                case 1:
-                    M_Menu_MultiPlayer_f ();
-                    break;
-
-                case 2:
-                    M_Menu_Options_f ();
-                    break;
-
-                case 3:
-                    M_Menu_Save_f ();
-                    break;
-
-                case 4:
-                    M_Menu_Load_f ();
-                    break;
-
-                case 5:
-                    M_Menu_Help_f ();
-                    break;
-
-                case 6:
-                    M_Menu_Credits_f ();
-                    break;
-
-                case 7:
-                    M_Menu_Quit_f ();
-                    break;
-                }
             }
         }
         else
@@ -720,38 +508,19 @@ static void M_SinglePlayer_Draw (void)
     M_DrawPic (16, 4, "gfx/qplaque");
     p = Draw_CachePic ("gfx/ttl_sgl");
 
-    // Some mods don't have a single player mode
-    if (gamemode == GAME_GOODVSBAD2)
-    {
-        M_DrawPic ((320 - p->width) / 2, 4, "gfx/ttl_sgl");
+    int        f;
 
-        M_DrawTextBox (60, 8 * 8, 23, 4);
-        M_Print(95, 10 * 8, "Good Vs Bad 2 is for");
-        M_Print(83, 11 * 8, "multiplayer play only");
-    }
-    else
-    {
-        int        f;
+    M_DrawPic ( (320-p->width)/2, 4, "gfx/ttl_sgl");
+    M_DrawPic (72, 32, "gfx/sp_menu");
 
-        M_DrawPic ( (320-p->width)/2, 4, "gfx/ttl_sgl");
-        M_DrawPic (72, 32, "gfx/sp_menu");
+    f = (int)(realtime * 10)%6;
 
-        f = (int)(realtime * 10)%6;
-
-        M_DrawPic (54, 32 + m_singleplayer_cursor * 20, va(vabuf, sizeof(vabuf), "gfx/menudot%i", f+1));
-    }
+    M_DrawPic (54, 32 + m_singleplayer_cursor * 20, va(vabuf, sizeof(vabuf), "gfx/menudot%i", f+1));
 }
 
 
 static void M_SinglePlayer_Key (int key, int ascii)
 {
-    if (gamemode == GAME_GOODVSBAD2)
-    {
-        if (key == K_ESCAPE || key == K_ENTER)
-            m_state = m_main;
-        return;
-    }
-
     switch (key)
     {
     case K_ESCAPE:
@@ -782,12 +551,6 @@ static void M_SinglePlayer_Key (int key, int ascii)
             Cbuf_AddText ("maxplayers 1\n");
             Cbuf_AddText ("deathmatch 0\n");
             Cbuf_AddText ("coop 0\n");
-            if (gamemode == GAME_TRANSFUSION)
-            {
-                key_dest = key_menu;
-                M_Menu_Transfusion_Episode_f ();
-                break;
-            }
             Cbuf_AddText ("startmap_sp\n");
             break;
 
@@ -921,10 +684,7 @@ static void M_Load_Key (int k, int ascii)
     switch (k)
     {
     case K_ESCAPE:
-        if (gamemode == GAME_TRANSFUSION)
-            M_Menu_Main_f ();
-        else
-            M_Menu_SinglePlayer_f ();
+        M_Menu_SinglePlayer_f ();
         break;
 
     case K_ENTER:
@@ -963,10 +723,7 @@ static void M_Save_Key (int k, int ascii)
     switch (k)
     {
     case K_ESCAPE:
-        if (gamemode == GAME_TRANSFUSION)
-            M_Menu_Main_f ();
-        else
-            M_Menu_SinglePlayer_f ();
+        M_Menu_SinglePlayer_f ();
         break;
 
     case K_ENTER:
@@ -1173,16 +930,6 @@ static void M_MultiPlayer_Draw (void)
     cachepic_t    *p;
     char vabuf[1024];
 
-    if (gamemode == GAME_TRANSFUSION)
-    {
-        M_Background(640, 480);
-        p = Draw_CachePic ("gfx/menu/tb-online");
-        M_DrawPic (640/2 - p->width/2, 140, "gfx/menu/tb-online");
-        for (f = 1; f <= MULTIPLAYER_ITEMS; f++)
-            M_DrawPic (0, 180 + f*40, va(vabuf, sizeof(vabuf), "gfx/menu/online%i", f));
-        M_DrawPic (0, 220 + m_multiplayer_cursor * 40, va(vabuf, sizeof(vabuf), "gfx/menu/online%iselected", m_multiplayer_cursor + 1));
-        return;
-    }
     M_Background(320, 200);
 
     M_DrawPic (16, 4, "gfx/qplaque");
@@ -1312,11 +1059,8 @@ static void M_Setup_Draw (void)
     M_DrawTextBox (160, 32, 16, 1);
     M_PrintColored(168, 40, setup_myname);
 
-    if (gamemode != GAME_GOODVSBAD2)
-    {
-        M_Print(64, 64, "Shirt color");
-        M_Print(64, 88, "Pants color");
-    }
+    M_Print(64, 64, "Shirt color");
+    M_Print(64, 88, "Pants color");
 
     M_Print(64, 124-8, "Network speed limit");
     M_Print(168, 124, va(vabuf, sizeof(vabuf), "%i (%s)", setup_rate, setup_ratetable[setup_rateindex(setup_rate)].name));
@@ -2338,87 +2082,6 @@ static const char *quakebindnames[][2] =
 {"+movedown",        "swim down"}
 };
 
-static const char *transfusionbindnames[][2] =
-{
-{"",                "Movement"},        // Movement commands
-{"+forward",         "walk forward"},
-{"+back",             "backpedal"},
-{"+left",             "turn left"},
-{"+right",             "turn right"},
-{"+moveleft",         "step left"},
-{"+moveright",         "step right"},
-{"+jump",             "jump / swim up"},
-{"+movedown",        "swim down"},
-{"",                "Combat"},            // Combat commands
-{"impulse 1",        "Pitch Fork"},
-{"impulse 2",        "Flare Gun"},
-{"impulse 3",        "Shotgun"},
-{"impulse 4",        "Machine Gun"},
-{"impulse 5",        "Incinerator"},
-{"impulse 6",        "Bombs (TNT)"},
-{"impulse 35",        "Proximity Bomb"},
-{"impulse 36",        "Remote Detonator"},
-{"impulse 7",        "Aerosol Can"},
-{"impulse 8",        "Tesla Cannon"},
-{"impulse 9",        "Life Leech"},
-{"impulse 10",        "Voodoo Doll"},
-{"impulse 21",        "next weapon"},
-{"impulse 22",        "previous weapon"},
-{"+attack",         "attack"},
-{"+button3",        "altfire"},
-{"",                "Inventory"},        // Inventory commands
-{"impulse 40",        "Dr.'s Bag"},
-{"impulse 41",        "Crystal Ball"},
-{"impulse 42",        "Beast Vision"},
-{"impulse 43",        "Jump Boots"},
-{"impulse 23",        "next item"},
-{"impulse 24",        "previous item"},
-{"impulse 25",        "use item"},
-{"",                "Misc"},            // Misc commands
-{"+button4",        "use"},
-{"impulse 50",        "add bot (red)"},
-{"impulse 51",        "add bot (blue)"},
-{"impulse 52",        "kick a bot"},
-{"impulse 26",        "next armor type"},
-{"impulse 27",        "identify player"},
-{"impulse 55",        "voting menu"},
-{"impulse 56",        "observer mode"},
-{"",                "Taunts"},            // Taunts
-{"impulse 70",        "taunt 0"},
-{"impulse 71",        "taunt 1"},
-{"impulse 72",        "taunt 2"},
-{"impulse 73",        "taunt 3"},
-{"impulse 74",        "taunt 4"},
-{"impulse 75",        "taunt 5"},
-{"impulse 76",        "taunt 6"},
-{"impulse 77",        "taunt 7"},
-{"impulse 78",        "taunt 8"},
-{"impulse 79",        "taunt 9"}
-};
-
-static const char *goodvsbad2bindnames[][2] =
-{
-{"impulse 69",        "Power 1"},
-{"impulse 70",        "Power 2"},
-{"impulse 71",        "Power 3"},
-{"+jump",             "jump / swim up"},
-{"+forward",         "walk forward"},
-{"+back",             "backpedal"},
-{"+left",             "turn left"},
-{"+right",             "turn right"},
-{"+speed",             "run"},
-{"+moveleft",         "step left"},
-{"+moveright",         "step right"},
-{"+strafe",         "sidestep"},
-{"+lookup",         "look up"},
-{"+lookdown",         "look down"},
-{"centerview",         "center view"},
-{"+mlook",             "mouse look"},
-{"kill",             "kill yourself"},
-{"+moveup",            "swim up"},
-{"+movedown",        "swim down"}
-};
-
 static int numcommands;
 static const char *(*bindnames)[2];
 
@@ -2522,21 +2185,8 @@ void M_Menu_Keys_f (void)
     m_state = m_keys;
     m_entersound = true;
 
-    if (gamemode == GAME_TRANSFUSION)
-    {
-        numcommands = sizeof(transfusionbindnames) / sizeof(transfusionbindnames[0]);
-        bindnames = transfusionbindnames;
-    }
-    else if (gamemode == GAME_GOODVSBAD2)
-    {
-        numcommands = sizeof(goodvsbad2bindnames) / sizeof(goodvsbad2bindnames[0]);
-        bindnames = goodvsbad2bindnames;
-    }
-    else
-    {
-        numcommands = sizeof(quakebindnames) / sizeof(quakebindnames[0]);
-        bindnames = quakebindnames;
-    }
+    numcommands = sizeof(quakebindnames) / sizeof(quakebindnames[0]);
+    bindnames = quakebindnames;
 
     // Make sure "keys_cursor" doesn't start on a section in the binding list
     keys_cursor = 0;
@@ -3168,10 +2818,6 @@ static int M_ChooseQuitMessage(int request)
     switch (gamemode)
     {
     case GAME_NORMAL:
-    case GAME_HIPNOTIC:
-    case GAME_ROGUE:
-    case GAME_NEHAHRA:
-    case GAME_GOODVSBAD2:
         if (request-- == 0) return M_QuitMessage("Press Yes To Quit","...","Yes",NULL,NULL,NULL,NULL,NULL);
         if (request-- == 0) return M_QuitMessage("Do you really want to","Quit?","Play Good vs bad 3!",NULL,NULL,NULL,NULL,NULL);
         if (request-- == 0) return M_QuitMessage("All your quit are","belong to long duck","dong",NULL,NULL,NULL,NULL,NULL);
@@ -3543,258 +3189,8 @@ static episode_t quakeepisodes[] =
     {"Deathmatch Arena", 32, 6}
 };
 
- //MED 01/06/97 added hipnotic levels
-static level_t     hipnoticlevels[] =
-{
-   {"start", "Command HQ"},  // 0
-
-   {"hip1m1", "The Pumping Station"},          // 1
-   {"hip1m2", "Storage Facility"},
-   {"hip1m3", "The Lost Mine"},
-   {"hip1m4", "Research Facility"},
-   {"hip1m5", "Military Complex"},
-
-   {"hip2m1", "Ancient Realms"},          // 6
-   {"hip2m2", "The Black Cathedral"},
-   {"hip2m3", "The Catacombs"},
-   {"hip2m4", "The Crypt"},
-   {"hip2m5", "Mortum's Keep"},
-   {"hip2m6", "The Gremlin's Domain"},
-
-   {"hip3m1", "Tur Torment"},       // 12
-   {"hip3m2", "Pandemonium"},
-   {"hip3m3", "Limbo"},
-   {"hip3m4", "The Gauntlet"},
-
-   {"hipend", "Armagon's Lair"},       // 16
-
-   {"hipdm1", "The Edge of Oblivion"}           // 17
-};
-
-//MED 01/06/97  added hipnotic episodes
-static episode_t   hipnoticepisodes[] =
-{
-   {"Scourge of Armagon", 0, 1},
-   {"Fortress of the Dead", 1, 5},
-   {"Dominion of Darkness", 6, 6},
-   {"The Rift", 12, 4},
-   {"Final Level", 16, 1},
-   {"Deathmatch Arena", 17, 1}
-};
-
-//PGM 01/07/97 added rogue levels
-//PGM 03/02/97 added dmatch level
-static level_t        roguelevels[] =
-{
-    {"start",    "Split Decision"},
-    {"r1m1",    "Deviant's Domain"},
-    {"r1m2",    "Dread Portal"},
-    {"r1m3",    "Judgement Call"},
-    {"r1m4",    "Cave of Death"},
-    {"r1m5",    "Towers of Wrath"},
-    {"r1m6",    "Temple of Pain"},
-    {"r1m7",    "Tomb of the Overlord"},
-    {"r2m1",    "Tempus Fugit"},
-    {"r2m2",    "Elemental Fury I"},
-    {"r2m3",    "Elemental Fury II"},
-    {"r2m4",    "Curse of Osiris"},
-    {"r2m5",    "Wizard's Keep"},
-    {"r2m6",    "Blood Sacrifice"},
-    {"r2m7",    "Last Bastion"},
-    {"r2m8",    "Source of Evil"},
-    {"ctf1",    "Division of Change"}
-};
-
-//PGM 01/07/97 added rogue episodes
-//PGM 03/02/97 added dmatch episode
-static episode_t    rogueepisodes[] =
-{
-    {"Introduction", 0, 1},
-    {"Hell's Fortress", 1, 7},
-    {"Corridors of Time", 8, 8},
-    {"Deathmatch Arena", 16, 1}
-};
-
-static level_t        nehahralevels[] =
-{
-    {"nehstart",    "Welcome to Nehahra"},
-    {"neh1m1",    "Forge City1: Slipgates"},
-    {"neh1m2",    "Forge City2: Boiler"},
-    {"neh1m3",    "Forge City3: Escape"},
-    {"neh1m4",    "Grind Core"},
-    {"neh1m5",    "Industrial Silence"},
-    {"neh1m6",    "Locked-Up Anger"},
-    {"neh1m7",    "Wanderer of the Wastes"},
-    {"neh1m8",    "Artemis System Net"},
-    {"neh1m9",    "To the Death"},
-    {"neh2m1",    "The Gates of Ghoro"},
-    {"neh2m2",    "Sacred Trinity"},
-    {"neh2m3",    "Realm of the Ancients"},
-    {"neh2m4",    "Temple of the Ancients"},
-    {"neh2m5",    "Dreams Made Flesh"},
-    {"neh2m6",    "Your Last Cup of Sorrow"},
-    {"nehsec",    "Ogre's Bane"},
-    {"nehahra",    "Nehahra's Den"},
-    {"nehend",    "Quintessence"}
-};
-
-static episode_t    nehahraepisodes[] =
-{
-    {"Welcome to Nehahra", 0, 1},
-    {"The Fall of Forge", 1, 9},
-    {"The Outlands", 10, 7},
-    {"Dimension of the Lost", 17, 2}
-};
-
-// Map list for Transfusion
-static level_t        transfusionlevels[] =
-{
-    {"e1m1",        "Cradle to Grave"},
-    {"e1m2",        "Wrong Side of the Tracks"},
-    {"e1m3",        "Phantom Express"},
-    {"e1m4",        "Dark Carnival"},
-    {"e1m5",        "Hallowed Grounds"},
-    {"e1m6",        "The Great Temple"},
-    {"e1m7",        "Altar of Stone"},
-    {"e1m8",        "House of Horrors"},
-
-    {"e2m1",        "Shipwrecked"},
-    {"e2m2",        "The Lumber Mill"},
-    {"e2m3",        "Rest for the Wicked"},
-    {"e2m4",        "The Overlooked Hotel"},
-    {"e2m5",        "The Haunting"},
-    {"e2m6",        "The Cold Rush"},
-    {"e2m7",        "Bowels of the Earth"},
-    {"e2m8",        "The Lair of Shial"},
-    {"e2m9",        "Thin Ice"},
-
-    {"e3m1",        "Ghost Town"},
-    {"e3m2",        "The Siege"},
-    {"e3m3",        "Raw Sewage"},
-    {"e3m4",        "The Sick Ward"},
-    {"e3m5",        "Spare Parts"},
-    {"e3m6",        "Monster Bait"},
-    {"e3m7",        "The Pit of Cerberus"},
-    {"e3m8",        "Catacombs"},
-
-    {"e4m1",        "Butchery Loves Company"},
-    {"e4m2",        "Breeding Grounds"},
-    {"e4m3",        "Charnel House"},
-    {"e4m4",        "Crystal Lake"},
-    {"e4m5",        "Fire and Brimstone"},
-    {"e4m6",        "The Ganglion Depths"},
-    {"e4m7",        "In the Flesh"},
-    {"e4m8",        "The Hall of the Epiphany"},
-    {"e4m9",        "Mall of the Dead"},
-
-    {"bb1",            "The Stronghold"},
-    {"bb2",            "Winter Wonderland"},
-    {"bb3",            "Bodies"},
-    {"bb4",            "The Tower"},
-    {"bb5",            "Click!"},
-    {"bb6",            "Twin Fortress"},
-    {"bb7",            "Midgard"},
-    {"bb8",            "Fun With Heads"},
-    {"dm1",            "Monolith Building 11"},
-    {"dm2",            "Power!"},
-    {"dm3",            "Area 15"},
-
-    {"e6m1",        "Welcome to Your Life"},
-    {"e6m2",        "They Are Here"},
-    {"e6m3",        "Public Storage"},
-    {"e6m4",        "Aqueducts"},
-    {"e6m5",        "The Ruined Temple"},
-    {"e6m6",        "Forbidden Rituals"},
-    {"e6m7",        "The Dungeon"},
-    {"e6m8",        "Beauty and the Beast"},
-    {"e6m9",        "Forgotten Catacombs"},
-
-    {"cp01",        "Boat Docks"},
-    {"cp02",        "Old Opera House"},
-    {"cp03",        "Gothic Library"},
-    {"cp04",        "Lost Monastery"},
-    {"cp05",        "Steamboat"},
-    {"cp06",        "Graveyard"},
-    {"cp07",        "Mountain Pass"},
-    {"cp08",        "Abysmal Mine"},
-    {"cp09",        "Castle"},
-    {"cps1",        "Boggy Creek"},
-
-    {"cpbb01",        "Crypt of Despair"},
-    {"cpbb02",        "Pits of Blood"},
-    {"cpbb03",        "Unholy Cathedral"},
-    {"cpbb04",        "Deadly Inspirations"},
-
-    {"b2a15",        "Area 15 (B2)"},
-    {"b2bodies",    "BB_Bodies (B2)"},
-    {"b2cabana",    "BB_Cabana"},
-    {"b2power",        "BB_Power"},
-    {"barena",        "Blood Arena"},
-    {"bkeep",        "Blood Keep"},
-    {"bstar",        "Brown Star"},
-    {"crypt",        "The Crypt"},
-
-    {"bb3_2k1",        "Bodies Infusion"},
-    {"captasao",    "Captasao"},
-    {"curandero",    "Curandero"},
-    {"dcamp",        "DeathCamp"},
-    {"highnoon",    "HighNoon"},
-    {"qbb1",        "The Confluence"},
-    {"qbb2",        "KathartiK"},
-    {"qbb3",        "Caleb's Woodland Retreat"},
-    {"zoo",            "Zoo"},
-
-    {"dranzbb6",    "Black Coffee"},
-    {"fragm",        "Frag'M"},
-    {"maim",        "Maim"},
-    {"qe1m7",        "The House of Chthon"},
-    {"qdm1",        "Place of Two Deaths"},
-    {"qdm4",        "The Bad Place"},
-    {"qdm5",        "The Cistern"},
-    {"qmorbias",    "DM-Morbias"},
-    {"simple",        "Dead Simple"}
-};
-
-static episode_t    transfusionepisodes[] =
-{
-    {"The Way of All Flesh", 0, 8},
-    {"Even Death May Die", 8, 9},
-    {"Farewell to Arms", 17, 8},
-    {"Dead Reckoning", 25, 9},
-    {"BloodBath", 34, 11},
-    {"Post Mortem", 45, 9},
-    {"Cryptic Passage", 54, 10},
-    {"Cryptic BloodBath", 64, 4},
-    {"Blood 2", 68, 8},
-    {"Transfusion", 76, 9},
-    {"Conversions", 85, 9}
-};
-
-static level_t goodvsbad2levels[] =
-{
-    {"rts", "Many Paths"},  // 0
-    {"chess", "Chess, Scott Hess"},                         // 1
-    {"dot", "Big Wall"},
-    {"city2", "The Big City"},
-    {"bwall", "0 G like Psychic TV"},
-    {"snow", "Wireframed"},
-    {"telep", "Infinite Falling"},
-    {"faces", "Facing Bases"},
-    {"island", "Adventure Islands"},
-};
-
-static episode_t goodvsbad2episodes[] =
-{
-    {"Levels? Bevels!", 0, 8},
-};
-
 static gamelevels_t sharewarequakegame = {"Shareware Quake", quakelevels, quakeepisodes, 2};
 static gamelevels_t registeredquakegame = {"Quake", quakelevels, quakeepisodes, 7};
-static gamelevels_t hipnoticgame = {"Scourge of Armagon", hipnoticlevels, hipnoticepisodes, 6};
-static gamelevels_t roguegame = {"Dissolution of Eternity", roguelevels, rogueepisodes, 4};
-static gamelevels_t nehahragame = {"Nehahra", nehahralevels, nehahraepisodes, 4};
-static gamelevels_t transfusiongame = {"Transfusion", transfusionlevels, transfusionepisodes, 11};
-static gamelevels_t goodvsbad2game = {"Good Vs. Bad 2", goodvsbad2levels, goodvsbad2episodes, 1};
 
 typedef struct gameinfo_s
 {
@@ -3807,11 +3203,6 @@ gameinfo_t;
 static gameinfo_t gamelist[] =
 {
     {GAME_NORMAL, &sharewarequakegame, &registeredquakegame},
-    {GAME_HIPNOTIC, &hipnoticgame, &hipnoticgame},
-    {GAME_ROGUE, &roguegame, &roguegame},
-    {GAME_NEHAHRA, &nehahragame, &nehahragame},
-    {GAME_TRANSFUSION, &transfusiongame, &transfusiongame},
-    {GAME_GOODVSBAD2, &goodvsbad2game, &goodvsbad2game},
 };
 
 static gamelevels_t *gameoptions_levels  = NULL;
@@ -3862,96 +3253,45 @@ void M_GameOptions_Draw (void)
     M_Print(0, 56, "      Max players");
     M_Print(160, 56, va(vabuf, sizeof(vabuf), "%i", maxplayers) );
 
-    if (gamemode != GAME_GOODVSBAD2)
+    M_Print(0, 64, "        Game Type");
+    if (!coop.integer && !deathmatch.integer)
+        Cvar_SetValue("deathmatch", 1);
+    if (coop.integer)
+        M_Print(160, 64, "Cooperative");
+    else
+        M_Print(160, 64, "Deathmatch");
+
+    M_Print(0, 72, "        Teamplay");
+    const char *msg;
+
+    switch (teamplay.integer)
     {
-        M_Print(0, 64, "        Game Type");
-        if (gamemode == GAME_TRANSFUSION)
-        {
-            if (!coop.integer && !deathmatch.integer)
-                Cvar_SetValue("deathmatch", 1);
-            if (deathmatch.integer == 0)
-                M_Print(160, 64, "Cooperative");
-            else if (deathmatch.integer == 2)
-                M_Print(160, 64, "Capture the Flag");
-            else
-                M_Print(160, 64, "Blood Bath");
-        }
-        else
-        {
-            if (!coop.integer && !deathmatch.integer)
-                Cvar_SetValue("deathmatch", 1);
-            if (coop.integer)
-                M_Print(160, 64, "Cooperative");
-            else
-                M_Print(160, 64, "Deathmatch");
-        }
-
-        M_Print(0, 72, "        Teamplay");
-        if (gamemode == GAME_ROGUE)
-        {
-            const char *msg;
-
-            switch((int)teamplay.integer)
-            {
-                case 1: msg = "No Friendly Fire"; break;
-                case 2: msg = "Friendly Fire"; break;
-                case 3: msg = "Tag"; break;
-                case 4: msg = "Capture the Flag"; break;
-                case 5: msg = "One Flag CTF"; break;
-                case 6: msg = "Three Team CTF"; break;
-                default: msg = "Off"; break;
-            }
-            M_Print(160, 72, msg);
-        }
-        else
-        {
-            const char *msg;
-
-            switch (teamplay.integer)
-            {
-                case 0: msg = "Off"; break;
-                case 2: msg = "Friendly Fire"; break;
-                default: msg = "No Friendly Fire"; break;
-            }
-            M_Print(160, 72, msg);
-        }
-        M_Print(0, 80, "            Skill");
-        if (gamemode == GAME_TRANSFUSION)
-        {
-            if (skill.integer == 1)
-                M_Print(160, 80, "Still Kicking");
-            else if (skill.integer == 2)
-                M_Print(160, 80, "Pink On The Inside");
-            else if (skill.integer == 3)
-                M_Print(160, 80, "Lightly Broiled");
-            else if (skill.integer == 4)
-                M_Print(160, 80, "Well Done");
-            else
-                M_Print(160, 80, "Extra Crispy");
-        }
-        else
-        {
-            if (skill.integer == 0)
-                M_Print(160, 80, "Easy difficulty");
-            else if (skill.integer == 1)
-                M_Print(160, 80, "Normal difficulty");
-            else if (skill.integer == 2)
-                M_Print(160, 80, "Hard difficulty");
-            else
-                M_Print(160, 80, "Nightmare difficulty");
-        }
-        M_Print(0, 88, "       Frag Limit");
-        if (fraglimit.integer == 0)
-            M_Print(160, 88, "none");
-        else
-            M_Print(160, 88, va(vabuf, sizeof(vabuf), "%i frags", fraglimit.integer));
-
-        M_Print(0, 96, "       Time Limit");
-        if (timelimit.integer == 0)
-            M_Print(160, 96, "none");
-        else
-            M_Print(160, 96, va(vabuf, sizeof(vabuf), "%i minutes", timelimit.integer));
+        case 0: msg = "Off"; break;
+        case 2: msg = "Friendly Fire"; break;
+        default: msg = "No Friendly Fire"; break;
     }
+    M_Print(160, 72, msg);
+    M_Print(0, 80, "            Skill");
+
+    if (skill.integer == 0)
+        M_Print(160, 80, "Easy difficulty");
+    else if (skill.integer == 1)
+        M_Print(160, 80, "Normal difficulty");
+    else if (skill.integer == 2)
+        M_Print(160, 80, "Hard difficulty");
+    else
+        M_Print(160, 80, "Nightmare difficulty");
+    M_Print(0, 88, "       Frag Limit");
+    if (fraglimit.integer == 0)
+        M_Print(160, 88, "none");
+    else
+        M_Print(160, 88, va(vabuf, sizeof(vabuf), "%i frags", fraglimit.integer));
+
+    M_Print(0, 96, "       Time Limit");
+    if (timelimit.integer == 0)
+        M_Print(160, 96, "none");
+    else
+        M_Print(160, 96, va(vabuf, sizeof(vabuf), "%i minutes", timelimit.integer));
 
     M_Print(0, 104, "    Public server");
     M_Print(160, 104, (sv_public.integer == 0) ? "no" : "yes");
@@ -3963,11 +3303,8 @@ void M_GameOptions_Draw (void)
     M_DrawTextBox (0, 132, 38, 1);
     M_Print(8, 140, hostname.string);
 
-    if (gamemode != GAME_GOODVSBAD2)
-    {
-        M_Print(0, 160, "         Episode");
-        M_Print(160, 160, gameoptions_levels->episodes[startepisode].description);
-    }
+    M_Print(0, 160, "         Episode");
+    M_Print(160, 160, gameoptions_levels->episodes[startepisode].description);
 
     M_Print(0, 168, "           Level");
     M_Print(160, 168, gameoptions_levels->levels[gameoptions_levels->episodes[startepisode].firstLevel + startlevel].description);
@@ -4016,53 +3353,20 @@ static void M_NetStart_Change (int dir)
         break;
 
     case 2:
-        if (gamemode == GAME_GOODVSBAD2)
-            break;
-        if (gamemode == GAME_TRANSFUSION)
+        if (deathmatch.integer) // changing from deathmatch to coop
         {
-            switch (deathmatch.integer)
-            {
-                // From Cooperative to BloodBath
-                case 0:
-                    Cvar_SetValueQuick (&coop, 0);
-                    Cvar_SetValueQuick (&deathmatch, 1);
-                    break;
-
-                // From BloodBath to CTF
-                case 1:
-                    Cvar_SetValueQuick (&coop, 0);
-                    Cvar_SetValueQuick (&deathmatch, 2);
-                    break;
-
-                // From CTF to Cooperative
-                //case 2:
-                default:
-                    Cvar_SetValueQuick (&coop, 1);
-                    Cvar_SetValueQuick (&deathmatch, 0);
-            }
+            Cvar_SetValueQuick (&coop, 1);
+            Cvar_SetValueQuick (&deathmatch, 0);
         }
-        else
+        else // changing from coop to deathmatch
         {
-            if (deathmatch.integer) // changing from deathmatch to coop
-            {
-                Cvar_SetValueQuick (&coop, 1);
-                Cvar_SetValueQuick (&deathmatch, 0);
-            }
-            else // changing from coop to deathmatch
-            {
-                Cvar_SetValueQuick (&coop, 0);
-                Cvar_SetValueQuick (&deathmatch, 1);
-            }
+            Cvar_SetValueQuick (&coop, 0);
+            Cvar_SetValueQuick (&deathmatch, 1);
         }
         break;
 
     case 3:
-        if (gamemode == GAME_GOODVSBAD2)
-            break;
-        if (gamemode == GAME_ROGUE)
-            count = 6;
-        else
-            count = 2;
+        count = 2;
 
         Cvar_SetValueQuick (&teamplay, teamplay.integer + dir);
         if (teamplay.integer > count)
@@ -4072,28 +3376,14 @@ static void M_NetStart_Change (int dir)
         break;
 
     case 4:
-        if (gamemode == GAME_GOODVSBAD2)
-            break;
         Cvar_SetValueQuick (&skill, skill.integer + dir);
-        if (gamemode == GAME_TRANSFUSION)
-        {
-            if (skill.integer > 5)
-                Cvar_SetValueQuick (&skill, 1);
-            if (skill.integer < 1)
-                Cvar_SetValueQuick (&skill, 5);
-        }
-        else
-        {
-            if (skill.integer > 3)
-                Cvar_SetValueQuick (&skill, 0);
-            if (skill.integer < 0)
-                Cvar_SetValueQuick (&skill, 3);
-        }
+        if (skill.integer > 3)
+            Cvar_SetValueQuick (&skill, 0);
+        if (skill.integer < 0)
+            Cvar_SetValueQuick (&skill, 3);
         break;
 
     case 5:
-        if (gamemode == GAME_GOODVSBAD2)
-            break;
         Cvar_SetValueQuick (&fraglimit, fraglimit.integer + dir*10);
         if (fraglimit.integer > 100)
             Cvar_SetValueQuick (&fraglimit, 0);
@@ -4102,8 +3392,6 @@ static void M_NetStart_Change (int dir)
         break;
 
     case 6:
-        if (gamemode == GAME_GOODVSBAD2)
-            break;
         Cvar_SetValueQuick (&timelimit, timelimit.value + dir*5);
         if (timelimit.value > 60)
             Cvar_SetValueQuick (&timelimit, 0);
@@ -4125,8 +3413,6 @@ static void M_NetStart_Change (int dir)
         break;
 
     case 10:
-        if (gamemode == GAME_GOODVSBAD2)
-            break;
         startepisode += dir;
 
         if (startepisode < 0)
@@ -4262,10 +3548,7 @@ static void M_ServerList_Draw (void)
     char vabuf[1024];
 
     // use as much vertical space as available
-    if (gamemode == GAME_TRANSFUSION)
-        M_Background(640, vid_conheight.integer - 80);
-    else
-        M_Background(640, vid_conheight.integer);
+    M_Background(640, vid_conheight.integer);
     // scroll the list as the cursor moves
     ServerList_GetPlayerStatistics(&statnumplayers, &statmaxplayers);
     s = va(vabuf, sizeof(vabuf), "%i/%i masters %i/%i servers %i/%i players", masterreplycount, masterquerycount, serverreplycount, serverquerycount, statnumplayers, statmaxplayers);
@@ -4486,10 +3769,7 @@ static void M_ModList_Draw (void)
     const char *s_enabled = "Enabled Mods";
 
     // use as much vertical space as available
-    if (gamemode == GAME_TRANSFUSION)
-        M_Background(640, vid_conheight.integer - 80);
-    else
-        M_Background(640, vid_conheight.integer);
+    M_Background(640, vid_conheight.integer);
 
     M_PrintRed(48 + 32, 32, s_available);
     M_PrintRed(432, 32, s_enabled);
@@ -4607,7 +3887,6 @@ static void M_Init (void)
 
 void M_Draw (void)
 {
-    char vabuf[1024];
     if (key_dest != key_menu && key_dest != key_menu_grabbed)
         m_state = m_none;
 
@@ -4710,38 +3989,6 @@ void M_Draw (void)
     case m_modlist:
         M_ModList_Draw ();
         break;
-    }
-
-    if (gamemode == GAME_TRANSFUSION && !m_missingdata) {
-        if (m_state != m_credits) {
-            cachepic_t    *p, *drop1, *drop2, *drop3;
-            int g, scale_x, scale_y, scale_y_repeat, top_offset;
-            float scale_y_rate;
-            scale_y_repeat = vid_conheight.integer * 2;
-            g = (int)(realtime * 64)%96;
-            scale_y_rate = (float)(g+1) / 96;
-            top_offset = (g+12)/12;
-            p = Draw_CachePic (va(vabuf, sizeof(vabuf), "gfx/menu/blooddrip%i", top_offset));
-            drop1 = Draw_CachePic ("gfx/menu/blooddrop1");
-            drop2 = Draw_CachePic ("gfx/menu/blooddrop2");
-            drop3 = Draw_CachePic ("gfx/menu/blooddrop3");
-            for (scale_x = 0; scale_x <= vid_conwidth.integer; scale_x += p->width) {
-                for (scale_y = -scale_y_repeat; scale_y <= vid_conheight.integer; scale_y += scale_y_repeat) {
-                    DrawQ_Pic (scale_x + 21, scale_y_repeat * .5 + scale_y + scale_y_rate * scale_y_repeat, drop3, 0, 0, 1, 1, 1, 1, 0);
-                    DrawQ_Pic (scale_x +  116, scale_y_repeat + scale_y + scale_y_rate * scale_y_repeat, drop1, 0, 0, 1, 1, 1, 1, 0);
-                    DrawQ_Pic (scale_x + 180, scale_y_repeat * .275 + scale_y + scale_y_rate * scale_y_repeat, drop3, 0, 0, 1, 1, 1, 1, 0);
-                    DrawQ_Pic (scale_x + 242, scale_y_repeat * .75 + scale_y + scale_y_rate * scale_y_repeat, drop3, 0, 0, 1, 1, 1, 1, 0);
-                    DrawQ_Pic (scale_x + 304, scale_y_repeat * .25 + scale_y + scale_y_rate * scale_y_repeat, drop3, 0, 0, 1, 1, 1, 1, 0);
-                    DrawQ_Pic (scale_x + 362, scale_y_repeat * .46125 + scale_y + scale_y_rate * scale_y_repeat, drop3, 0, 0, 1, 1, 1, 1, 0);
-                    DrawQ_Pic (scale_x + 402, scale_y_repeat * .1725 + scale_y + scale_y_rate * scale_y_repeat, drop3, 0, 0, 1, 1, 1, 1, 0);
-                    DrawQ_Pic (scale_x + 438, scale_y_repeat * .9 + scale_y + scale_y_rate * scale_y_repeat, drop1, 0, 0, 1, 1, 1, 1, 0);
-                    DrawQ_Pic (scale_x + 484, scale_y_repeat * .5 + scale_y + scale_y_rate * scale_y_repeat, drop3, 0, 0, 1, 1, 1, 1, 0);
-                    DrawQ_Pic (scale_x + 557, scale_y_repeat * .9425 + scale_y + scale_y_rate * scale_y_repeat, drop1, 0, 0, 1, 1, 1, 1, 0);
-                    DrawQ_Pic (scale_x + 606, scale_y_repeat * .5 + scale_y + scale_y_rate * scale_y_repeat, drop2, 0, 0, 1, 1, 1, 1, 0);
-                }
-                DrawQ_Pic (scale_x, -1, Draw_CachePic (va(vabuf, sizeof(vabuf), "gfx/menu/blooddrip%i", top_offset)), 0, 0, 1, 1, 1, 1, 0);
-            }
-        }
     }
 
     if (m_entersound)

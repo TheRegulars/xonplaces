@@ -2096,98 +2096,30 @@ static void Host_Give_f (void)
     case '7':
     case '8':
     case '9':
-        // MED 01/04/97 added hipnotic give stuff
-        if (gamemode == GAME_HIPNOTIC)
-        {
-            if (t[0] == '6')
-            {
-                if (t[1] == 'a')
-                    PRVM_serveredictfloat(host_client->edict, items) = (int)PRVM_serveredictfloat(host_client->edict, items) | HIT_PROXIMITY_GUN;
-                else
-                    PRVM_serveredictfloat(host_client->edict, items) = (int)PRVM_serveredictfloat(host_client->edict, items) | IT_GRENADE_LAUNCHER;
-            }
-            else if (t[0] == '9')
-                PRVM_serveredictfloat(host_client->edict, items) = (int)PRVM_serveredictfloat(host_client->edict, items) | HIT_LASER_CANNON;
-            else if (t[0] == '0')
-                PRVM_serveredictfloat(host_client->edict, items) = (int)PRVM_serveredictfloat(host_client->edict, items) | HIT_MJOLNIR;
-            else if (t[0] >= '2')
-                PRVM_serveredictfloat(host_client->edict, items) = (int)PRVM_serveredictfloat(host_client->edict, items) | (IT_SHOTGUN << (t[0] - '2'));
-        }
-        else
-        {
-            if (t[0] >= '2')
-                PRVM_serveredictfloat(host_client->edict, items) = (int)PRVM_serveredictfloat(host_client->edict, items) | (IT_SHOTGUN << (t[0] - '2'));
-        }
+        if (t[0] >= '2')
+            PRVM_serveredictfloat(host_client->edict, items) = (int)PRVM_serveredictfloat(host_client->edict, items) | (IT_SHOTGUN << (t[0] - '2'));
         break;
 
     case 's':
-        if (gamemode == GAME_ROGUE)
-            PRVM_serveredictfloat(host_client->edict, ammo_shells1) = v;
-
         PRVM_serveredictfloat(host_client->edict, ammo_shells) = v;
         break;
     case 'n':
-        if (gamemode == GAME_ROGUE)
-        {
-            PRVM_serveredictfloat(host_client->edict, ammo_nails1) = v;
-            if (PRVM_serveredictfloat(host_client->edict, weapon) <= IT_LIGHTNING)
-                PRVM_serveredictfloat(host_client->edict, ammo_nails) = v;
-        }
-        else
-        {
-            PRVM_serveredictfloat(host_client->edict, ammo_nails) = v;
-        }
+        PRVM_serveredictfloat(host_client->edict, ammo_nails) = v;
         break;
     case 'l':
-        if (gamemode == GAME_ROGUE)
-        {
-            PRVM_serveredictfloat(host_client->edict, ammo_lava_nails) = v;
-            if (PRVM_serveredictfloat(host_client->edict, weapon) > IT_LIGHTNING)
-                PRVM_serveredictfloat(host_client->edict, ammo_nails) = v;
-        }
         break;
     case 'r':
-        if (gamemode == GAME_ROGUE)
-        {
-            PRVM_serveredictfloat(host_client->edict, ammo_rockets1) = v;
-            if (PRVM_serveredictfloat(host_client->edict, weapon) <= IT_LIGHTNING)
-                PRVM_serveredictfloat(host_client->edict, ammo_rockets) = v;
-        }
-        else
-        {
-            PRVM_serveredictfloat(host_client->edict, ammo_rockets) = v;
-        }
+        PRVM_serveredictfloat(host_client->edict, ammo_rockets) = v;
         break;
     case 'm':
-        if (gamemode == GAME_ROGUE)
-        {
-            PRVM_serveredictfloat(host_client->edict, ammo_multi_rockets) = v;
-            if (PRVM_serveredictfloat(host_client->edict, weapon) > IT_LIGHTNING)
-                PRVM_serveredictfloat(host_client->edict, ammo_rockets) = v;
-        }
         break;
     case 'h':
         PRVM_serveredictfloat(host_client->edict, health) = v;
         break;
     case 'c':
-        if (gamemode == GAME_ROGUE)
-        {
-            PRVM_serveredictfloat(host_client->edict, ammo_cells1) = v;
-            if (PRVM_serveredictfloat(host_client->edict, weapon) <= IT_LIGHTNING)
-                PRVM_serveredictfloat(host_client->edict, ammo_cells) = v;
-        }
-        else
-        {
-            PRVM_serveredictfloat(host_client->edict, ammo_cells) = v;
-        }
+        PRVM_serveredictfloat(host_client->edict, ammo_cells) = v;
         break;
     case 'p':
-        if (gamemode == GAME_ROGUE)
-        {
-            PRVM_serveredictfloat(host_client->edict, ammo_plasma) = v;
-            if (PRVM_serveredictfloat(host_client->edict, weapon) > IT_LIGHTNING)
-                PRVM_serveredictfloat(host_client->edict, ammo_cells) = v;
-        }
         break;
     }
 }

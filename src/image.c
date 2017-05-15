@@ -891,20 +891,6 @@ typedef struct imageformat_s
 }
 imageformat_t;
 
-// GAME_TENEBRAE only
-imageformat_t imageformats_tenebrae[] =
-{
-    {"override/%s.tga", LoadTGA_BGRA},
-    {"override/%s.png", PNG_LoadImage_BGRA},
-    {"override/%s.jpg", JPEG_LoadImage_BGRA},
-    {"override/%s.pcx", LoadPCX_BGRA},
-    {"%s.tga", LoadTGA_BGRA},
-    {"%s.png", PNG_LoadImage_BGRA},
-    {"%s.jpg", JPEG_LoadImage_BGRA},
-    {"%s.pcx", LoadPCX_BGRA},
-    {NULL, NULL}
-};
-
 imageformat_t imageformats_nopath[] =
 {
     {"override/%s.tga", LoadTGA_BGRA},
@@ -973,9 +959,7 @@ unsigned char *loadimagepixelsbgra (const char *filename, qboolean complain, qbo
             name[i] = basename[i];
         name[i] = 0;
     }
-    if (gamemode == GAME_TENEBRAE)
-        firstformat = imageformats_tenebrae;
-    else if (!strcasecmp(name, "textures"))
+    if (!strcasecmp(name, "textures"))
         firstformat = imageformats_textures;
     else if (!strcasecmp(name, "gfx"))
         firstformat = imageformats_gfx;

@@ -1317,8 +1317,6 @@ void FS_Rescan (void)
     switch(gamemode)
     {
     case GAME_NORMAL:
-    case GAME_HIPNOTIC:
-    case GAME_ROGUE:
         if (!registered.integer)
         {
             if (fs_modified)
