@@ -239,6 +239,7 @@ PREPEND(ABS_SOURCE_CLIENT_GLX ${SOURCE_ROOT} ${SOURCE_CLIENT_GLX})
 find_package(CURL REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(JPEG REQUIRED)
+find_package(PNG REQUIRED)
 # add d0_blind_id
 include(D0BlindId)
 
@@ -268,6 +269,7 @@ if (COMPILE_SERVER)
         ${CURL_INCLUDE_DIRS}
         ${ZLIB_INCLUDE_DIRS}
         ${JPEG_INLUDE_DIR}
+        ${PNG_INCLUDE_DIRS}
     )
     target_link_libraries(darkplaces-dedicated PRIVATE
         ${LIBS_COMMON}
@@ -275,6 +277,7 @@ if (COMPILE_SERVER)
         ${CURL_LIBRARIES}
         ${ZLIB_LIBRARIES}
         ${JPEG_LIBRARIES}
+        ${PNG_LIBRARIES}
     )
     install(TARGETS darkplaces-dedicated RUNTIME DESTINATION bin)
 endif ()
@@ -301,6 +304,7 @@ if (COMPILE_CLIENT)
             ${CURL_INCLUDE_DIRS}
             ${ZLIB_INCLUDE_DIRS}
             ${JPEG_INLUDE_DIR}
+            ${PNG_INCLUDE_DIRS}
             ${X11_X11_INCLUDE_DIR}
             ${ALSA_INCLUDE_DIR}
         )
@@ -310,6 +314,7 @@ if (COMPILE_CLIENT)
             ${CURL_LIBRARIES}
             ${ZLIB_LIBRARIES}
             ${JPEG_LIBRARIES}
+            ${PNG_LIBRARIES}
             ${X11_X11_LIB}
             ${X11_Xpm_LIB}
             ${X11_Xext_LIB}
@@ -336,6 +341,7 @@ if (COMPILE_CLIENT)
             ${CURL_INCLUDE_DIRS}
             ${ZLIB_INCLUDE_DIRS}
             ${JPEG_INLUDE_DIR}
+            ${PNG_INCLUDE_DIRS}
             ${SDL2_INCLUDE_DIR}
         )
         target_link_libraries(darkplaces-sdl PRIVATE
@@ -345,6 +351,7 @@ if (COMPILE_CLIENT)
             ${ZLIB_LIBRARIES}
             ${ZLIB_LIBRARIES}
             ${JPEG_LIBRARIES}
+            ${PNG_LIBRARIES}
             ${SDL2_LIBRARY}
         )
         install(TARGETS darkplaces-sdl RUNTIME DESTINATION bin)
