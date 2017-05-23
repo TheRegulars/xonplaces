@@ -4,8 +4,8 @@
 #include "csprogs.h"
 #include "cl_collision.h"
 #include "r_shadow.h"
-#include "jpeg.h"
 #include "image.h"
+#include "image_jpeg.h"
 
 //============================================================================
 // Client

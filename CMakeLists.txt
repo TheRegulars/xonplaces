@@ -115,7 +115,7 @@ set(SOURCE_COMMON
     host_cmd.c
     image.c image.h
     image_png.c image_png.h
-    jpeg.c jpeg.h
+    image_jpeg.c image_jpeg.h
     keys.c keys.h
     lhnet.c lhnet.h
     libcurl.c libcurl.h

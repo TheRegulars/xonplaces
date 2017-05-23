@@ -2,7 +2,7 @@
 #include "quakedef.h"
 #include "cl_video.h"
 #include "image.h"
-#include "jpeg.h"
+#include "image_jpeg.h"
 #include "image_png.h"
 #include "cl_collision.h"
 #include "libcurl.h"
@@ -117,8 +117,6 @@ extern cvar_t v_glslgamma;
 extern cvar_t sbar_info_pos;
 extern cvar_t r_fog_clear;
 #define WANT_SCREENSHOT_HWGAMMA (scr_screenshot_hwgamma.integer && vid_usinghwgamma)
-
-int jpeg_supported = false;
 
 qboolean    scr_initialized;        // ready to draw
 

@@ -21,8 +21,8 @@
 
 */
 
-#ifndef JPEG_H
-#define JPEG_H
+#ifndef IMAGE_JPEG_H
+#define IMAGE_JPEG_H
 
 
 unsigned char* JPEG_LoadImage_BGRA (const unsigned char *f, int filesize, int *miplevel);

@@ -1,7 +1,7 @@
 
 #include "quakedef.h"
 #include "image.h"
-#include "jpeg.h"
+#include "image_jpeg.h"
 #include "image_png.h"
 #include "r_shadow.h"
 

@@ -24,8 +24,7 @@
 
 #include "quakedef.h"
 #include "image.h"
-#include "jpeg.h"
-#include "image_png.h"
+#include "image_jpeg.h"
 
 cvar_t sv_writepicture_quality = {CVAR_SAVE, "sv_writepicture_quality", "10", "WritePicture quality offset (higher means better quality, but slower)"};
 cvar_t r_texture_jpeg_fastpicmip = {CVAR_SAVE, "r_texture_jpeg_fastpicmip", "1", "perform gl_picmip during decompression for JPEG files (faster)"};
@@ -38,22 +37,6 @@ typedef int jboolean;
 #endif
 
 #include <jpeglib.h>
-#define qjpeg_create_compress jpeg_create_compress
-#define qjpeg_create_decompress jpeg_create_decompress
-#define qjpeg_destroy_compress jpeg_destroy_compress
-#define qjpeg_destroy_decompress jpeg_destroy_decompress
-#define qjpeg_finish_compress jpeg_finish_compress
-#define qjpeg_finish_decompress jpeg_finish_decompress
-#define qjpeg_resync_to_restart jpeg_resync_to_restart
-#define qjpeg_read_header jpeg_read_header
-#define qjpeg_read_scanlines jpeg_read_scanlines
-#define qjpeg_set_defaults jpeg_set_defaults
-#define qjpeg_set_quality jpeg_set_quality
-#define qjpeg_start_compress jpeg_start_compress
-#define qjpeg_start_decompress jpeg_start_decompress
-#define qjpeg_std_error jpeg_std_error
-#define qjpeg_write_scanlines jpeg_write_scanlines
-#define qjpeg_simple_progression jpeg_simple_progression
 
 static unsigned char jpeg_eoi_marker [2] = {0xFF, JPEG_EOI};
 static jmp_buf error_in_jpeg;
@@ -111,7 +94,7 @@ static void JPEG_MemSrc (j_decompress_ptr cinfo, const unsigned char *buffer, si
     cinfo->src->init_source = JPEG_Noop;
     cinfo->src->fill_input_buffer = JPEG_FillInputBuffer;
     cinfo->src->skip_input_data = JPEG_SkipInputData;
-    cinfo->src->resync_to_restart = qjpeg_resync_to_restart; // use the default method
+    cinfo->src->resync_to_restart = jpeg_resync_to_restart; // use the default method
     cinfo->src->term_source = JPEG_Noop;
 }
 
@@ -140,17 +123,17 @@ unsigned char* JPEG_LoadImage_BGRA (const unsigned char *f, int filesize, int *m
     if(miplevel && r_texture_jpeg_fastpicmip.integer)
         submip = bound(0, *miplevel, 3);
 
-    cinfo.err = qjpeg_std_error (&jerr);
-    qjpeg_create_decompress (&cinfo);
+    cinfo.err = jpeg_std_error (&jerr);
+    jpeg_create_decompress (&cinfo);
     if(setjmp(error_in_jpeg))
         goto error_caught;
-    cinfo.err = qjpeg_std_error (&jerr);
+    cinfo.err = jpeg_std_error (&jerr);
     cinfo.err->error_exit = JPEG_ErrorExit;
     JPEG_MemSrc (&cinfo, f, filesize);
-    qjpeg_read_header (&cinfo, TRUE);
+    jpeg_read_header (&cinfo, TRUE);
     cinfo.scale_num = 1;
     cinfo.scale_denom = (1 << submip);
-    qjpeg_start_decompress (&cinfo);
+    jpeg_start_decompress (&cinfo);
 
     image_width = cinfo.output_width;
     image_height = cinfo.output_height;
@@ -171,8 +154,8 @@ unsigned char* JPEG_LoadImage_BGRA (const unsigned char *f, int filesize, int *m
             Mem_Free (scanline);
 
         Con_Printf("JPEG_LoadImage: not enough memory for %i by %i image\n", image_width, image_height);
-        qjpeg_finish_decompress (&cinfo);
-        qjpeg_destroy_decompress (&cinfo);
+        jpeg_finish_decompress (&cinfo);
+        jpeg_destroy_decompress (&cinfo);
         return NULL;
     }
 
@@ -183,7 +166,7 @@ unsigned char* JPEG_LoadImage_BGRA (const unsigned char *f, int filesize, int *m
         unsigned char *buffer_ptr;
         int ind;
 
-        qjpeg_read_scanlines (&cinfo, &scanline, 1);
+        jpeg_read_scanlines (&cinfo, &scanline, 1);
 
         // Convert the image to BGRA
         switch (cinfo.output_components)
@@ -217,8 +200,8 @@ unsigned char* JPEG_LoadImage_BGRA (const unsigned char *f, int filesize, int *m
     }
     Mem_Free (scanline); scanline = NULL;
 
-    qjpeg_finish_decompress (&cinfo);
-    qjpeg_destroy_decompress (&cinfo);
+    jpeg_finish_decompress (&cinfo);
+    jpeg_destroy_decompress (&cinfo);
 
     if(miplevel)
         *miplevel -= submip;
@@ -230,7 +213,7 @@ error_caught:
         Mem_Free (scanline);
     if(image_buffer)
         Mem_Free (image_buffer);
-    qjpeg_destroy_decompress (&cinfo);
+    jpeg_destroy_decompress (&cinfo);
     return NULL;
 }
 
@@ -352,10 +335,10 @@ qboolean JPEG_SaveImage_preflipped (const char *filename, int width, int height,
 
     if(setjmp(error_in_jpeg))
         goto error_caught;
-    cinfo.err = qjpeg_std_error (&jerr);
+    cinfo.err = jpeg_std_error (&jerr);
     cinfo.err->error_exit = JPEG_ErrorExit;
 
-    qjpeg_create_compress (&cinfo);
+    jpeg_create_compress (&cinfo);
     JPEG_FileDest (&cinfo, file);
 
     // Set the parameters for compression
@@ -363,9 +346,9 @@ qboolean JPEG_SaveImage_preflipped (const char *filename, int width, int height,
     cinfo.image_height = height;
     cinfo.in_color_space = JCS_RGB;
     cinfo.input_components = 3;
-    qjpeg_set_defaults (&cinfo);
-    qjpeg_set_quality (&cinfo, (int)(scr_screenshot_jpeg_quality.value * 100), TRUE);
-    qjpeg_simple_progression (&cinfo);
+    jpeg_set_defaults (&cinfo);
+    jpeg_set_quality (&cinfo, (int)(scr_screenshot_jpeg_quality.value * 100), TRUE);
+    jpeg_simple_progression (&cinfo);
 
     // turn off subsampling (to make text look better)
     cinfo.optimize_coding = 1;
@@ -376,7 +359,7 @@ qboolean JPEG_SaveImage_preflipped (const char *filename, int width, int height,
     cinfo.comp_info[2].h_samp_factor = 1;
     cinfo.comp_info[2].v_samp_factor = 1;
 
-    qjpeg_start_compress (&cinfo, true);
+    jpeg_start_compress (&cinfo, true);
 
     // Compress each scanline
     linesize = cinfo.image_width * 3;
@@ -385,17 +368,17 @@ qboolean JPEG_SaveImage_preflipped (const char *filename, int width, int height,
     {
         scanline = &data[offset - cinfo.next_scanline * linesize];
 
-        qjpeg_write_scanlines (&cinfo, &scanline, 1);
+        jpeg_write_scanlines (&cinfo, &scanline, 1);
     }
 
-    qjpeg_finish_compress (&cinfo);
-    qjpeg_destroy_compress (&cinfo);
+    jpeg_finish_compress (&cinfo);
+    jpeg_destroy_compress (&cinfo);
 
     FS_Close (file);
     return true;
 
 error_caught:
-    qjpeg_destroy_compress (&cinfo);
+    jpeg_destroy_compress (&cinfo);
     FS_Close (file);
     return false;
 }
@@ -413,8 +396,8 @@ static size_t JPEG_try_SaveImage_to_Buffer (struct jpeg_compress_struct *cinfo, 
     cinfo->image_height = height;
     cinfo->in_color_space = JCS_RGB;
     cinfo->input_components = 3;
-    qjpeg_set_defaults (cinfo);
-    qjpeg_set_quality (cinfo, quality, FALSE);
+    jpeg_set_defaults (cinfo);
+    jpeg_set_quality (cinfo, quality, FALSE);
 
     cinfo->comp_info[0].h_samp_factor = 2;
     cinfo->comp_info[0].v_samp_factor = 2;
@@ -424,7 +407,7 @@ static size_t JPEG_try_SaveImage_to_Buffer (struct jpeg_compress_struct *cinfo, 
     cinfo->comp_info[2].v_samp_factor = 1;
     cinfo->optimize_coding = 1;
 
-    qjpeg_start_compress (cinfo, true);
+    jpeg_start_compress (cinfo, true);
 
     // Compress each scanline
     linesize = width * 3;
@@ -432,10 +415,10 @@ static size_t JPEG_try_SaveImage_to_Buffer (struct jpeg_compress_struct *cinfo, 
     {
         scanline = &data[cinfo->next_scanline * linesize];
 
-        qjpeg_write_scanlines (cinfo, &scanline, 1);
+        jpeg_write_scanlines (cinfo, &scanline, 1);
     }
 
-    qjpeg_finish_compress (cinfo);
+    jpeg_finish_compress (cinfo);
 
     if(jpeg_toolarge)
         return 0;
@@ -454,10 +437,10 @@ size_t JPEG_SaveImage_to_Buffer (char *jpegbuf, size_t jpegsize, int width, int 
 
     if(setjmp(error_in_jpeg))
         goto error_caught;
-    cinfo.err = qjpeg_std_error (&jerr);
+    cinfo.err = jpeg_std_error (&jerr);
     cinfo.err->error_exit = JPEG_ErrorExit;
 
-    qjpeg_create_compress (&cinfo);
+    jpeg_create_compress (&cinfo);
 
 #if 0
     // used to get the formula below
@@ -494,13 +477,13 @@ size_t JPEG_SaveImage_to_Buffer (char *jpegbuf, size_t jpegsize, int width, int 
             return 0;
         }
     }
-    qjpeg_destroy_compress (&cinfo);
+    jpeg_destroy_compress (&cinfo);
     Con_DPrintf("JPEG_SaveImage_to_Buffer: guessed quality/size %d/%d, actually got %d/%d\n", quality_guess, (int)jpegsize, quality, (int)result);
 
     return result;
 
 error_caught:
-    qjpeg_destroy_compress (&cinfo);
+    jpeg_destroy_compress (&cinfo);
     return 0;
 }
 

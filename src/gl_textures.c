@@ -5,8 +5,6 @@
 extern LPDIRECT3DDEVICE9 vid_d3d9dev;
 #endif
 #include "image.h"
-#include "jpeg.h"
-#include "image_png.h"
 #include "intoverflow.h"
 #include "dpsoftrast.h"
 
