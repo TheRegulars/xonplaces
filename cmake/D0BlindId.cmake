@@ -47,6 +47,7 @@ ExternalProject_Add(d0_blindid
     SOURCE_DIR        "${CMAKE_SOURCE_DIR}/d0_blind_id/"
     CONFIGURE_COMMAND "${CMAKE_COMMAND}" -E env
                             AR=${CMAKE_AR}
+                            RANLIB=${CMAKE_RANLIB}
                             CC=${CMAKE_C_COMPILER}
                             LDFLAGS=${_D0_BLIND_EXE_LINKER_FLAGS}
                             CFLAGS=${_D0_BLIND_C_FLAGS}
