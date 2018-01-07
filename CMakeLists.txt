@@ -64,13 +64,9 @@ option(CPACK_PACKAGING       "Build package with CPACK" OFF)
 SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib:$ORIGIN/lib:$ORIGIN/")
 
 # detect client type
-SET(DP_CLIENT_GLX OFF)
 SET(DP_CLIENT_SDL OFF)
-set(DP_CLIENT_AGL OFF)
-set(DP_CLIENT_WGL OFF)
 if(COMPILE_CLIENT)
     if(UNIX)
-        SET(DP_CLIENT_GLX ON)
         SET(DP_CLIENT_SDL ON)
     endif()
     # TODO: Implement other video backends
@@ -165,7 +161,6 @@ set(CRYPTO_KEYGEN_SOURCE ${SOURCE_ROOT}/utils/crypto-keygen-standalone.c)
 
 set(SOURCE_SERVER)
 set(SOURCE_CLIENT_COMMON)
-set(SOURCE_CLIENT_GLX)
 set(SOURCE_CLIENT_SDL)
 # TODO: Support definitions for other compilers
 set(COMPILE_DEFS "-DLINK_TO_CRYPTO -DLINK_TO_CRYPTO_RIJNDAEL")
@@ -180,11 +175,6 @@ if (COMPILE_CD)
     list(APPEND COMPILE_DEFS_CLIENT "-DCONFIG_CD")
     list(APPEND SOURCE_CLIENT_COMMON cd_shared.c cdaudio.h)
     list(APPEND SOURCE_CLIENT_SDL cd_sdl.c)
-    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        list(APPEND SOURCE_CLIENT_GLX cd_linux.c)
-    elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
-        list(APPEND SOURCE_CLIENT_GLX cd_bsd.c)
-    endif()
 endif ()
 
 if (COMPILE_VIDEO_CAPTURE)
@@ -193,18 +183,12 @@ if (COMPILE_VIDEO_CAPTURE)
 endif ()
 
 list(APPEND SOURCE_CLIENT_SDL vid_sdl.c)
-list(APPEND SOURCE_CLIENT_GLX vid_glx.c)
 list(APPEND SOURCE_SERVER vid_null.c)
 
 list(APPEND SOURCE_CLIENT_COMMON
         snd_main.c snd_main.h snd_mem.c snd_mix.c snd_ogg.c snd_ogg.h snd_wav.c
         snd_wav.h)
 list(APPEND SOURCE_CLIENT_SDL snd_sdl.c sys_sdl.c)
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    list(APPEND SOURCE_CLIENT_GLX snd_alsa.c sys_linux.c)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
-    list(APPEND SOURCE_CLIENT_GLX snd_bsd.c sys_linux.c)
-endif()
 list(APPEND SOURCE_SERVER snd_null.c)
 
 if (WIN32)
@@ -216,10 +200,7 @@ endif ()
 
 list(APPEND SOURCE_COMMON thread.h)
 list(APPEND SOURCE_CLIENT_SDL thread_sdl.c)
-list(APPEND SOURCE_CLIENT_GLX thread_pthread.c)
 list(APPEND SOURCE_SERVER thread_null.c)
-
-list(APPEND SOURCE_CLIENT_GLX keysym2ucs.c)
 
 
 set(LIBS_COMMON ${CMAKE_DL_LIBS})
@@ -233,7 +214,6 @@ PREPEND(ABS_SOURCE_COMMON ${SOURCE_ROOT} ${SOURCE_COMMON})
 PREPEND(ABS_SOURCE_SERVER ${SOURCE_ROOT} ${SOURCE_SERVER})
 PREPEND(ABS_SOURCE_CLIENT_COMMON ${SOURCE_ROOT} ${SOURCE_CLIENT_COMMON})
 PREPEND(ABS_SOURCE_CLIENT_SDL ${SOURCE_ROOT} ${SOURCE_CLIENT_SDL})
-PREPEND(ABS_SOURCE_CLIENT_GLX ${SOURCE_ROOT} ${SOURCE_CLIENT_GLX})
 
 # load common libraries
 find_package(CURL REQUIRED)
@@ -283,47 +263,6 @@ if (COMPILE_SERVER)
 endif ()
 
 if (COMPILE_CLIENT)
-    if (DP_CLIENT_GLX)
-        find_package(Threads REQUIRED)
-        # TODO: Support for FreeBSD
-        find_package(ALSA REQUIRED)
-        set(CMAKE_THREAD_PREFER_PTHREAD ON)
-        find_package(X11 REQUIRED)
-        add_executable(darkplaces-glx
-            ${ABS_SOURCE_COMMON}
-            ${ABS_SOURCE_CLIENT_COMMON}
-            ${ABS_SOURCE_CLIENT_GLX}
-        )
-        add_dependencies(darkplaces-glx d0_blindid)
-        target_compile_definitions(darkplaces-glx PRIVATE
-            ${COMPILE_DEFS}
-            ${COMPILE_DEFS_CLIENT}
-        )
-        target_include_directories(darkplaces-glx PRIVATE
-            ${D0_BLINDID_INCLUDE}
-            ${CURL_INCLUDE_DIRS}
-            ${ZLIB_INCLUDE_DIRS}
-            ${JPEG_INLUDE_DIR}
-            ${PNG_INCLUDE_DIRS}
-            ${X11_X11_INCLUDE_DIR}
-            ${ALSA_INCLUDE_DIR}
-        )
-        target_link_libraries(darkplaces-glx PRIVATE
-            ${LIBS_COMMON}
-            ${D0_LIBS}
-            ${CURL_LIBRARIES}
-            ${ZLIB_LIBRARIES}
-            ${JPEG_LIBRARIES}
-            ${PNG_LIBRARIES}
-            ${X11_X11_LIB}
-            ${X11_Xpm_LIB}
-            ${X11_Xext_LIB}
-            ${X11_Xxf86vm_LIB}
-            ${ALSA_LIBRARY}
-            Threads::Threads
-        )
-        install(TARGETS darkplaces-glx RUNTIME DESTINATION bin)
-    endif()
     if (DP_CLIENT_SDL)
         find_package(SDL2 REQUIRED)
         add_executable(darkplaces-sdl
