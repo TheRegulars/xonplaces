@@ -8,13 +8,14 @@ if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -DNDEBUG \
     -fno-strict-aliasing -fno-math-errno -ffinite-math-only -fno-rounding-math \
-    -fno-signaling-nans -fno-trapping-math -fstack-protector")
+    -fno-signaling-nans -fno-trapping-math -fstack-protector -fPIE -pie \
+    -D_FORTIFY_SOURCE=1")
 elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
     # Use LTO when building using release with clang
     # NOTE: This requires llvm-ar and gold plugin
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -DNDEBUG \
     -fno-strict-aliasing -fno-math-errno -ffinite-math-only -fno-trapping-math \
-    -flto -fstack-protector")
+    -flto -fstack-protector -fPIE -pie -D_FORTIFY_SOURCE=1")
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-flto")
 endif()
 

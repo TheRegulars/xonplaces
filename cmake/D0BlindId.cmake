@@ -11,13 +11,11 @@ set(D0_BLINDID_EXE_LINKER_FLAGS_RELEASE
 )
 
 if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-    set(D0_BLINDID_C_FLAGS_RELEASE
-        "${D0_BLINDID_C_FLAGS_RELEASE} -O3 -fstack-protector"
-    )
+    set(D0_BLINDID_C_FLAGS_RELEASE "${D0_BLINDID_C_FLAGS_RELEASE} -O3 \
+    -fstack-protector -fPIE -pie -D_FORTIFY_SOURCE=1")
 elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-    set(D0_BLINDID_C_FLAGS_RELEASE
-        "${D0_BLINDID_C_FLAGS_RELEASE} -O3 -flto -fstack-protector"
-    )
+    set(D0_BLINDID_C_FLAGS_RELEASE "${D0_BLINDID_C_FLAGS_RELEASE} -O3 -flto \
+    -fstack-protector -fPIE -pie -D_FORTIFY_SOURCE=1")
     set(D0_BLINDID_EXE_LINKER_FLAGS_RELEASE "-flto")
 endif()
 
