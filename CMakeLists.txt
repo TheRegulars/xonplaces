@@ -58,7 +58,6 @@ option(COMPILE_MENU          "Enable game menu" ON)
 option(COMPILE_CD            "Enable CD player support" ON)
 option(COMPILE_VIDEO_CAPTURE "Enable video capture" ON)
 option(COMPILE_UTILS         "Enable compilling of various utils" OFF)
-option(STATIC_LINK_D0        "Link statically with d0 blind id" OFF)
 option(CPACK_PACKAGING       "Build package with CPACK" OFF)
 
 # Global build params
@@ -224,22 +223,17 @@ find_package(PNG REQUIRED)
 # add d0_blind_id
 include(D0BlindId)
 
-if (STATIC_LINK_D0)
-    # TODO: Make separate script: FindGMP
-    set(GMP_PREFIX "" CACHE PATH "Path to GMP prefix")
-    find_library(GMP_LIBRARY NAMES gmp PATHS
-        ${GMP_PREFIX}/lib
-        /usr/lib
-        /usr/local/lib
-        /opt/lib
-        /opt/local/lib
-    )
-    mark_as_advanced(GMP_PREFIX GMP_LIBRARY)
-    set(D0_LIBS ${D0_BLINID_LIBS_STATIC} ${GMP_LIBRARY})
-else()
-    set(D0_LIBS ${D0_BLINID_LIBS})
-    install(FILES ${D0_BLINDID_INSTALL_LIBS} DESTINATION lib)
-endif()
+# TODO: Make separate script: FindGMP
+set(GMP_PREFIX "" CACHE PATH "Path to GMP prefix")
+find_library(GMP_LIBRARY NAMES gmp PATHS
+    ${GMP_PREFIX}/lib
+    /usr/lib
+    /usr/local/lib
+    /opt/lib
+    /opt/local/lib
+)
+mark_as_advanced(GMP_PREFIX GMP_LIBRARY)
+set(D0_LIBS ${D0_BLINID_LIBS_STATIC} ${GMP_LIBRARY})
 
 if (COMPILE_SERVER)
     add_executable(darkplaces-dedicated ${ABS_SOURCE_SERVER} ${ABS_SOURCE_COMMON})

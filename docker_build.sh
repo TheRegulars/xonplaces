@@ -12,7 +12,6 @@ cmake -DCOMPILE_CLIENT=OFF \
       -DCOMPILE_UTILS=OFF \
       -DCOMPILE_VIDEO_CAPTURE=OFF \
       -DCOMPILE_CD=OFF \
-      -DSTATIC_LINK_D0=ON \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_C_FLAGS="$CFLAGS" \
       -DCMAKE_C_COMPILER_AR="/usr/bin/llvm-ar" \

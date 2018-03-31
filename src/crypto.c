@@ -6,6 +6,12 @@
 #include "hmac.h"
 #include "libcurl.h"
 
+#include <d0_blind_id/d0_blind_id.h>
+#include <d0_blind_id/d0_rijndael.h>
+
+#define d0_blind_id_dll 1
+#define d0_rijndael_dll 1
+
 cvar_t crypto_developer = {CVAR_SAVE, "crypto_developer", "0", "print extra info about crypto handshake"};
 cvar_t crypto_aeslevel = {CVAR_SAVE, "crypto_aeslevel", "1", "whether to support AES encryption in authenticated connections (0 = no, 1 = supported, 2 = requested, 3 = required)"};
 
@@ -20,7 +26,6 @@ extern cvar_t net_sourceaddresscheck;
 int crypto_keyfp_recommended_length;
 static const char *crypto_idstring = NULL;
 static char crypto_idstring_buf[512];
-
 
 #define PROTOCOL_D0_BLIND_ID FOURCC_D0PK
 #define PROTOCOL_VLEN (('v' << 0) | ('l' << 8) | ('e' << 16) | ('n' << 24))
@@ -106,262 +111,10 @@ static size_t Crypto_UnParsePack(char *buf, size_t len, unsigned long header, co
 
 #define USE_AES
 
-#ifdef LINK_TO_CRYPTO
-
-#include <d0_blind_id/d0_blind_id.h>
-
-#define d0_blind_id_dll 1
-#define Crypto_OpenLibrary() true
-#define Crypto_CloseLibrary()
-
-#define qd0_blind_id_new d0_blind_id_new
-#define qd0_blind_id_free d0_blind_id_free
-//#define qd0_blind_id_clear d0_blind_id_clear
-#define qd0_blind_id_copy d0_blind_id_copy
-//#define qd0_blind_id_generate_private_key d0_blind_id_generate_private_key
-//#define qd0_blind_id_generate_private_key_fastreject d0_blind_id_generate_private_key_fastreject
-//#define qd0_blind_id_read_private_key d0_blind_id_read_private_key
-#define qd0_blind_id_read_public_key d0_blind_id_read_public_key
-//#define qd0_blind_id_write_private_key d0_blind_id_write_private_key
-//#define qd0_blind_id_write_public_key d0_blind_id_write_public_key
-#define qd0_blind_id_fingerprint64_public_key d0_blind_id_fingerprint64_public_key
-//#define qd0_blind_id_generate_private_id_modulus d0_blind_id_generate_private_id_modulus
-#define qd0_blind_id_read_private_id_modulus d0_blind_id_read_private_id_modulus
-//#define qd0_blind_id_write_private_id_modulus d0_blind_id_write_private_id_modulus
-#define qd0_blind_id_generate_private_id_start d0_blind_id_generate_private_id_start
-#define qd0_blind_id_generate_private_id_request d0_blind_id_generate_private_id_request
-//#define qd0_blind_id_answer_private_id_request d0_blind_id_answer_private_id_request
-#define qd0_blind_id_finish_private_id_request d0_blind_id_finish_private_id_request
-//#define qd0_blind_id_read_private_id_request_camouflage d0_blind_id_read_private_id_request_camouflage
-//#define qd0_blind_id_write_private_id_request_camouflage d0_blind_id_write_private_id_request_camouflage
-#define qd0_blind_id_read_private_id d0_blind_id_read_private_id
-//#define qd0_blind_id_read_public_id d0_blind_id_read_public_id
-#define qd0_blind_id_write_private_id d0_blind_id_write_private_id
-//#define qd0_blind_id_write_public_id d0_blind_id_write_public_id
-#define qd0_blind_id_authenticate_with_private_id_start d0_blind_id_authenticate_with_private_id_start
-#define qd0_blind_id_authenticate_with_private_id_challenge d0_blind_id_authenticate_with_private_id_challenge
-#define qd0_blind_id_authenticate_with_private_id_response d0_blind_id_authenticate_with_private_id_response
-#define qd0_blind_id_authenticate_with_private_id_verify d0_blind_id_authenticate_with_private_id_verify
-#define qd0_blind_id_fingerprint64_public_id d0_blind_id_fingerprint64_public_id
-#define qd0_blind_id_sessionkey_public_id d0_blind_id_sessionkey_public_id
-#define qd0_blind_id_INITIALIZE d0_blind_id_INITIALIZE
-#define qd0_blind_id_SHUTDOWN d0_blind_id_SHUTDOWN
-#define qd0_blind_id_util_sha256 d0_blind_id_util_sha256
-#define qd0_blind_id_sign_with_private_id_sign d0_blind_id_sign_with_private_id_sign
-#define qd0_blind_id_sign_with_private_id_sign_detached d0_blind_id_sign_with_private_id_sign_detached
-#define qd0_blind_id_setmallocfuncs d0_blind_id_setmallocfuncs
-#define qd0_blind_id_setmutexfuncs d0_blind_id_setmutexfuncs
-#define qd0_blind_id_verify_public_id d0_blind_id_verify_public_id
-#define qd0_blind_id_verify_private_id d0_blind_id_verify_private_id
-
-#else
-
-// d0_blind_id interface
-#define D0_EXPORT
-#ifdef __GNUC__
-#define D0_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
-#else
-#define D0_WARN_UNUSED_RESULT
-#endif
-#define D0_BOOL int
-
-typedef void *(d0_malloc_t)(size_t len);
-typedef void (d0_free_t)(void *p);
-typedef void *(d0_createmutex_t)(void);
-typedef void (d0_destroymutex_t)(void *);
-typedef int (d0_lockmutex_t)(void *); // zero on success
-typedef int (d0_unlockmutex_t)(void *); // zero on success
-
-typedef struct d0_blind_id_s d0_blind_id_t;
-typedef D0_BOOL (*d0_fastreject_function) (const d0_blind_id_t *ctx, void *pass);
-static D0_EXPORT D0_WARN_UNUSED_RESULT d0_blind_id_t *(*qd0_blind_id_new) (void);
-static D0_EXPORT void (*qd0_blind_id_free) (d0_blind_id_t *a);
-//static D0_EXPORT void (*qd0_blind_id_clear) (d0_blind_id_t *ctx);
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_copy) (d0_blind_id_t *ctx, const d0_blind_id_t *src);
-//static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_generate_private_key) (d0_blind_id_t *ctx, int k);
-//static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_generate_private_key_fastreject) (d0_blind_id_t *ctx, int k, d0_fastreject_function reject, void *pass);
-//static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_read_private_key) (d0_blind_id_t *ctx, const char *inbuf, size_t inbuflen);
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_read_public_key) (d0_blind_id_t *ctx, const char *inbuf, size_t inbuflen);
-//static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_write_private_key) (const d0_blind_id_t *ctx, char *outbuf, size_t *outbuflen);
-//static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_write_public_key) (const d0_blind_id_t *ctx, char *outbuf, size_t *outbuflen);
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_fingerprint64_public_key) (const d0_blind_id_t *ctx, char *outbuf, size_t *outbuflen);
-//static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_generate_private_id_modulus) (d0_blind_id_t *ctx);
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_read_private_id_modulus) (d0_blind_id_t *ctx, const char *inbuf, size_t inbuflen);
-//static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_write_private_id_modulus) (const d0_blind_id_t *ctx, char *outbuf, size_t *outbuflen);
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_generate_private_id_start) (d0_blind_id_t *ctx);
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_generate_private_id_request) (d0_blind_id_t *ctx, char *outbuf, size_t *outbuflen);
-//static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_answer_private_id_request) (const d0_blind_id_t *ctx, const char *inbuf, size_t inbuflen, char *outbuf, size_t *outbuflen);
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_finish_private_id_request) (d0_blind_id_t *ctx, const char *inbuf, size_t inbuflen);
-//static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_read_private_id_request_camouflage) (d0_blind_id_t *ctx, const char *inbuf, size_t inbuflen);
-//static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_write_private_id_request_camouflage) (const d0_blind_id_t *ctx, char *outbuf, size_t *outbuflen);
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_read_private_id) (d0_blind_id_t *ctx, const char *inbuf, size_t inbuflen);
-//static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_read_public_id) (d0_blind_id_t *ctx, const char *inbuf, size_t inbuflen);
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_write_private_id) (const d0_blind_id_t *ctx, char *outbuf, size_t *outbuflen);
-//static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_write_public_id) (const d0_blind_id_t *ctx, char *outbuf, size_t *outbuflen);
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_authenticate_with_private_id_start) (d0_blind_id_t *ctx, D0_BOOL is_first, D0_BOOL send_modulus, const char *message, size_t msglen, char *outbuf, size_t *outbuflen);
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_authenticate_with_private_id_challenge) (d0_blind_id_t *ctx, D0_BOOL is_first, D0_BOOL recv_modulus, const char *inbuf, size_t inbuflen, char *outbuf, size_t *outbuflen, D0_BOOL *status);
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_authenticate_with_private_id_response) (d0_blind_id_t *ctx, const char *inbuf, size_t inbuflen, char *outbuf, size_t *outbuflen);
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_authenticate_with_private_id_verify) (d0_blind_id_t *ctx, const char *inbuf, size_t inbuflen, char *msg, size_t *msglen, D0_BOOL *status);
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_fingerprint64_public_id) (const d0_blind_id_t *ctx, char *outbuf, size_t *outbuflen);
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_sessionkey_public_id) (const d0_blind_id_t *ctx, char *outbuf, size_t *outbuflen); // can only be done after successful key exchange, this performs a modpow; key length is limited by SHA_DIGESTSIZE for now; also ONLY valid after successful d0_blind_id_authenticate_with_private_id_verify/d0_blind_id_fingerprint64_public_id
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_INITIALIZE) (void);
-static D0_EXPORT void (*qd0_blind_id_SHUTDOWN) (void);
-static D0_EXPORT void (*qd0_blind_id_util_sha256) (char *out, const char *in, size_t n);
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_sign_with_private_id_sign) (d0_blind_id_t *ctx, D0_BOOL is_first, D0_BOOL send_modulus, const char *message, size_t msglen, char *outbuf, size_t *outbuflen);
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_sign_with_private_id_sign_detached) (d0_blind_id_t *ctx, D0_BOOL is_first, D0_BOOL send_modulus, const char *message, size_t msglen, char *outbuf, size_t *outbuflen);
-static D0_EXPORT void (*qd0_blind_id_setmallocfuncs)(d0_malloc_t *m, d0_free_t *f);
-static D0_EXPORT void (*qd0_blind_id_setmutexfuncs)(d0_createmutex_t *c, d0_destroymutex_t *d, d0_lockmutex_t *l, d0_unlockmutex_t *u);
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_verify_public_id)(const d0_blind_id_t *ctx, D0_BOOL *status);
-static D0_EXPORT D0_WARN_UNUSED_RESULT D0_BOOL (*qd0_blind_id_verify_private_id)(const d0_blind_id_t *ctx);
-static dllfunction_t d0_blind_id_funcs[] =
-{
-    {"d0_blind_id_new", (void **) &qd0_blind_id_new},
-    {"d0_blind_id_free", (void **) &qd0_blind_id_free},
-    //{"d0_blind_id_clear", (void **) &qd0_blind_id_clear},
-    {"d0_blind_id_copy", (void **) &qd0_blind_id_copy},
-    //{"d0_blind_id_generate_private_key", (void **) &qd0_blind_id_generate_private_key},
-    //{"d0_blind_id_generate_private_key_fastreject", (void **) &qd0_blind_id_generate_private_key_fastreject},
-    //{"d0_blind_id_read_private_key", (void **) &qd0_blind_id_read_private_key},
-    {"d0_blind_id_read_public_key", (void **) &qd0_blind_id_read_public_key},
-    //{"d0_blind_id_write_private_key", (void **) &qd0_blind_id_write_private_key},
-    //{"d0_blind_id_write_public_key", (void **) &qd0_blind_id_write_public_key},
-    {"d0_blind_id_fingerprint64_public_key", (void **) &qd0_blind_id_fingerprint64_public_key},
-    //{"d0_blind_id_generate_private_id_modulus", (void **) &qd0_blind_id_generate_private_id_modulus},
-    {"d0_blind_id_read_private_id_modulus", (void **) &qd0_blind_id_read_private_id_modulus},
-    //{"d0_blind_id_write_private_id_modulus", (void **) &qd0_blind_id_write_private_id_modulus},
-    {"d0_blind_id_generate_private_id_start", (void **) &qd0_blind_id_generate_private_id_start},
-    {"d0_blind_id_generate_private_id_request", (void **) &qd0_blind_id_generate_private_id_request},
-    //{"d0_blind_id_answer_private_id_request", (void **) &qd0_blind_id_answer_private_id_request},
-    {"d0_blind_id_finish_private_id_request", (void **) &qd0_blind_id_finish_private_id_request},
-    //{"d0_blind_id_read_private_id_request_camouflage", (void **) &qd0_blind_id_read_private_id_request_camouflage},
-    //{"d0_blind_id_write_private_id_request_camouflage", (void **) &qd0_blind_id_write_private_id_request_camouflage},
-    {"d0_blind_id_read_private_id", (void **) &qd0_blind_id_read_private_id},
-    //{"d0_blind_id_read_public_id", (void **) &qd0_blind_id_read_public_id},
-    {"d0_blind_id_write_private_id", (void **) &qd0_blind_id_write_private_id},
-    //{"d0_blind_id_write_public_id", (void **) &qd0_blind_id_write_public_id},
-    {"d0_blind_id_authenticate_with_private_id_start", (void **) &qd0_blind_id_authenticate_with_private_id_start},
-    {"d0_blind_id_authenticate_with_private_id_challenge", (void **) &qd0_blind_id_authenticate_with_private_id_challenge},
-    {"d0_blind_id_authenticate_with_private_id_response", (void **) &qd0_blind_id_authenticate_with_private_id_response},
-    {"d0_blind_id_authenticate_with_private_id_verify", (void **) &qd0_blind_id_authenticate_with_private_id_verify},
-    {"d0_blind_id_fingerprint64_public_id", (void **) &qd0_blind_id_fingerprint64_public_id},
-    {"d0_blind_id_sessionkey_public_id", (void **) &qd0_blind_id_sessionkey_public_id},
-    {"d0_blind_id_INITIALIZE", (void **) &qd0_blind_id_INITIALIZE},
-    {"d0_blind_id_SHUTDOWN", (void **) &qd0_blind_id_SHUTDOWN},
-    {"d0_blind_id_util_sha256", (void **) &qd0_blind_id_util_sha256},
-    {"d0_blind_id_sign_with_private_id_sign", (void **) &qd0_blind_id_sign_with_private_id_sign},
-    {"d0_blind_id_sign_with_private_id_sign_detached", (void **) &qd0_blind_id_sign_with_private_id_sign_detached},
-    {"d0_blind_id_setmallocfuncs", (void **) &qd0_blind_id_setmallocfuncs},
-    {"d0_blind_id_setmutexfuncs", (void **) &qd0_blind_id_setmutexfuncs},
-    {"d0_blind_id_verify_public_id", (void **) &qd0_blind_id_verify_public_id},
-    {"d0_blind_id_verify_private_id", (void **) &qd0_blind_id_verify_private_id},
-    {NULL, NULL}
-};
-// end of d0_blind_id interface
-
-static dllhandle_t d0_blind_id_dll = NULL;
-static qboolean Crypto_OpenLibrary (void)
-{
-    const char* dllnames [] =
-    {
-#if defined(WIN32)
-        "libd0_blind_id-0.dll",
-#elif defined(MACOSX)
-        "libd0_blind_id.0.dylib",
-#else
-        "libd0_blind_id.so.0",
-        "libd0_blind_id.so", // FreeBSD
-#endif
-        NULL
-    };
-
-    // Already loaded?
-    if (d0_blind_id_dll)
-        return true;
-
-    // Load the DLL
-    return Sys_LoadLibrary (dllnames, &d0_blind_id_dll, d0_blind_id_funcs);
-}
-
-static void Crypto_CloseLibrary (void)
-{
-    Sys_UnloadLibrary (&d0_blind_id_dll);
-}
-
-#endif
-
-#ifdef LINK_TO_CRYPTO_RIJNDAEL
-
-#include <d0_blind_id/d0_rijndael.h>
-
-#define d0_rijndael_dll 1
-#define Crypto_Rijndael_OpenLibrary() true
-#define Crypto_Rijndael_CloseLibrary()
-
-#define qd0_rijndael_setup_encrypt d0_rijndael_setup_encrypt
-#define qd0_rijndael_setup_decrypt d0_rijndael_setup_decrypt
-#define qd0_rijndael_encrypt d0_rijndael_encrypt
-#define qd0_rijndael_decrypt d0_rijndael_decrypt
-
-#else
-
-// no need to do the #define dance here, as the upper part declares out macros either way
-
-D0_EXPORT int (*qd0_rijndael_setup_encrypt) (unsigned long *rk, const unsigned char *key,
-  int keybits);
-D0_EXPORT int (*qd0_rijndael_setup_decrypt) (unsigned long *rk, const unsigned char *key,
-  int keybits);
-D0_EXPORT void (*qd0_rijndael_encrypt) (const unsigned long *rk, int nrounds,
-  const unsigned char plaintext[16], unsigned char ciphertext[16]);
-D0_EXPORT void (*qd0_rijndael_decrypt) (const unsigned long *rk, int nrounds,
-  const unsigned char ciphertext[16], unsigned char plaintext[16]);
-#define D0_RIJNDAEL_KEYLENGTH(keybits) ((keybits)/8)
-#define D0_RIJNDAEL_RKLENGTH(keybits)  ((keybits)/8+28)
-#define D0_RIJNDAEL_NROUNDS(keybits)   ((keybits)/32+6)
-static dllfunction_t d0_rijndael_funcs[] =
-{
-    {"d0_rijndael_setup_decrypt", (void **) &qd0_rijndael_setup_decrypt},
-    {"d0_rijndael_setup_encrypt", (void **) &qd0_rijndael_setup_encrypt},
-    {"d0_rijndael_decrypt", (void **) &qd0_rijndael_decrypt},
-    {"d0_rijndael_encrypt", (void **) &qd0_rijndael_encrypt},
-    {NULL, NULL}
-};
-// end of d0_blind_id interface
-
-static dllhandle_t d0_rijndael_dll = NULL;
-static qboolean Crypto_Rijndael_OpenLibrary (void)
-{
-    const char* dllnames [] =
-    {
-#if defined(WIN32)
-        "libd0_rijndael-0.dll",
-#elif defined(MACOSX)
-        "libd0_rijndael.0.dylib",
-#else
-        "libd0_rijndael.so.0",
-        "libd0_rijndael.so", // FreeBSD
-#endif
-        NULL
-    };
-
-    // Already loaded?
-    if (d0_rijndael_dll)
-        return true;
-
-    // Load the DLL
-    return Sys_LoadLibrary (dllnames, &d0_rijndael_dll, d0_rijndael_funcs);
-}
-
-static void Crypto_Rijndael_CloseLibrary (void)
-{
-    Sys_UnloadLibrary (&d0_rijndael_dll);
-}
-
-#endif
-
 // various helpers
 void sha256(unsigned char *out, const unsigned char *in, int n)
 {
-    qd0_blind_id_util_sha256((char *) out, (const char *) in, n);
+    d0_blind_id_util_sha256((char *) out, (const char *) in, n);
 }
 
 static size_t Crypto_LoadFile(const char *path, char *buf, size_t nmax, qboolean inuserdir)
@@ -433,14 +186,14 @@ static d0_blind_id_t *Crypto_ReadPublicKey(char *buf, size_t len)
     size_t l[2];
     if(Crypto_ParsePack(buf, len, FOURCC_D0PK, p, l, 2))
     {
-        pk = qd0_blind_id_new();
+        pk = d0_blind_id_new();
         if(pk)
-            if(qd0_blind_id_read_public_key(pk, p[0], l[0]))
-                if(qd0_blind_id_read_private_id_modulus(pk, p[1], l[1]))
+            if(d0_blind_id_read_public_key(pk, p[0], l[0]))
+                if(d0_blind_id_read_private_id_modulus(pk, p[1], l[1]))
                     return pk;
     }
     if(pk)
-        qd0_blind_id_free(pk);
+        d0_blind_id_free(pk);
     return NULL;
 }
 
@@ -451,7 +204,7 @@ static qboolean Crypto_AddPrivateKey(d0_blind_id_t *pk, char *buf, size_t len)
     size_t l[1];
     if(Crypto_ParsePack(buf, len, FOURCC_D0SI, p, l, 1))
     {
-        if(qd0_blind_id_read_private_id(pk, p[0], l[0]))
+        if(d0_blind_id_read_private_id(pk, p[0], l[0]))
             return true;
     }
     return false;
@@ -502,7 +255,7 @@ crypto_data_t;
 // crypto specific helpers
 #define CDATA ((crypto_data_t *) crypto->data)
 #define MAKE_CDATA if(!crypto->data) crypto->data = Z_Malloc(sizeof(crypto_data_t))
-#define CLEAR_CDATA if(crypto->data) { if(CDATA->id) qd0_blind_id_free(CDATA->id); Z_Free(crypto->data); } crypto->data = NULL
+#define CLEAR_CDATA if(crypto->data) { if(CDATA->id) d0_blind_id_free(CDATA->id); Z_Free(crypto->data); } crypto->data = NULL
 
 static crypto_t *Crypto_ServerFindInstance(lhnetaddress_t *peeraddress, qboolean allow_create)
 {
@@ -862,7 +615,7 @@ void Crypto_LoadKeys(void)
         if((pubkeys[i] = Crypto_ReadPublicKey(buf, len)))
         {
             len2 = FP64_SIZE;
-            if(qd0_blind_id_fingerprint64_public_key(pubkeys[i], pubkeys_fp64[i], &len2)) // keeps final NUL
+            if(d0_blind_id_fingerprint64_public_key(pubkeys[i], pubkeys_fp64[i], &len2)) // keeps final NUL
             {
                 Con_Printf("Loaded public key key_%d.d0pk (fingerprint: %s)\n", i, pubkeys_fp64[i]);
                 len = Crypto_LoadFile(va(vabuf, sizeof(vabuf), "key_%d.d0si%s", i, sessionid.string), buf, sizeof(buf), true);
@@ -871,14 +624,14 @@ void Crypto_LoadKeys(void)
                     if(Crypto_AddPrivateKey(pubkeys[i], buf, len))
                     {
                         len2 = FP64_SIZE;
-                        if(qd0_blind_id_fingerprint64_public_id(pubkeys[i], pubkeys_priv_fp64[i], &len2)) // keeps final NUL
+                        if(d0_blind_id_fingerprint64_public_id(pubkeys[i], pubkeys_priv_fp64[i], &len2)) // keeps final NUL
                         {
                             D0_BOOL status = 0;
 
                             Con_Printf("Loaded private ID key_%d.d0si%s for key_%d.d0pk (public key fingerprint: %s)\n", i, sessionid.string, i, pubkeys_priv_fp64[i]);
 
                             // verify the key we just loaded (just in case)
-                            if(qd0_blind_id_verify_private_id(pubkeys[i]) && qd0_blind_id_verify_public_id(pubkeys[i], &status))
+                            if(d0_blind_id_verify_private_id(pubkeys[i]) && d0_blind_id_verify_public_id(pubkeys[i], &status))
                             {
                                 pubkeys_havepriv[i] = true;
                                 pubkeys_havesig[i] = status;
@@ -892,14 +645,14 @@ void Crypto_LoadKeys(void)
                             else
                             {
                                 Con_Printf("d0_blind_id_verify_private_id failed, this is not a valid key!\n");
-                                qd0_blind_id_free(pubkeys[i]);
+                                d0_blind_id_free(pubkeys[i]);
                                 pubkeys[i] = NULL;
                             }
                         }
                         else
                         {
                             Con_Printf("d0_blind_id_fingerprint64_public_id failed\n");
-                            qd0_blind_id_free(pubkeys[i]);
+                            d0_blind_id_free(pubkeys[i]);
                             pubkeys[i] = NULL;
                         }
                     }
@@ -908,7 +661,7 @@ void Crypto_LoadKeys(void)
             else
             {
                 // can't really happen
-                qd0_blind_id_free(pubkeys[i]);
+                d0_blind_id_free(pubkeys[i]);
                 pubkeys[i] = NULL;
             }
         }
@@ -969,7 +722,7 @@ static void Crypto_UnloadKeys(void)
     for(i = 0; i < MAX_PUBKEYS; ++i)
     {
         if(pubkeys[i])
-            qd0_blind_id_free(pubkeys[i]);
+            d0_blind_id_free(pubkeys[i]);
         pubkeys[i] = NULL;
         pubkeys_havepriv[i] = false;
         pubkeys_havesig[i] = false;
@@ -1024,8 +777,6 @@ void Crypto_Shutdown(void)
     crypto_t *crypto;
     int i;
 
-    Crypto_Rijndael_CloseLibrary();
-
     if(d0_blind_id_dll)
     {
         // free memory
@@ -1040,9 +791,7 @@ void Crypto_Shutdown(void)
 
         Crypto_UnloadKeys();
 
-        qd0_blind_id_SHUTDOWN();
-
-        Crypto_CloseLibrary();
+        d0_blind_id_SHUTDOWN();
     }
 
     Mem_FreePool(&cryptomempool);
@@ -1052,22 +801,15 @@ void Crypto_Init(void)
 {
     cryptomempool = Mem_AllocPool("crypto", 0, NULL);
 
-    if(!Crypto_OpenLibrary())
-        return;
-
-    qd0_blind_id_setmallocfuncs(Crypto_d0_malloc, Crypto_d0_free);
+    d0_blind_id_setmallocfuncs(Crypto_d0_malloc, Crypto_d0_free);
     if (Thread_HasThreads())
-        qd0_blind_id_setmutexfuncs(Crypto_d0_createmutex, Crypto_d0_destroymutex, Crypto_d0_lockmutex, Crypto_d0_unlockmutex);
+        d0_blind_id_setmutexfuncs(Crypto_d0_createmutex, Crypto_d0_destroymutex, Crypto_d0_lockmutex, Crypto_d0_unlockmutex);
 
-    if(!qd0_blind_id_INITIALIZE())
+    if(!d0_blind_id_INITIALIZE())
     {
-        Crypto_Rijndael_CloseLibrary();
-        Crypto_CloseLibrary();
         Con_Printf("libd0_blind_id initialization FAILED, cryptography support has been disabled\n");
         return;
     }
-
-    (void) Crypto_Rijndael_OpenLibrary(); // if this fails, it's uncritical
 
     Crypto_InitHostKeys();
 }
@@ -1131,7 +873,7 @@ static void Crypto_KeyGen_Finished(int code, size_t length_received, unsigned ch
         SV_UnlockThreadMutex();
         return;
     }
-    if(!qd0_blind_id_finish_private_id_request(pubkeys[keygen_i], p[0], l[0]))
+    if(!d0_blind_id_finish_private_id_request(pubkeys[keygen_i], p[0], l[0]))
     {
         Con_Printf("d0_blind_id_finish_private_id_request failed\n");
         keygen_i = -1;
@@ -1140,7 +882,7 @@ static void Crypto_KeyGen_Finished(int code, size_t length_received, unsigned ch
     }
 
     // verify the key we just got (just in case)
-    if(!qd0_blind_id_verify_public_id(pubkeys[keygen_i], &status) || !status)
+    if(!d0_blind_id_verify_public_id(pubkeys[keygen_i], &status) || !status)
     {
         Con_Printf("d0_blind_id_verify_public_id failed\n");
         keygen_i = -1;
@@ -1156,7 +898,7 @@ static void Crypto_KeyGen_Finished(int code, size_t length_received, unsigned ch
     // write the key to disk
     p[0] = buf;
     l[0] = sizeof(buf);
-    if(!qd0_blind_id_write_private_id(pubkeys[keygen_i], buf, &l[0]))
+    if(!d0_blind_id_write_private_id(pubkeys[keygen_i], buf, &l[0]))
     {
         Con_Printf("d0_blind_id_write_private_id failed\n");
         keygen_i = -1;
@@ -1249,7 +991,7 @@ static void Crypto_KeyGen_f(void)
     else
     {
         // we also need a new ID itself
-        if(!qd0_blind_id_generate_private_id_start(pubkeys[keygen_i]))
+        if(!d0_blind_id_generate_private_id_start(pubkeys[keygen_i]))
         {
             Con_Printf("d0_blind_id_start failed\n");
             keygen_i = -1;
@@ -1257,7 +999,7 @@ static void Crypto_KeyGen_f(void)
             return;
         }
         // verify the key we just got (just in case)
-        if(!qd0_blind_id_verify_private_id(pubkeys[keygen_i]))
+        if(!d0_blind_id_verify_private_id(pubkeys[keygen_i]))
         {
             Con_Printf("d0_blind_id_verify_private_id failed\n");
             keygen_i = -1;
@@ -1267,7 +1009,7 @@ static void Crypto_KeyGen_f(void)
         // we have a valid key now!
         // make the rest of crypto.c know that
         len2 = FP64_SIZE;
-        if(qd0_blind_id_fingerprint64_public_id(pubkeys[keygen_i], pubkeys_priv_fp64[keygen_i], &len2)) // keeps final NUL
+        if(d0_blind_id_fingerprint64_public_id(pubkeys[keygen_i], pubkeys_priv_fp64[keygen_i], &len2)) // keeps final NUL
         {
             Con_Printf("Generated private ID key_%d.d0pk (public key fingerprint: %s)\n", keygen_i, pubkeys_priv_fp64[keygen_i]);
             pubkeys_havepriv[keygen_i] = true;
@@ -1278,7 +1020,7 @@ static void Crypto_KeyGen_f(void)
         // write the key to disk
         p[0] = buf;
         l[0] = sizeof(buf);
-        if(!qd0_blind_id_write_private_id(pubkeys[keygen_i], buf, &l[0]))
+        if(!d0_blind_id_write_private_id(pubkeys[keygen_i], buf, &l[0]))
         {
             Con_Printf("d0_blind_id_write_private_id failed\n");
             keygen_i = -1;
@@ -1311,7 +1053,7 @@ static void Crypto_KeyGen_f(void)
     }
     p[0] = buf;
     l[0] = sizeof(buf);
-    if(!qd0_blind_id_generate_private_id_request(pubkeys[keygen_i], buf, &l[0]))
+    if(!d0_blind_id_generate_private_id_request(pubkeys[keygen_i], buf, &l[0]))
     {
         Con_Printf("d0_blind_id_generate_private_id_request failed\n");
         keygen_i = -1;
@@ -1453,12 +1195,12 @@ static void aescpy(unsigned char *key, const unsigned char *iv, unsigned char *d
     unsigned char xorbuf[16];
     unsigned long rk[D0_RIJNDAEL_RKLENGTH(DHKEY_SIZE * 8)];
     size_t i;
-    qd0_rijndael_setup_encrypt(rk, key, DHKEY_SIZE * 8);
+    d0_rijndael_setup_encrypt(rk, key, DHKEY_SIZE * 8);
     while(len > 16)
     {
         for(i = 0; i < 16; ++i)
             xorbuf[i] = src[i] ^ xorpos[i];
-        qd0_rijndael_encrypt(rk, D0_RIJNDAEL_NROUNDS(DHKEY_SIZE * 8), xorbuf, dst);
+        d0_rijndael_encrypt(rk, D0_RIJNDAEL_NROUNDS(DHKEY_SIZE * 8), xorbuf, dst);
         xorpos = dst;
         len -= 16;
         src += 16;
@@ -1470,7 +1212,7 @@ static void aescpy(unsigned char *key, const unsigned char *iv, unsigned char *d
             xorbuf[i] = src[i] ^ xorpos[i];
         for(; i < 16; ++i)
             xorbuf[i] = xorpos[i];
-        qd0_rijndael_encrypt(rk, D0_RIJNDAEL_NROUNDS(DHKEY_SIZE * 8), xorbuf, dst);
+        d0_rijndael_encrypt(rk, D0_RIJNDAEL_NROUNDS(DHKEY_SIZE * 8), xorbuf, dst);
     }
 }
 static void seacpy(unsigned char *key, const unsigned char *iv, unsigned char *dst, const unsigned char *src, size_t len)
@@ -1479,10 +1221,10 @@ static void seacpy(unsigned char *key, const unsigned char *iv, unsigned char *d
     unsigned char xorbuf[16];
     unsigned long rk[D0_RIJNDAEL_RKLENGTH(DHKEY_SIZE * 8)];
     size_t i;
-    qd0_rijndael_setup_decrypt(rk, key, DHKEY_SIZE * 8);
+    d0_rijndael_setup_decrypt(rk, key, DHKEY_SIZE * 8);
     while(len > 16)
     {
-        qd0_rijndael_decrypt(rk, D0_RIJNDAEL_NROUNDS(DHKEY_SIZE * 8), src, xorbuf);
+        d0_rijndael_decrypt(rk, D0_RIJNDAEL_NROUNDS(DHKEY_SIZE * 8), src, xorbuf);
         for(i = 0; i < 16; ++i)
             dst[i] = xorbuf[i] ^ xorpos[i];
         xorpos = src;
@@ -1492,7 +1234,7 @@ static void seacpy(unsigned char *key, const unsigned char *iv, unsigned char *d
     }
     if(len > 0)
     {
-        qd0_rijndael_decrypt(rk, D0_RIJNDAEL_NROUNDS(DHKEY_SIZE * 8), src, xorbuf);
+        d0_rijndael_decrypt(rk, D0_RIJNDAEL_NROUNDS(DHKEY_SIZE * 8), src, xorbuf);
         for(i = 0; i < len; ++i)
             dst[i] = xorbuf[i] ^ xorpos[i];
     }
@@ -1841,19 +1583,19 @@ static int Crypto_ServerParsePacket_Internal(const char *data_in, size_t len_in,
                 crypto->server_issigned = pubkeys_havesig[CDATA->s];
 
                 if(!CDATA->id)
-                    CDATA->id = qd0_blind_id_new();
+                    CDATA->id = d0_blind_id_new();
                 if(!CDATA->id)
                 {
                     CLEAR_CDATA;
                     return Crypto_ServerError(data_out, len_out, "d0_blind_id_new failed", "Internal error");
                 }
-                if(!qd0_blind_id_copy(CDATA->id, pubkeys[CDATA->s]))
+                if(!d0_blind_id_copy(CDATA->id, pubkeys[CDATA->s]))
                 {
                     CLEAR_CDATA;
                     return Crypto_ServerError(data_out, len_out, "d0_blind_id_copy failed", "Internal error");
                 }
                 PutWithNul(&data_out_p, len_out, va(vabuf, sizeof(vabuf), "d0pk\\cnt\\1\\id\\%d\\aes\\%d", CDATA->cdata_id, crypto->use_aes));
-                if(!qd0_blind_id_authenticate_with_private_id_start(CDATA->id, true, false, "XONOTIC", 8, data_out_p, len_out)) // len_out receives used size by this op
+                if(!d0_blind_id_authenticate_with_private_id_start(CDATA->id, true, false, "XONOTIC", 8, data_out_p, len_out)) // len_out receives used size by this op
                 {
                     CLEAR_CDATA;
                     return Crypto_ServerError(data_out, len_out, "d0_blind_id_authenticate_with_private_id_start failed", "Internal error");
@@ -1866,19 +1608,19 @@ static int Crypto_ServerParsePacket_Internal(const char *data_in, size_t len_in,
             else if(CDATA->c >= 0)
             {
                 if(!CDATA->id)
-                    CDATA->id = qd0_blind_id_new();
+                    CDATA->id = d0_blind_id_new();
                 if(!CDATA->id)
                 {
                     CLEAR_CDATA;
                     return Crypto_ServerError(data_out, len_out, "d0_blind_id_new failed", "Internal error");
                 }
-                if(!qd0_blind_id_copy(CDATA->id, pubkeys[CDATA->c]))
+                if(!d0_blind_id_copy(CDATA->id, pubkeys[CDATA->c]))
                 {
                     CLEAR_CDATA;
                     return Crypto_ServerError(data_out, len_out, "d0_blind_id_copy failed", "Internal error");
                 }
                 PutWithNul(&data_out_p, len_out, va(vabuf, sizeof(vabuf), "d0pk\\cnt\\5\\id\\%d\\aes\\%d", CDATA->cdata_id, crypto->use_aes));
-                if(!qd0_blind_id_authenticate_with_private_id_challenge(CDATA->id, true, false, data_in, len_in, data_out_p, len_out, &status))
+                if(!d0_blind_id_authenticate_with_private_id_challenge(CDATA->id, true, false, data_in, len_in, data_out_p, len_out, &status))
                 {
                     CLEAR_CDATA;
                     return Crypto_ServerError(data_out, len_out, "d0_blind_id_authenticate_with_private_id_challenge failed", "Internal error");
@@ -1907,20 +1649,20 @@ static int Crypto_ServerParsePacket_Internal(const char *data_in, size_t len_in,
                 return Crypto_SoftServerError(data_out, len_out, va(vabuf, sizeof(vabuf), "Got d0pk\\cnt\\%s when expecting %d", cnt, CDATA->next_step));
 
             PutWithNul(&data_out_p, len_out, va(vabuf, sizeof(vabuf), "d0pk\\cnt\\3\\id\\%d", CDATA->cdata_id));
-            if(!qd0_blind_id_authenticate_with_private_id_response(CDATA->id, data_in, len_in, data_out_p, len_out))
+            if(!d0_blind_id_authenticate_with_private_id_response(CDATA->id, data_in, len_in, data_out_p, len_out))
             {
                 CLEAR_CDATA;
                 return Crypto_ServerError(data_out, len_out, "d0_blind_id_authenticate_with_private_id_response failed", "Internal error");
             }
             fpbuflen = DHKEY_SIZE;
-            if(!qd0_blind_id_sessionkey_public_id(CDATA->id, (char *) crypto->dhkey, &fpbuflen))
+            if(!d0_blind_id_sessionkey_public_id(CDATA->id, (char *) crypto->dhkey, &fpbuflen))
             {
                 CLEAR_CDATA;
                 return Crypto_ServerError(data_out, len_out, "d0_blind_id_sessionkey_public_id failed", "Internal error");
             }
             if(CDATA->c >= 0)
             {
-                if(!qd0_blind_id_copy(CDATA->id, pubkeys[CDATA->c]))
+                if(!d0_blind_id_copy(CDATA->id, pubkeys[CDATA->c]))
                 {
                     CLEAR_CDATA;
                     return Crypto_ServerError(data_out, len_out, "d0_blind_id_copy failed", "Internal error");
@@ -1948,7 +1690,7 @@ static int Crypto_ServerParsePacket_Internal(const char *data_in, size_t len_in,
             if(CDATA->next_step != 4)
                 return Crypto_SoftServerError(data_out, len_out, va(vabuf, sizeof(vabuf), "Got d0pk\\cnt\\%s when expecting %d", cnt, CDATA->next_step));
             PutWithNul(&data_out_p, len_out, va(vabuf, sizeof(vabuf), "d0pk\\cnt\\5\\id\\%d", CDATA->cdata_id));
-            if(!qd0_blind_id_authenticate_with_private_id_challenge(CDATA->id, true, false, data_in, len_in, data_out_p, len_out, &status))
+            if(!d0_blind_id_authenticate_with_private_id_challenge(CDATA->id, true, false, data_in, len_in, data_out_p, len_out, &status))
             {
                 CLEAR_CDATA;
                 return Crypto_ServerError(data_out, len_out, "d0_blind_id_authenticate_with_private_id_challenge failed", "Internal error");
@@ -1974,7 +1716,7 @@ static int Crypto_ServerParsePacket_Internal(const char *data_in, size_t len_in,
             if(CDATA->next_step != 6)
                 return Crypto_SoftServerError(data_out, len_out, va(vabuf, sizeof(vabuf), "Got d0pk\\cnt\\%s when expecting %d", cnt, CDATA->next_step));
 
-            if(!qd0_blind_id_authenticate_with_private_id_verify(CDATA->id, data_in, len_in, msgbuf, &msgbuflen, &status))
+            if(!d0_blind_id_authenticate_with_private_id_verify(CDATA->id, data_in, len_in, msgbuf, &msgbuflen, &status))
             {
                 CLEAR_CDATA;
                 return Crypto_ServerError(data_out, len_out, "d0_blind_id_authenticate_with_private_id_verify failed (authentication error)", "Authentication error");
@@ -1984,13 +1726,13 @@ static int Crypto_ServerParsePacket_Internal(const char *data_in, size_t len_in,
 
             memset(crypto->client_idfp, 0, sizeof(crypto->client_idfp));
             fpbuflen = FP64_SIZE;
-            if(!qd0_blind_id_fingerprint64_public_id(CDATA->id, crypto->client_idfp, &fpbuflen))
+            if(!d0_blind_id_fingerprint64_public_id(CDATA->id, crypto->client_idfp, &fpbuflen))
             {
                 CLEAR_CDATA;
                 return Crypto_ServerError(data_out, len_out, "d0_blind_id_fingerprint64_public_id failed", "Internal error");
             }
             fpbuflen = DHKEY_SIZE;
-            if(!qd0_blind_id_sessionkey_public_id(CDATA->id, (char *) dhkey, &fpbuflen))
+            if(!d0_blind_id_sessionkey_public_id(CDATA->id, (char *) dhkey, &fpbuflen))
             {
                 CLEAR_CDATA;
                 return Crypto_ServerError(data_out, len_out, "d0_blind_id_sessionkey_public_id failed", "Internal error");
@@ -2344,13 +2086,13 @@ int Crypto_ClientParsePacket(const char *data_in, size_t len_in, char *data_out,
             if(serverid >= 0)
             {
                 if(!CDATA->id)
-                    CDATA->id = qd0_blind_id_new();
+                    CDATA->id = d0_blind_id_new();
                 if(!CDATA->id)
                 {
                     CLEAR_CDATA;
                     return Crypto_ClientError(data_out, len_out, "d0_blind_id_new failed");
                 }
-                if(!qd0_blind_id_copy(CDATA->id, pubkeys[CDATA->s]))
+                if(!d0_blind_id_copy(CDATA->id, pubkeys[CDATA->s]))
                 {
                     CLEAR_CDATA;
                     return Crypto_ClientError(data_out, len_out, "d0_blind_id_copy failed");
@@ -2362,18 +2104,18 @@ int Crypto_ClientParsePacket(const char *data_in, size_t len_in, char *data_out,
             {
                 // skip over server auth, perform client auth only
                 if(!CDATA->id)
-                    CDATA->id = qd0_blind_id_new();
+                    CDATA->id = d0_blind_id_new();
                 if(!CDATA->id)
                 {
                     CLEAR_CDATA;
                     return Crypto_ClientError(data_out, len_out, "d0_blind_id_new failed");
                 }
-                if(!qd0_blind_id_copy(CDATA->id, pubkeys[CDATA->c]))
+                if(!d0_blind_id_copy(CDATA->id, pubkeys[CDATA->c]))
                 {
                     CLEAR_CDATA;
                     return Crypto_ClientError(data_out, len_out, "d0_blind_id_copy failed");
                 }
-                if(!qd0_blind_id_authenticate_with_private_id_start(CDATA->id, true, false, "XONOTIC", 8, data_out_p, len_out)) // len_out receives used size by this op
+                if(!d0_blind_id_authenticate_with_private_id_start(CDATA->id, true, false, "XONOTIC", 8, data_out_p, len_out)) // len_out receives used size by this op
                 {
                     CLEAR_CDATA;
                     return Crypto_ClientError(data_out, len_out, "d0_blind_id_authenticate_with_private_id_start failed");
@@ -2446,7 +2188,7 @@ int Crypto_ClientParsePacket(const char *data_in, size_t len_in, char *data_out,
             crypto->use_aes = aes != 0;
 
             PutWithNul(&data_out_p, len_out, va(vabuf, sizeof(vabuf), "d0pk\\cnt\\2\\id\\%d", CDATA->cdata_id));
-            if(!qd0_blind_id_authenticate_with_private_id_challenge(CDATA->id, true, false, data_in, len_in, data_out_p, len_out, &status))
+            if(!d0_blind_id_authenticate_with_private_id_challenge(CDATA->id, true, false, data_in, len_in, data_out_p, len_out, &status))
             {
                 CLEAR_CDATA;
                 return Crypto_ClientError(data_out, len_out, "d0_blind_id_authenticate_with_private_id_challenge failed");
@@ -2470,7 +2212,7 @@ int Crypto_ClientParsePacket(const char *data_in, size_t len_in, char *data_out,
 
             cls.connect_nextsendtime = max(cls.connect_nextsendtime, realtime + 1); // prevent "hammering"
 
-            if(!qd0_blind_id_authenticate_with_private_id_verify(CDATA->id, data_in, len_in, msgbuf, &msgbuflen, &status))
+            if(!d0_blind_id_authenticate_with_private_id_verify(CDATA->id, data_in, len_in, msgbuf, &msgbuflen, &status))
             {
                 CLEAR_CDATA;
                 return Crypto_ClientError(data_out, len_out, "d0_blind_id_authenticate_with_private_id_verify failed (server authentication error)");
@@ -2486,7 +2228,7 @@ int Crypto_ClientParsePacket(const char *data_in, size_t len_in, char *data_out,
 
             memset(crypto->server_idfp, 0, sizeof(crypto->server_idfp));
             fpbuflen = FP64_SIZE;
-            if(!qd0_blind_id_fingerprint64_public_id(CDATA->id, crypto->server_idfp, &fpbuflen))
+            if(!d0_blind_id_fingerprint64_public_id(CDATA->id, crypto->server_idfp, &fpbuflen))
             {
                 CLEAR_CDATA;
                 return Crypto_ClientError(data_out, len_out, "d0_blind_id_fingerprint64_public_id failed");
@@ -2498,7 +2240,7 @@ int Crypto_ClientParsePacket(const char *data_in, size_t len_in, char *data_out,
                 return Crypto_ClientError(data_out, len_out, "Server ID does not match stored host key, refusing to connect");
             }
             fpbuflen = DHKEY_SIZE;
-            if(!qd0_blind_id_sessionkey_public_id(CDATA->id, (char *) crypto->dhkey, &fpbuflen))
+            if(!d0_blind_id_sessionkey_public_id(CDATA->id, (char *) crypto->dhkey, &fpbuflen))
             {
                 CLEAR_CDATA;
                 return Crypto_ClientError(data_out, len_out, "d0_blind_id_sessionkey_public_id failed");
@@ -2511,12 +2253,12 @@ int Crypto_ClientParsePacket(const char *data_in, size_t len_in, char *data_out,
             {
                 // client will auth next
                 PutWithNul(&data_out_p, len_out, va(vabuf, sizeof(vabuf), "d0pk\\cnt\\4\\id\\%d", CDATA->cdata_id));
-                if(!qd0_blind_id_copy(CDATA->id, pubkeys[CDATA->c]))
+                if(!d0_blind_id_copy(CDATA->id, pubkeys[CDATA->c]))
                 {
                     CLEAR_CDATA;
                     return Crypto_ClientError(data_out, len_out, "d0_blind_id_copy failed");
                 }
-                if(!qd0_blind_id_authenticate_with_private_id_start(CDATA->id, true, false, "XONOTIC", 8, data_out_p, len_out)) // len_out receives used size by this op
+                if(!d0_blind_id_authenticate_with_private_id_start(CDATA->id, true, false, "XONOTIC", 8, data_out_p, len_out)) // len_out receives used size by this op
                 {
                     CLEAR_CDATA;
                     return Crypto_ClientError(data_out, len_out, "d0_blind_id_authenticate_with_private_id_start failed");
@@ -2578,13 +2320,13 @@ int Crypto_ClientParsePacket(const char *data_in, size_t len_in, char *data_out,
             }
 
             PutWithNul(&data_out_p, len_out, va(vabuf, sizeof(vabuf), "d0pk\\cnt\\6\\id\\%d", CDATA->cdata_id));
-            if(!qd0_blind_id_authenticate_with_private_id_response(CDATA->id, data_in, len_in, data_out_p, len_out))
+            if(!d0_blind_id_authenticate_with_private_id_response(CDATA->id, data_in, len_in, data_out_p, len_out))
             {
                 CLEAR_CDATA;
                 return Crypto_ClientError(data_out, len_out, "d0_blind_id_authenticate_with_private_id_response failed");
             }
             fpbuflen = DHKEY_SIZE;
-            if(!qd0_blind_id_sessionkey_public_id(CDATA->id, (char *) dhkey, &fpbuflen))
+            if(!d0_blind_id_sessionkey_public_id(CDATA->id, (char *) dhkey, &fpbuflen))
             {
                 CLEAR_CDATA;
                 return Crypto_ClientError(data_out, len_out, "d0_blind_id_sessionkey_public_id failed");
@@ -2611,7 +2353,7 @@ size_t Crypto_SignData(const void *data, size_t datasize, int keyid, void *signe
         return 0;
     if(!pubkeys_havepriv[keyid])
         return 0;
-    if(qd0_blind_id_sign_with_private_id_sign(pubkeys[keyid], true, false, (const char *)data, datasize, (char *)signed_data, &signed_size))
+    if(d0_blind_id_sign_with_private_id_sign(pubkeys[keyid], true, false, (const char *)data, datasize, (char *)signed_data, &signed_size))
         return signed_size;
     return 0;
 }
@@ -2622,7 +2364,7 @@ size_t Crypto_SignDataDetached(const void *data, size_t datasize, int keyid, voi
         return 0;
     if(!pubkeys_havepriv[keyid])
         return 0;
-    if(qd0_blind_id_sign_with_private_id_sign_detached(pubkeys[keyid], true, false, (const char *)data, datasize, (char *)signed_data, &signed_size))
+    if(d0_blind_id_sign_with_private_id_sign_detached(pubkeys[keyid], true, false, (const char *)data, datasize, (char *)signed_data, &signed_size))
         return signed_size;
     return 0;
 }
