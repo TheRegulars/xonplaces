@@ -99,7 +99,7 @@ set(SOURCE_COMMON
     filematch.c
     fractalnoise.c
     fs.c fs.h
-    ft2.c ft2.h ft2_defs.h ft2_fontdefs.h
+    ft2.c ft2.h ft2_fontdefs.h
     utf8lib.c utf8lib.h
     gl_backend.c gl_backend.h
     gl_draw.c lhfont.h
@@ -220,6 +220,7 @@ find_package(CURL REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(JPEG REQUIRED)
 find_package(PNG REQUIRED)
+find_package(Freetype REQUIRED)
 # add d0_blind_id
 include(D0BlindId)
 
@@ -244,6 +245,7 @@ if (COMPILE_SERVER)
         ${CURL_INCLUDE_DIRS}
         ${ZLIB_INCLUDE_DIRS}
         ${JPEG_INLUDE_DIR}
+        ${FREETYPE_INCLUDE_DIRS}
         ${PNG_INCLUDE_DIRS}
     )
     target_link_libraries(darkplaces-dedicated PRIVATE
@@ -252,6 +254,7 @@ if (COMPILE_SERVER)
         ${CURL_LIBRARIES}
         ${ZLIB_LIBRARIES}
         ${JPEG_LIBRARIES}
+        ${FREETYPE_LIBRARIES}
         ${PNG_LIBRARIES}
     )
     install(TARGETS darkplaces-dedicated RUNTIME DESTINATION bin)
@@ -276,6 +279,7 @@ if (COMPILE_CLIENT)
             ${ZLIB_INCLUDE_DIRS}
             ${JPEG_INLUDE_DIR}
             ${PNG_INCLUDE_DIRS}
+            ${FREETYPE_INCLUDE_DIRS}
             ${SDL2_INCLUDE_DIR}
         )
         target_link_libraries(darkplaces-sdl PRIVATE
@@ -286,6 +290,7 @@ if (COMPILE_CLIENT)
             ${ZLIB_LIBRARIES}
             ${JPEG_LIBRARIES}
             ${PNG_LIBRARIES}
+            ${FREETYPE_LIBRARIES}
             ${SDL2_LIBRARY}
         )
         install(TARGETS darkplaces-sdl RUNTIME DESTINATION bin)

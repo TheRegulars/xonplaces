@@ -3,8 +3,9 @@
  */
 #include "quakedef.h"
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
 #include "ft2.h"
-#include "ft2_defs.h"
 #include "ft2_fontdefs.h"
 #include "image.h"
 
@@ -41,181 +42,6 @@ cvar_t r_font_diskcache = {CVAR_SAVE, "r_font_diskcache", "0", "save font textur
 cvar_t r_font_compress = {CVAR_SAVE, "r_font_compress", "0", "use texture compression on font textures to save video memory"};
 cvar_t r_font_nonpoweroftwo = {CVAR_SAVE, "r_font_nonpoweroftwo", "1", "use nonpoweroftwo textures for font (saves memory, potentially slower)"};
 cvar_t developer_font = {CVAR_SAVE, "developer_font", "0", "prints debug messages about fonts"};
-
-#ifndef DP_FREETYPE_STATIC
-
-/*
-================================================================================
-Function definitions. Taken from the freetype2 headers.
-================================================================================
-*/
-
-
-FT_EXPORT( FT_Error )
-(*qFT_Init_FreeType)( FT_Library  *alibrary );
-FT_EXPORT( FT_Error )
-(*qFT_Done_FreeType)( FT_Library  library );
-/*
-FT_EXPORT( FT_Error )
-(*qFT_New_Face)( FT_Library   library,
-         const char*  filepathname,
-         FT_Long      face_index,
-         FT_Face     *aface );
-*/
-FT_EXPORT( FT_Error )
-(*qFT_New_Memory_Face)( FT_Library      library,
-            const FT_Byte*  file_base,
-            FT_Long         file_size,
-            FT_Long         face_index,
-            FT_Face        *aface );
-FT_EXPORT( FT_Error )
-(*qFT_Done_Face)( FT_Face  face );
-FT_EXPORT( FT_Error )
-(*qFT_Select_Size)( FT_Face  face,
-            FT_Int   strike_index );
-FT_EXPORT( FT_Error )
-(*qFT_Request_Size)( FT_Face          face,
-             FT_Size_Request  req );
-FT_EXPORT( FT_Error )
-(*qFT_Set_Char_Size)( FT_Face     face,
-              FT_F26Dot6  char_width,
-              FT_F26Dot6  char_height,
-              FT_UInt     horz_resolution,
-              FT_UInt     vert_resolution );
-FT_EXPORT( FT_Error )
-(*qFT_Set_Pixel_Sizes)( FT_Face  face,
-            FT_UInt  pixel_width,
-            FT_UInt  pixel_height );
-FT_EXPORT( FT_Error )
-(*qFT_Load_Glyph)( FT_Face   face,
-           FT_UInt   glyph_index,
-           FT_Int32  load_flags );
-FT_EXPORT( FT_Error )
-(*qFT_Load_Char)( FT_Face   face,
-          FT_ULong  char_code,
-          FT_Int32  load_flags );
-FT_EXPORT( FT_UInt )
-(*qFT_Get_Char_Index)( FT_Face   face,
-               FT_ULong  charcode );
-FT_EXPORT( FT_Error )
-(*qFT_Render_Glyph)( FT_GlyphSlot    slot,
-             FT_Render_Mode  render_mode );
-FT_EXPORT( FT_Error )
-(*qFT_Get_Kerning)( FT_Face     face,
-            FT_UInt     left_glyph,
-            FT_UInt     right_glyph,
-            FT_UInt     kern_mode,
-            FT_Vector  *akerning );
-FT_EXPORT( FT_Error )
-(*qFT_Attach_Stream)( FT_Face        face,
-              FT_Open_Args*  parameters );
-/*
-================================================================================
-Support for dynamically loading the FreeType2 library
-================================================================================
-*/
-
-static dllfunction_t ft2funcs[] =
-{
-    {"FT_Init_FreeType",        (void **) &qFT_Init_FreeType},
-    {"FT_Done_FreeType",        (void **) &qFT_Done_FreeType},
-    //{"FT_New_Face",            (void **) &qFT_New_Face},
-    {"FT_New_Memory_Face",        (void **) &qFT_New_Memory_Face},
-    {"FT_Done_Face",        (void **) &qFT_Done_Face},
-    {"FT_Select_Size",        (void **) &qFT_Select_Size},
-    {"FT_Request_Size",        (void **) &qFT_Request_Size},
-    {"FT_Set_Char_Size",        (void **) &qFT_Set_Char_Size},
-    {"FT_Set_Pixel_Sizes",        (void **) &qFT_Set_Pixel_Sizes},
-    {"FT_Load_Glyph",        (void **) &qFT_Load_Glyph},
-    {"FT_Load_Char",        (void **) &qFT_Load_Char},
-    {"FT_Get_Char_Index",        (void **) &qFT_Get_Char_Index},
-    {"FT_Render_Glyph",        (void **) &qFT_Render_Glyph},
-    {"FT_Get_Kerning",        (void **) &qFT_Get_Kerning},
-    {"FT_Attach_Stream",        (void **) &qFT_Attach_Stream},
-    {NULL, NULL}
-};
-
-/// Handle for FreeType2 DLL
-static dllhandle_t ft2_dll = NULL;
-
-#else
-
-FT_EXPORT( FT_Error )
-(FT_Init_FreeType)( FT_Library  *alibrary );
-FT_EXPORT( FT_Error )
-(FT_Done_FreeType)( FT_Library  library );
-/*
-FT_EXPORT( FT_Error )
-(FT_New_Face)( FT_Library   library,
-         const char*  filepathname,
-         FT_Long      face_index,
-         FT_Face     *aface );
-*/
-FT_EXPORT( FT_Error )
-(FT_New_Memory_Face)( FT_Library      library,
-            const FT_Byte*  file_base,
-            FT_Long         file_size,
-            FT_Long         face_index,
-            FT_Face        *aface );
-FT_EXPORT( FT_Error )
-(FT_Done_Face)( FT_Face  face );
-FT_EXPORT( FT_Error )
-(FT_Select_Size)( FT_Face  face,
-            FT_Int   strike_index );
-FT_EXPORT( FT_Error )
-(FT_Request_Size)( FT_Face          face,
-             FT_Size_Request  req );
-FT_EXPORT( FT_Error )
-(FT_Set_Char_Size)( FT_Face     face,
-              FT_F26Dot6  char_width,
-              FT_F26Dot6  char_height,
-              FT_UInt     horz_resolution,
-              FT_UInt     vert_resolution );
-FT_EXPORT( FT_Error )
-(FT_Set_Pixel_Sizes)( FT_Face  face,
-            FT_UInt  pixel_width,
-            FT_UInt  pixel_height );
-FT_EXPORT( FT_Error )
-(FT_Load_Glyph)( FT_Face   face,
-           FT_UInt   glyph_index,
-           FT_Int32  load_flags );
-FT_EXPORT( FT_Error )
-(FT_Load_Char)( FT_Face   face,
-          FT_ULong  char_code,
-          FT_Int32  load_flags );
-FT_EXPORT( FT_UInt )
-(FT_Get_Char_Index)( FT_Face   face,
-               FT_ULong  charcode );
-FT_EXPORT( FT_Error )
-(FT_Render_Glyph)( FT_GlyphSlot    slot,
-             FT_Render_Mode  render_mode );
-FT_EXPORT( FT_Error )
-(FT_Get_Kerning)( FT_Face     face,
-            FT_UInt     left_glyph,
-            FT_UInt     right_glyph,
-            FT_UInt     kern_mode,
-            FT_Vector  *akerning );
-FT_EXPORT( FT_Error )
-(FT_Attach_Stream)( FT_Face        face,
-              FT_Open_Args*  parameters );
-
-#define qFT_Init_FreeType        FT_Init_FreeType
-#define qFT_Done_FreeType        FT_Done_FreeType
-//#define qFT_New_Face            FT_New_Face
-#define qFT_New_Memory_Face        FT_New_Memory_Face
-#define qFT_Done_Face            FT_Done_Face
-#define qFT_Select_Size            FT_Select_Size
-#define qFT_Request_Size        FT_Request_Size
-#define qFT_Set_Char_Size        FT_Set_Char_Size
-#define qFT_Set_Pixel_Sizes        FT_Set_Pixel_Sizes
-#define qFT_Load_Glyph            FT_Load_Glyph
-#define qFT_Load_Char            FT_Load_Char
-#define qFT_Get_Char_Index        FT_Get_Char_Index
-#define qFT_Render_Glyph        FT_Render_Glyph
-#define qFT_Get_Kerning            FT_Get_Kerning
-#define qFT_Attach_Stream        FT_Attach_Stream
-
-#endif
 
 /// Memory pool for fonts
 static mempool_t *font_mempool= NULL;
@@ -321,14 +147,11 @@ void Font_CloseLibrary (void)
     fontfilecache_FreeAll();
     if (font_mempool)
         Mem_FreePool(&font_mempool);
-    if (font_ft2lib && qFT_Done_FreeType)
+    if (font_ft2lib)
     {
-        qFT_Done_FreeType(font_ft2lib);
+        FT_Done_FreeType(font_ft2lib);
         font_ft2lib = NULL;
     }
-#ifndef DP_FREETYPE_STATIC
-    Sys_UnloadLibrary (&ft2_dll);
-#endif
     pp.buf = NULL;
 }
 
@@ -341,35 +164,9 @@ Try to load the FreeType2 DLL
 */
 qboolean Font_OpenLibrary (void)
 {
-#ifndef DP_FREETYPE_STATIC
-    const char* dllnames [] =
-    {
-#if defined(WIN32)
-        "libfreetype-6.dll",
-        "freetype6.dll",
-#elif defined(MACOSX)
-        "libfreetype.6.dylib",
-        "libfreetype.dylib",
-#else
-        "libfreetype.so.6",
-        "libfreetype.so",
-#endif
-        NULL
-    };
-#endif
-
     if (r_font_disable_freetype.integer)
         return false;
 
-#ifndef DP_FREETYPE_STATIC
-    // Already loaded?
-    if (ft2_dll)
-        return true;
-
-    // Load the DLL
-    if (!Sys_LoadLibrary (dllnames, &ft2_dll, ft2funcs))
-        return false;
-#endif
     return true;
 }
 
@@ -386,7 +183,7 @@ void font_start(void)
     if (!Font_OpenLibrary())
         return;
 
-    if (qFT_Init_FreeType(&font_ft2lib))
+    if (FT_Init_FreeType(&font_ft2lib))
     {
         Con_Print("ERROR: Failed to initialize the FreeType2 library!\n");
         Font_CloseLibrary();
@@ -445,11 +242,7 @@ Implementation of a more or less lazy font loading and rendering code.
 
 ft2_font_t *Font_Alloc(void)
 {
-#ifndef DP_FREETYPE_STATIC
-    if (!ft2_dll)
-#else
     if (r_font_disable_freetype.integer)
-#endif
         return NULL;
     return (ft2_font_t *)Mem_Alloc(font_mempool, sizeof(ft2_font_t));
 }
@@ -674,12 +467,12 @@ static qboolean Font_LoadFile(const char *name, int _face, ft2_settings_t *setti
     }
     Con_DPrintf("Loading font %s face %i...\n", filename, _face);
 
-    status = qFT_New_Memory_Face(font_ft2lib, (FT_Bytes)data, datasize, _face, (FT_Face*)&font->face);
+    status = FT_New_Memory_Face(font_ft2lib, (FT_Bytes)data, datasize, _face, (FT_Face*)&font->face);
     if (status && _face != 0)
     {
         Con_Printf("Failed to load face %i of %s. Falling back to face 0\n", _face, name);
         _face = 0;
-        status = qFT_New_Memory_Face(font_ft2lib, (FT_Bytes)data, datasize, _face, (FT_Face*)&font->face);
+        status = FT_New_Memory_Face(font_ft2lib, (FT_Bytes)data, datasize, _face, (FT_Face*)&font->face);
     }
     font->data = data;
     if (status)
@@ -699,7 +492,7 @@ static qboolean Font_LoadFile(const char *name, int _face, ft2_settings_t *setti
         args.flags = FT_OPEN_MEMORY;
         args.memory_base = (const FT_Byte*)font->attachments[i].data;
         args.memory_size = font->attachments[i].size;
-        if (qFT_Attach_Stream((FT_Face)font->face, &args))
+        if (FT_Attach_Stream((FT_Face)font->face, &args))
             Con_Printf("Failed to add attachment %u to %s\n", (unsigned)i, font->name);
     }
 
@@ -956,9 +749,9 @@ static qboolean Font_LoadSize(ft2_font_t *font, float size, qboolean check_only)
             for (r = 0; r < 256; ++r)
             {
                 FT_ULong ul, ur;
-                ul = qFT_Get_Char_Index((FT_Face)font->face, l);
-                ur = qFT_Get_Char_Index((FT_Face)font->face, r);
-                if (qFT_Get_Kerning((FT_Face)font->face, ul, ur, FT_KERNING_DEFAULT, &kernvec))
+                ul = FT_Get_Char_Index((FT_Face)font->face, l);
+                ur = FT_Get_Char_Index((FT_Face)font->face, r);
+                if (FT_Get_Kerning((FT_Face)font->face, ul, ur, FT_KERNING_DEFAULT, &kernvec))
                 {
                     fmap->kerning.kerning[l][r][0] = 0;
                     fmap->kerning.kerning[l][r][1] = 0;
@@ -1047,12 +840,12 @@ static qboolean Font_SetSize(ft2_font_t *font, float w, float h)
     h = (int)h;
     if (font->image_font)
     {
-        if (qFT_Set_Char_Size((FT_Face)font->next->face, (FT_F26Dot6)(w*64), (FT_F26Dot6)(h*64), 72, 72))
+        if (FT_Set_Char_Size((FT_Face)font->next->face, (FT_F26Dot6)(w*64), (FT_F26Dot6)(h*64), 72, 72))
             return false;
     }
     else
     {
-        if (qFT_Set_Char_Size((FT_Face)font->face, (FT_F26Dot6)(w*64), (FT_F26Dot6)(h*64), 72, 72))
+        if (FT_Set_Char_Size((FT_Face)font->face, (FT_F26Dot6)(w*64), (FT_F26Dot6)(h*64), 72, 72))
             return false;
     }
     font->currentw = w;
@@ -1083,7 +876,7 @@ qboolean Font_GetKerningForMap(ft2_font_t *font, int map_index, float w, float h
         FT_Vector kernvec;
         FT_ULong ul, ur;
 
-        //if (qFT_Set_Pixel_Sizes((FT_Face)font->face, 0, fmap->size))
+        //if (FT_Set_Pixel_Sizes((FT_Face)font->face, 0, fmap->size))
 #if 0
         if (!Font_SetSize(font, w, h))
         {
@@ -1091,9 +884,9 @@ qboolean Font_GetKerningForMap(ft2_font_t *font, int map_index, float w, float h
             Con_Printf("Failed to get kerning for %s\n", font->name);
             return false;
         }
-        ul = qFT_Get_Char_Index(font->face, left);
-        ur = qFT_Get_Char_Index(font->face, right);
-        if (qFT_Get_Kerning(font->face, ul, ur, FT_KERNING_DEFAULT, &kernvec))
+        ul = FT_Get_Char_Index(font->face, left);
+        ur = FT_Get_Char_Index(font->face, right);
+        if (FT_Get_Kerning(font->face, ul, ur, FT_KERNING_DEFAULT, &kernvec))
         {
             if (outx) *outx = Font_SnapTo(kernvec.x * fmap->sfx, 1 / fmap->size);
             if (outy) *outy = Font_SnapTo(kernvec.y * fmap->sfy, 1 / fmap->size);
@@ -1106,9 +899,9 @@ qboolean Font_GetKerningForMap(ft2_font_t *font, int map_index, float w, float h
             Con_Printf("Failed to get kerning for %s\n", font->name);
             return false;
         }
-        ul = qFT_Get_Char_Index((FT_Face)font->face, left);
-        ur = qFT_Get_Char_Index((FT_Face)font->face, right);
-        if (qFT_Get_Kerning((FT_Face)font->face, ul, ur, FT_KERNING_DEFAULT, &kernvec))
+        ul = FT_Get_Char_Index((FT_Face)font->face, left);
+        ur = FT_Get_Char_Index((FT_Face)font->face, right);
+        if (FT_Get_Kerning((FT_Face)font->face, ul, ur, FT_KERNING_DEFAULT, &kernvec))
         {
             if (outx) *outx = Font_SnapTo(kernvec.x * fmap->sfx, 1 / fmap->size);// * (w / (float)fmap->size);
             if (outy) *outy = Font_SnapTo(kernvec.y * fmap->sfy, 1 / fmap->size);// * (h / (float)fmap->size);
@@ -1161,15 +954,11 @@ void Font_UnloadFont(ft2_font_t *font)
             font->font_maps[i] = NULL;
         }
     }
-#ifndef DP_FREETYPE_STATIC
-    if (ft2_dll)
-#else
     if (!r_font_disable_freetype.integer)
-#endif
     {
         if (font->face)
         {
-            qFT_Done_Face((FT_Face)font->face);
+            FT_Done_Face((FT_Face)font->face);
             font->face = NULL;
         }
     }
@@ -1272,7 +1061,7 @@ static qboolean Font_LoadMap(ft2_font_t *font, ft2_font_map_t *mapstart, Uchar _
             break;
     }
 
-    //status = qFT_Set_Pixel_Sizes((FT_Face)font->face, /*size*/0, mapstart->size);
+    //status = FT_Set_Pixel_Sizes((FT_Face)font->face, /*size*/0, mapstart->size);
     //if (status)
     if (font->image_font && mapstart->intSize < 0)
         mapstart->intSize = mapstart->size;
@@ -1413,7 +1202,7 @@ static qboolean Font_LoadMap(ft2_font_t *font, ft2_font_map_t *mapstart, Uchar _
             imagedata = data + gR * pitch * map->glyphSize + gC * map->glyphSize * bytesPerPixel;
             imagedata += gpad_t * pitch + gpad_l * bytesPerPixel;
         }
-        //status = qFT_Load_Char(face, ch, FT_LOAD_RENDER);
+        //status = FT_Load_Char(face, ch, FT_LOAD_RENDER);
         // we need the glyphIndex
         face = (FT_Face)font->face;
         usefont = NULL;
@@ -1422,7 +1211,7 @@ static qboolean Font_LoadMap(ft2_font_t *font, ft2_font_map_t *mapstart, Uchar _
             map->glyphs[mapch].image = true;
             continue;
         }
-        glyphIndex = qFT_Get_Char_Index(face, ch);
+        glyphIndex = FT_Get_Char_Index(face, ch);
         if (glyphIndex == 0)
         {
             // by convention, 0 is the "missing-glyph"-glyph
@@ -1433,10 +1222,10 @@ static qboolean Font_LoadMap(ft2_font_t *font, ft2_font_map_t *mapstart, Uchar _
                     continue;
                 // try that glyph
                 face = (FT_Face)usefont->face;
-                glyphIndex = qFT_Get_Char_Index(face, ch);
+                glyphIndex = FT_Get_Char_Index(face, ch);
                 if (glyphIndex == 0)
                     continue;
-                status = qFT_Load_Glyph(face, glyphIndex, FT_LOAD_RENDER | load_flags);
+                status = FT_Load_Glyph(face, glyphIndex, FT_LOAD_RENDER | load_flags);
                 if (status)
                     continue;
                 break;
@@ -1454,7 +1243,7 @@ static qboolean Font_LoadMap(ft2_font_t *font, ft2_font_map_t *mapstart, Uchar _
         {
             usefont = font;
             face = (FT_Face)font->face;
-            status = qFT_Load_Glyph(face, glyphIndex, FT_LOAD_RENDER | load_flags);
+            status = FT_Load_Glyph(face, glyphIndex, FT_LOAD_RENDER | load_flags);
             if (status)
             {
                 //Con_Printf("failed to load glyph %lu for %s\n", glyphIndex, font->name);
