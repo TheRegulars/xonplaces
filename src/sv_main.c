@@ -3402,8 +3402,6 @@ static void SVVM_free_edict(prvm_prog_t *prog, prvm_edict_t *ed)
     PRVM_serveredictfloat(ed, solid) = 0;
 
     VM_RemoveEdictSkeleton(prog, ed);
-    World_Physics_RemoveFromEntity(&sv.world, ed);
-    World_Physics_RemoveJointFromEntity(&sv.world, ed);
 
     // make sure csqc networking is aware of the removed entity
     e = PRVM_NUM_FOR_EDICT(ed);

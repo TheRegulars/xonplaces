@@ -57,14 +57,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define ODEFUNC_FORCE       3
 #define ODEFUNC_TORQUE      4
 
-typedef struct edict_odefunc_s
-{
-    int type;
-    vec3_t v1;
-    vec3_t v2;
-    struct edict_odefunc_s *next;
-}edict_odefunc_t;
-
 typedef struct edict_engineprivate_s
 {
     // true if this edict is unused
@@ -112,39 +104,6 @@ typedef struct edict_engineprivate_s
     framegroupblend_t framegroupblend[MAX_FRAMEGROUPBLENDS];
     frameblend_t frameblend[MAX_FRAMEBLENDS];
     skeleton_t skeleton;
-
-    // physics parameters
-    qboolean ode_physics;
-    void *ode_body;
-    void *ode_geom;
-    void *ode_joint;
-    float *ode_vertex3f;
-    int *ode_element3i;
-    int ode_numvertices;
-    int ode_numtriangles;
-    edict_odefunc_t *ode_func;
-    vec3_t ode_mins;
-    vec3_t ode_maxs;
-    vec3_t ode_scale;
-    vec_t ode_mass;
-    float ode_friction;
-    vec3_t ode_origin;
-    vec3_t ode_velocity;
-    vec3_t ode_angles;
-    vec3_t ode_avelocity;
-    qboolean ode_gravity;
-    int ode_modelindex;
-    vec_t ode_movelimit; // smallest component of (maxs[]-mins[])
-    matrix4x4_t ode_offsetmatrix;
-    matrix4x4_t ode_offsetimatrix;
-    int ode_joint_type;
-    int ode_joint_enemy;
-    int ode_joint_aiment;
-    vec3_t ode_joint_origin; // joint anchor
-    vec3_t ode_joint_angles; // joint axis
-    vec3_t ode_joint_velocity; // second joint axis
-    vec3_t ode_joint_movedir; // parameters
-    void *ode_massbuf;
 }
 edict_engineprivate_t;
 

@@ -39,28 +39,6 @@ typedef struct link_s
     struct link_s    *prev, *next;
 } link_t;
 
-typedef struct world_physics_s
-{
-    // for ODE physics engine
-    qboolean ode; // if true then ode is activated
-    void *ode_world;
-    void *ode_space;
-    void *ode_contactgroup;
-    // number of constraint solver iterations to use (for dWorldQuickStep)
-    int ode_iterations;
-    // actual step (server frametime / ode_iterations)
-    vec_t ode_step;
-    // time we need to simulate, for constantstep
-    vec_t ode_time;
-    // stats
-    int ode_numobjects; // total objects cound
-    int ode_activeovjects; // active objects count
-    // max velocity for a 1-unit radius object at current step to prevent
-    // missed collisions
-    vec_t ode_movelimit;
-}
-world_physics_t;
-
 struct prvm_prog_s;
 
 typedef struct world_s
@@ -83,9 +61,6 @@ typedef struct world_s
     vec3_t areagrid_maxs;
     vec3_t areagrid_size;
     int areagrid_marknumber;
-
-    // if the QC uses a physics engine, the data for it is here
-    world_physics_t physics;
 }
 world_t;
 
@@ -119,19 +94,9 @@ int World_EntitiesInBox(world_t *world, const vec3_t mins, const vec3_t maxs, in
 void World_Start(world_t *world);
 void World_End(world_t *world);
 
-// update physics
-// this is called by SV_Physics
-void World_Physics_Frame(world_t *world, double frametime, double gravity);
-
 // change physics properties of entity
 struct prvm_edict_s;
-struct edict_odefunc_s;
-void World_Physics_ApplyCmd(struct prvm_edict_s *ed, struct edict_odefunc_s *f);
-
-// remove physics data from entity
-// this is called by entity removal
-void World_Physics_RemoveFromEntity(world_t *world, struct prvm_edict_s *ed);
-void World_Physics_RemoveJointFromEntity(world_t *world, struct prvm_edict_s *ed);
+void World_Physics_ApplyCmd(struct prvm_edict_s *ed);
 
 #endif
 
