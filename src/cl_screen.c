@@ -1,6 +1,5 @@
 
 #include "quakedef.h"
-#include "cl_video.h"
 #include "image.h"
 #include "image_jpeg.h"
 #include "image_png.h"
@@ -2252,7 +2251,6 @@ static void SCR_DrawScreen (void)
 #ifdef CONFIG_MENU
     MR_Draw();
 #endif
-    CL_DrawVideo();
     R_Shadow_EditLights_DrawSelectedLightProperties();
 
     SCR_DrawConsole();

@@ -85,7 +85,6 @@ set(SOURCE_COMMON
     cl_parse.c
     cl_particles.c
     cl_screen.c cl_screen.h
-    cl_video.c cl_video.h
     clvm_cmds.c clvm_cmds.h
     cmd.c cmd.h
     collision.c collision.h
@@ -95,7 +94,6 @@ set(SOURCE_COMMON
     curves.c curves.h
     cvar.c cvar.h
     dpsoftrast.c dpsoftrast.h
-    dpvsimpledecode.c dpvsimpledecode.h
     filematch.c
     fractalnoise.c
     fs.c fs.h

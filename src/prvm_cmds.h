@@ -197,8 +197,6 @@ float    getserverlistindexforkey(string key)
 #include "clprogdefs.h"
 #include "mprogdefs.h"
 
-#include "cl_video.h"
-
 //============================================================================
 // nice helper macros
 

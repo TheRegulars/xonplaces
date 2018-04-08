@@ -22,7 +22,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "image.h"
 #include "wad.h"
 
-#include "cl_video.h"
 #include "cl_dyntexture.h"
 
 #include "ft2.h"

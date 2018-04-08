@@ -21,7 +21,6 @@
 */
 
 #include "quakedef.h"
-#include "cl_video.h"
 #include "utf8lib.h"
 #include "csprogs.h"
 
@@ -1921,13 +1920,6 @@ Key_Event (int key, int ascii, qboolean down)
             tbl_keydest[key] = key_void; // key release should go nowhere (especially not to key_menu or key_game)
             return;
         }
-    }
-
-    // ignore binds while a video is played, let the video system handle the key event
-    if (cl_videoplaying)
-    {
-        CL_Video_KeyEvent (key, ascii, keydown[key] != 0);
-        return;
     }
 
     // anything else is a key press into the game, chat line, or menu

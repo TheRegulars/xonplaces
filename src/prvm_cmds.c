@@ -4096,21 +4096,8 @@ float cin_open(string file, string name)
 */
 void VM_cin_open(prvm_prog_t *prog)
 {
-    const char *file;
-    const char *name;
-
-    VM_SAFEPARMCOUNT( 2, VM_cin_open );
-
-    file = PRVM_G_STRING( OFS_PARM0 );
-    name = PRVM_G_STRING( OFS_PARM1 );
-
-    VM_CheckEmptyString(prog,  file );
-    VM_CheckEmptyString(prog,  name );
-
-    if( CL_OpenVideo( file, name, MENUOWNER, "" ) )
-        PRVM_G_FLOAT( OFS_RETURN ) = 1;
-    else
-        PRVM_G_FLOAT( OFS_RETURN ) = 0;
+    // REMOVED
+    PRVM_G_FLOAT( OFS_RETURN ) = 0;
 }
 
 /*
@@ -4122,14 +4109,7 @@ void cin_close(string name)
 */
 void VM_cin_close(prvm_prog_t *prog)
 {
-    const char *name;
-
-    VM_SAFEPARMCOUNT( 1, VM_cin_close );
-
-    name = PRVM_G_STRING( OFS_PARM0 );
-    VM_CheckEmptyString(prog,  name );
-
-    CL_CloseVideo( CL_GetVideoByName( name ) );
+    // REMOVED
 }
 
 /*
@@ -4140,20 +4120,7 @@ void cin_setstate(string name, float type)
 */
 void VM_cin_setstate(prvm_prog_t *prog)
 {
-    const char *name;
-    clvideostate_t     state;
-    clvideo_t        *video;
-
-    VM_SAFEPARMCOUNT( 2, VM_cin_netstate );
-
-    name = PRVM_G_STRING( OFS_PARM0 );
-    VM_CheckEmptyString(prog,  name );
-
-    state = (clvideostate_t)((int)PRVM_G_FLOAT( OFS_PARM1 ));
-
-    video = CL_GetVideoByName( name );
-    if( video && state > CLVIDEO_UNUSED && state < CLVIDEO_STATECOUNT )
-        CL_SetVideoState( video, state );
+    // REMOVED
 }
 
 /*
@@ -4165,19 +4132,7 @@ float cin_getstate(string name)
 */
 void VM_cin_getstate(prvm_prog_t *prog)
 {
-    const char *name;
-    clvideo_t        *video;
-
-    VM_SAFEPARMCOUNT( 1, VM_cin_getstate );
-
-    name = PRVM_G_STRING( OFS_PARM0 );
-    VM_CheckEmptyString(prog,  name );
-
-    video = CL_GetVideoByName( name );
-    if( video )
-        PRVM_G_FLOAT( OFS_RETURN ) = (int)video->state;
-    else
-        PRVM_G_FLOAT( OFS_RETURN ) = 0;
+    // REMOVED
 }
 
 /*
@@ -4189,17 +4144,7 @@ void cin_restart(string name)
 */
 void VM_cin_restart(prvm_prog_t *prog)
 {
-    const char *name;
-    clvideo_t        *video;
-
-    VM_SAFEPARMCOUNT( 1, VM_cin_restart );
-
-    name = PRVM_G_STRING( OFS_PARM0 );
-    VM_CheckEmptyString(prog,  name );
-
-    video = CL_GetVideoByName( name );
-    if( video )
-        CL_RestartVideo( video );
+    // REMOVED
 }
 
 /*
@@ -6023,7 +5968,6 @@ static void animatemodel_reset(prvm_prog_t *prog);
 
 void VM_Cmd_Reset(prvm_prog_t *prog)
 {
-    CL_PurgeOwner( MENUOWNER );
     VM_Search_Reset(prog);
     VM_Files_CloseAll(prog);
     animatemodel_reset(prog);
@@ -6405,7 +6349,7 @@ void VM_CL_isdemo (prvm_prog_t *prog)
 void VM_CL_videoplaying (prvm_prog_t *prog)
 {
     VM_SAFEPARMCOUNT(0, VM_CL_videoplaying);
-    PRVM_G_FLOAT(OFS_RETURN) = cl_videoplaying;
+    PRVM_G_FLOAT(OFS_RETURN) = 0;
 }
 
 /*

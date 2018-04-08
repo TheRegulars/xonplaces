@@ -26,7 +26,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "image.h"
 #include "ft2.h"
 #include "csprogs.h"
-#include "cl_video.h"
 #include "dpsoftrast.h"
 #include "cl_collision.h"
 
@@ -7286,7 +7285,7 @@ void R_RenderView(void)
         return;
     }
 
-    if (!r_refdef.scene.entities || r_refdef.view.width * r_refdef.view.height == 0 || !r_renderview.integer || cl_videoplaying/* || !r_refdef.scene.worldmodel*/)
+    if (!r_refdef.scene.entities || r_refdef.view.width * r_refdef.view.height == 0 || !r_renderview.integer /* || !r_refdef.scene.worldmodel*/)
     {
         r_refdef.view.matrix = originalmatrix;
         return;

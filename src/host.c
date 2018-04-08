@@ -26,7 +26,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifdef CONFIG_CD
 #include "cdaudio.h"
 #endif
-#include "cl_video.h"
 #include "progsvm.h"
 #include "csprogs.h"
 #include "sv_demo.h"
@@ -1009,8 +1008,6 @@ void Host_Main(void)
             CL_UpdateWorld();
             R_TimeReport("lerpworld");
 
-            CL_Video_Frame();
-
             R_TimeReport("client");
 
             CL_UpdateScreen();
@@ -1423,8 +1420,6 @@ void Host_Shutdown(void)
 
     // AK shutdown PRVM
     // AK hmm, no PRVM_Shutdown(); yet
-
-    CL_Video_Shutdown();
 
     Host_SaveConfig();
 
