@@ -161,8 +161,9 @@ set(SOURCE_SERVER)
 set(SOURCE_CLIENT_COMMON)
 set(SOURCE_CLIENT_SDL)
 # TODO: Support definitions for other compilers
-set(COMPILE_DEFS "-DLINK_TO_CRYPTO -DLINK_TO_CRYPTO_RIJNDAEL")
+set(COMPILE_DEFS "")
 set(COMPILE_DEFS_CLIENT)
+set(COMPILE_DEFS_SERVER "-DDEDICATED_SERVER")
 
 if (COMPILE_MENU)
     list(APPEND COMPILE_DEFS_CLIENT "-DCONFIG_MENU")
@@ -181,7 +182,6 @@ if (COMPILE_VIDEO_CAPTURE)
 endif ()
 
 list(APPEND SOURCE_CLIENT_SDL vid_sdl.c)
-list(APPEND SOURCE_SERVER vid_null.c)
 
 list(APPEND SOURCE_CLIENT_COMMON
         snd_main.c snd_main.h snd_mem.c snd_mix.c snd_ogg.c snd_ogg.h snd_wav.c
@@ -237,7 +237,10 @@ set(D0_LIBS ${D0_BLINID_LIBS_STATIC} ${GMP_LIBRARY})
 if (COMPILE_SERVER)
     add_executable(darkplaces-dedicated ${ABS_SOURCE_SERVER} ${ABS_SOURCE_COMMON})
     add_dependencies(darkplaces-dedicated d0_blindid)
-    target_compile_definitions(darkplaces-dedicated PRIVATE ${COMPILE_DEFS})
+    target_compile_definitions(darkplaces-dedicated PRIVATE
+        ${COMPILE_DEFS}
+        ${COMPILE_DEFS_SERVER}
+    )
     target_include_directories(darkplaces-dedicated PRIVATE
         ${D0_BLINDID_INCLUDE}
         ${CURL_INCLUDE_DIRS}

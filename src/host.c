@@ -176,6 +176,8 @@ void Host_Error (const char *error, ...)
 
 static void Host_ServerOptions (void)
 {
+
+#ifndef DEDICATED_SERVER
     int i;
 
     // general default
@@ -186,8 +188,7 @@ static void Host_ServerOptions (void)
     // if no client is in the executable or -dedicated is specified on
     // commandline, start a dedicated server
     i = COM_CheckParm ("-dedicated");
-    if (i || !cl_available)
-    {
+    if (i) {
         cls.state = ca_dedicated;
         // check for -dedicated specifying how many players
         if (i && i + 1 < com_argc && atoi (com_argv[i+1]) >= 1)
@@ -196,9 +197,7 @@ static void Host_ServerOptions (void)
             Con_Printf ("Only one of -dedicated or -listen can be specified\n");
         // default sv_public on for dedicated servers (often hosted by serious administrators), off for listen servers (often hosted by clueless users)
         Cvar_SetValue("sv_public", 1);
-    }
-    else if (cl_available)
-    {
+    } else {
         // client exists and not dedicated, check if -listen is specified
         cls.state = ca_disconnected;
         i = COM_CheckParm ("-listen");
@@ -215,6 +214,11 @@ static void Host_ServerOptions (void)
                 svs.maxclients = 1;
         }
     }
+#else
+    svs.maxclients = 8;
+    cls.state = ca_dedicated;
+    Cvar_SetValue("sv_public", 1);
+#endif
 
     svs.maxclients = svs.maxclients_next = bound(1, svs.maxclients, MAX_SCOREBOARD);
 
@@ -746,7 +750,9 @@ void Host_Main(void)
         // get new key events
         Key_EventQueue_Unblock();
         SndSys_SendKeyEvents();
+#ifndef DEDICATED_SERVER
         Sys_SendKeyEvents();
+#endif
 
         NetConn_UpdateSockets();
 
@@ -1277,8 +1283,11 @@ static void Host_Init (void)
 #ifdef CONFIG_MENU
         MR_Init_Commands();
 #endif
+
+#ifndef DEDICATED_SERVER
         VID_Shared_Init();
         VID_Init();
+#endif
         Render_Init();
         S_Init();
 #ifdef CONFIG_CD
@@ -1431,11 +1440,13 @@ void Host_Shutdown(void)
     NetConn_Shutdown ();
     //PR_Shutdown ();
 
+#ifndef DEDICATED_SERVER
     if (cls.state != ca_dedicated)
     {
         R_Modules_Shutdown();
         VID_Shutdown();
     }
+#endif
 
     SV_StopThread();
     Thread_Shutdown();

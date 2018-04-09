@@ -565,7 +565,9 @@ void CL_Input (void)
     }
 
     // allow mice or other external controllers to add to the move
+#ifndef DEDICATED_SERVER
     IN_Move ();
+#endif
 
     // send mouse move to csqc
     if (cl.csqc_loaded && cl_csqc_generatemousemoveevents.integer)

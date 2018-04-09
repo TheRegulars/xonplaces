@@ -2479,8 +2479,10 @@ static void SCR_DrawLoadingScreen_SharedSetup (qboolean clear)
     float x, y, w, h, sw, sh, f;
     char vabuf[1024];
     // release mouse grab while loading
+#ifndef DEDICATED_SERVER
     if (!vid.fullscreen)
         VID_SetMouse(false, false, false);
+#endif
 //    CHECKGLERROR
     r_refdef.draw2dstage = true;
     R_Viewport_InitOrtho(&viewport, &identitymatrix, 0, 0, vid.width, vid.height, 0, 0, vid_conwidth.integer, vid_conheight.integer, -10, 100, NULL);
@@ -2573,7 +2575,9 @@ static void SCR_DrawLoadingScreen_SharedFinish (qboolean clear)
 {
     R_Mesh_Finish();
     // refresh
+#ifndef DEDICATED_SERVER
     VID_Finish();
+#endif
 }
 
 static double loadingscreen_lastupdate;
@@ -2655,7 +2659,10 @@ void SCR_UpdateLoadingScreen (qboolean clear, qboolean startup)
     old_key_consoleactive = key_consoleactive;
     key_dest = key_void;
     key_consoleactive = false;
-    Key_EventQueue_Block(); Sys_SendKeyEvents();
+    Key_EventQueue_Block();
+#ifndef DEDICATED_SERVER
+    Sys_SendKeyEvents();
+#endif
     key_dest = old_key_dest;
     key_consoleactive = old_key_consoleactive;
 }
@@ -2780,7 +2787,9 @@ void CL_UpdateScreen(void)
 
     if (vid_hidden)
     {
+#ifndef DEDICATED_SERVER
         VID_Finish();
+#endif
         return;
     }
 
@@ -2935,6 +2944,7 @@ void CL_UpdateScreen(void)
     if (qglFlush)
         qglFlush(); // FIXME: should we really be using qglFlush here?
 
+#ifndef DEDICATED_SERVER
     if (!vid_activewindow)
         VID_SetMouse(false, false, false);
     else if (key_consoleactive)
@@ -2947,6 +2957,8 @@ void CL_UpdateScreen(void)
         VID_SetMouse(vid.fullscreen, vid_mouse.integer && !cl.csqc_wantsmousemove && cl_prydoncursor.integer <= 0 && (!cls.demoplayback || cl_demo_mousegrab.integer) && !vid_touchscreen.integer, !vid_touchscreen.integer);
 
     VID_Finish();
+
+#endif
 }
 
 void CL_Screen_NewMap(void)
