@@ -914,8 +914,6 @@ void S_Init(void)
 
     total_channels = MAX_DYNAMIC_CHANNELS + NUM_AMBIENTS;    // no statics
     memset(channels, 0, MAX_CHANNELS * sizeof(channel_t));
-
-    OGG_OpenLibrary ();
 }
 
 
@@ -929,8 +927,6 @@ Shutdown and free all resources
 void S_Terminate (void)
 {
     S_Shutdown ();
-    OGG_CloseLibrary ();
-
     // Free all SFXs
     while (known_sfx != NULL)
         S_FreeSfx (known_sfx, true);

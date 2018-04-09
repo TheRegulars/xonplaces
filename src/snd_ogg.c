@@ -27,308 +27,9 @@
 #include "snd_ogg.h"
 #include "snd_wav.h"
 
-#ifdef LINK_TO_LIBVORBIS
 #define OV_EXCLUDE_STATIC_CALLBACKS
 #include <ogg/ogg.h>
 #include <vorbis/vorbisfile.h>
-
-#define qov_clear ov_clear
-#define qov_info ov_info
-#define qov_comment ov_comment
-#define qov_open_callbacks ov_open_callbacks
-#define qov_pcm_seek ov_pcm_seek
-#define qov_pcm_total ov_pcm_total
-#define qov_read ov_read
-#define qvorbis_comment_query vorbis_comment_query
-
-qboolean OGG_OpenLibrary (void) {return true;}
-void OGG_CloseLibrary (void) {}
-#else
-
-/*
-=================================================================
-
-  Minimal set of definitions from the Ogg Vorbis lib
-  (C) COPYRIGHT 1994-2001 by the XIPHOPHORUS Company
-  http://www.xiph.org/
-
-  WARNING: for a matter of simplicity, several pointer types are
-  casted to "void*", and most enumerated values are not included
-
-=================================================================
-*/
-
-#ifdef _MSC_VER
-typedef __int64 ogg_int64_t;
-#else
-typedef long long ogg_int64_t;
-#endif
-
-typedef struct
-{
-    size_t    (*read_func)    (void *ptr, size_t size, size_t nmemb, void *datasource);
-    int        (*seek_func)    (void *datasource, ogg_int64_t offset, int whence);
-    int        (*close_func)    (void *datasource);
-    long    (*tell_func)    (void *datasource);
-} ov_callbacks;
-
-typedef struct
-{
-    unsigned char    *data;
-    int                storage;
-    int                fill;
-    int                returned;
-    int                unsynced;
-    int                headerbytes;
-    int                bodybytes;
-} ogg_sync_state;
-
-typedef struct
-{
-    int        version;
-    int        channels;
-    long    rate;
-    long    bitrate_upper;
-    long    bitrate_nominal;
-    long    bitrate_lower;
-    long    bitrate_window;
-    void    *codec_setup;
-} vorbis_info;
-
-typedef struct
-{
-    unsigned char    *body_data;
-    long            body_storage;
-    long            body_fill;
-    long            body_returned;
-    int                *lacing_vals;
-    ogg_int64_t        *granule_vals;
-    long            lacing_storage;
-    long            lacing_fill;
-    long            lacing_packet;
-    long            lacing_returned;
-    unsigned char    header[282];
-    int                header_fill;
-    int                e_o_s;
-    int                b_o_s;
-    long            serialno;
-    long            pageno;
-    ogg_int64_t        packetno;
-    ogg_int64_t        granulepos;
-} ogg_stream_state;
-
-typedef struct
-{
-    int            analysisp;
-    vorbis_info    *vi;
-    float        **pcm;
-    float        **pcmret;
-    int            pcm_storage;
-    int            pcm_current;
-    int            pcm_returned;
-    int            preextrapolate;
-    int            eofflag;
-    long        lW;
-    long        W;
-    long        nW;
-    long        centerW;
-    ogg_int64_t    granulepos;
-    ogg_int64_t    sequence;
-    ogg_int64_t    glue_bits;
-    ogg_int64_t    time_bits;
-    ogg_int64_t    floor_bits;
-    ogg_int64_t    res_bits;
-    void        *backend_state;
-} vorbis_dsp_state;
-
-typedef struct
-{
-    long            endbyte;
-    int                endbit;
-    unsigned char    *buffer;
-    unsigned char    *ptr;
-    long            storage;
-} oggpack_buffer;
-
-typedef struct
-{
-    float                **pcm;
-    oggpack_buffer        opb;
-    long                lW;
-    long                W;
-    long                nW;
-    int                    pcmend;
-    int                    mode;
-    int                    eofflag;
-    ogg_int64_t            granulepos;
-    ogg_int64_t            sequence;
-    vorbis_dsp_state    *vd;
-    void                *localstore;
-    long                localtop;
-    long                localalloc;
-    long                totaluse;
-    void                *reap;  // VOIDED POINTER
-    long                glue_bits;
-    long                time_bits;
-    long                floor_bits;
-    long                res_bits;
-    void                *internal;
-} vorbis_block;
-
-typedef struct
-{
-    char **user_comments;
-    int   *comment_lengths;
-    int    comments;
-    char  *vendor;
-} vorbis_comment;
-
-typedef struct
-{
-    void                *datasource;
-    int                    seekable;
-    ogg_int64_t            offset;
-    ogg_int64_t            end;
-    ogg_sync_state        oy;
-    int                    links;
-    ogg_int64_t            *offsets;
-    ogg_int64_t            *dataoffsets;
-    long                *serialnos;
-    ogg_int64_t            *pcmlengths;
-    vorbis_info            *vi;
-    vorbis_comment        *vc;
-    ogg_int64_t            pcm_offset;
-    int                    ready_state;
-    long                current_serialno;
-    int                    current_link;
-    double                bittrack;
-    double                samptrack;
-    ogg_stream_state    os;
-    vorbis_dsp_state    vd;
-    vorbis_block        vb;
-    ov_callbacks        callbacks;
-} OggVorbis_File;
-
-
-/*
-=================================================================
-
-  DarkPlaces definitions
-
-=================================================================
-*/
-
-// Functions exported from the vorbisfile library
-static int (*qov_clear) (OggVorbis_File *vf);
-static vorbis_info* (*qov_info) (OggVorbis_File *vf,int link);
-static vorbis_comment* (*qov_comment) (OggVorbis_File *vf,int link);
-static char * (*qvorbis_comment_query) (vorbis_comment *vc, const char *tag, int count);
-static int (*qov_open_callbacks) (void *datasource, OggVorbis_File *vf,
-                                  char *initial, long ibytes,
-                                  ov_callbacks callbacks);
-static int (*qov_pcm_seek) (OggVorbis_File *vf,ogg_int64_t pos);
-static ogg_int64_t (*qov_pcm_total) (OggVorbis_File *vf,int i);
-static long (*qov_read) (OggVorbis_File *vf,char *buffer,int length,
-                         int bigendianp,int word,int sgned,int *bitstream);
-
-static dllfunction_t vorbisfilefuncs[] =
-{
-    {"ov_clear",                (void **) &qov_clear},
-    {"ov_info",                    (void **) &qov_info},
-    {"ov_comment",                (void **) &qov_comment},
-    {"ov_open_callbacks",        (void **) &qov_open_callbacks},
-    {"ov_pcm_seek",                (void **) &qov_pcm_seek},
-    {"ov_pcm_total",            (void **) &qov_pcm_total},
-    {"ov_read",                    (void **) &qov_read},
-    {NULL, NULL}
-};
-
-static dllfunction_t vorbisfuncs[] =
-{
-    {"vorbis_comment_query",    (void **) &qvorbis_comment_query},
-    {NULL, NULL}
-};
-
-// Handles for the Vorbis and Vorbisfile DLLs
-static dllhandle_t vo_dll = NULL;
-static dllhandle_t vf_dll = NULL;
-
-
-/*
-=================================================================
-
-  DLL load & unload
-
-=================================================================
-*/
-
-/*
-====================
-OGG_OpenLibrary
-
-Try to load the VorbisFile DLL
-====================
-*/
-qboolean OGG_OpenLibrary (void)
-{
-    const char* dllnames_vo [] =
-    {
-#if defined(WIN32)
-        "libvorbis-0.dll",
-        "libvorbis.dll",
-        "vorbis.dll",
-#elif defined(MACOSX)
-        "libvorbis.dylib",
-#else
-        "libvorbis.so.0",
-        "libvorbis.so",
-#endif
-        NULL
-    };
-    const char* dllnames_vf [] =
-    {
-#if defined(WIN32)
-        "libvorbisfile-3.dll",
-        "libvorbisfile.dll",
-        "vorbisfile.dll",
-#elif defined(MACOSX)
-        "libvorbisfile.dylib",
-#else
-        "libvorbisfile.so.3",
-        "libvorbisfile.so",
-#endif
-        NULL
-    };
-
-    // Already loaded?
-    if (vf_dll)
-        return true;
-
-// COMMANDLINEOPTION: Sound: -novorbis disables ogg vorbis sound support
-    if (COM_CheckParm("-novorbis"))
-        return false;
-
-    // Load the DLLs
-    // We need to load both by hand because some OSes seem to not load
-    // the vorbis DLL automatically when loading the VorbisFile DLL
-    return Sys_LoadLibrary (dllnames_vo, &vo_dll, vorbisfuncs) && Sys_LoadLibrary (dllnames_vf, &vf_dll, vorbisfilefuncs);
-}
-
-
-/*
-====================
-OGG_CloseLibrary
-
-Unload the VorbisFile DLL
-====================
-*/
-void OGG_CloseLibrary (void)
-{
-    Sys_UnloadLibrary (&vf_dll);
-    Sys_UnloadLibrary (&vo_dll);
-}
-
-#endif
 
 /*
 =================================================================
@@ -438,7 +139,7 @@ static void OGG_GetSamplesFloat (channel_t *ch, sfx_t *sfx, int firstsampleframe
         per_ch->ov_decode.buffer = per_sfx->file;
         per_ch->ov_decode.ind = 0;
         per_ch->ov_decode.buffsize = per_sfx->filesize;
-        if (qov_open_callbacks(&per_ch->ov_decode, &per_ch->vf, NULL, 0, callbacks) < 0)
+        if (ov_open_callbacks(&per_ch->ov_decode, &per_ch->vf, NULL, 0, callbacks) < 0)
         {
             // this never happens - this function succeeded earlier on the same data
             Mem_Free(per_ch);
@@ -469,11 +170,11 @@ static void OGG_GetSamplesFloat (channel_t *ch, sfx_t *sfx, int firstsampleframe
         // we expect to decode forward from here so this will be our new buffer start
         per_ch->buffer_firstframe = firstsampleframe;
         per_ch->buffer_numframes = 0;
-        ret = qov_pcm_seek(&per_ch->vf, (ogg_int64_t)firstsampleframe);
+        ret = ov_pcm_seek(&per_ch->vf, (ogg_int64_t)firstsampleframe);
         if (ret != 0)
         {
             // LordHavoc: we can't Con_Printf here, not thread safe...
-            //Con_Printf("OGG_FetchSound: qov_pcm_seek(..., %d) returned %d\n", firstsampleframe, ret);
+            //Con_Printf("OGG_FetchSound: ov_pcm_seek(..., %d) returned %d\n", firstsampleframe, ret);
             return;
         }
     }
@@ -491,7 +192,7 @@ static void OGG_GetSamplesFloat (channel_t *ch, sfx_t *sfx, int firstsampleframe
         // decompress as much as we can fit in the buffer
         newlength = sizeof(per_ch->buffer) - per_ch->buffer_numframes * f;
         done = 0;
-        while (newlength > done && (ret = qov_read(&per_ch->vf, (char *)per_ch->buffer + per_ch->buffer_numframes * f + done, (int)(newlength - done), mem_bigendian, 2, 1, &per_ch->bs)) > 0)
+        while (newlength > done && (ret = ov_read(&per_ch->vf, (char *)per_ch->buffer + per_ch->buffer_numframes * f + done, (int)(newlength - done), mem_bigendian, 2, 1, &per_ch->bs)) > 0)
             done += ret;
         // clear the missing space if any
         if (done < newlength)
@@ -519,7 +220,7 @@ static void OGG_StopChannel(channel_t *ch)
     if (per_ch != NULL)
     {
         // release the vorbis decompressor
-        qov_clear(&per_ch->vf);
+        ov_clear(&per_ch->vf);
         Mem_Free(per_ch);
     }
 }
@@ -554,32 +255,32 @@ static void OGG_DecodeTags(vorbis_comment *vc, unsigned int *start, unsigned int
     if(!vc)
         return;
 
-    thiscomment = qvorbis_comment_query(vc, "REPLAYGAIN_TRACK_PEAK", 0);
+    thiscomment = vorbis_comment_query(vc, "REPLAYGAIN_TRACK_PEAK", 0);
     if(thiscomment)
         *peak = atof(thiscomment);
-    thiscomment = qvorbis_comment_query(vc, "REPLAYGAIN_TRACK_GAIN", 0);
+    thiscomment = vorbis_comment_query(vc, "REPLAYGAIN_TRACK_GAIN", 0);
     if(thiscomment)
         *gaindb = atof(thiscomment);
     
-    startcomment = qvorbis_comment_query(vc, "LOOP_START", 0); // DarkPlaces, and some Japanese app
+    startcomment = vorbis_comment_query(vc, "LOOP_START", 0); // DarkPlaces, and some Japanese app
     if(startcomment)
     {
-        endcomment = qvorbis_comment_query(vc, "LOOP_END", 0);
+        endcomment = vorbis_comment_query(vc, "LOOP_END", 0);
         if(!endcomment)
-            lengthcomment = qvorbis_comment_query(vc, "LOOP_LENGTH", 0);
+            lengthcomment = vorbis_comment_query(vc, "LOOP_LENGTH", 0);
     }
     else
     {
-        startcomment = qvorbis_comment_query(vc, "LOOPSTART", 0); // RPG Maker VX
+        startcomment = vorbis_comment_query(vc, "LOOPSTART", 0); // RPG Maker VX
         if(startcomment)
         {
-            lengthcomment = qvorbis_comment_query(vc, "LOOPLENGTH", 0);
+            lengthcomment = vorbis_comment_query(vc, "LOOPLENGTH", 0);
             if(!lengthcomment)
-                endcomment = qvorbis_comment_query(vc, "LOOPEND", 0);
+                endcomment = vorbis_comment_query(vc, "LOOPEND", 0);
         }
         else
         {
-            startcomment = qvorbis_comment_query(vc, "LOOPPOINT", 0); // Sonic Robo Blast 2
+            startcomment = vorbis_comment_query(vc, "LOOPPOINT", 0); // Sonic Robo Blast 2
         }
     }
 
@@ -610,11 +311,6 @@ qboolean OGG_LoadVorbisFile(const char *filename, sfx_t *sfx)
     vorbis_comment *vc;
     double peak, gaindb;
 
-#ifndef LINK_TO_LIBVORBIS
-    if (!vf_dll)
-        return false;
-#endif
-
     // Return if already loaded
     if (sfx->fetcher != NULL)
         return true;
@@ -631,7 +327,7 @@ qboolean OGG_LoadVorbisFile(const char *filename, sfx_t *sfx)
     ov_decode.buffer = data;
     ov_decode.ind = 0;
     ov_decode.buffsize = filesize;
-    if (qov_open_callbacks(&ov_decode, &vf, NULL, 0, callbacks) < 0)
+    if (ov_open_callbacks(&ov_decode, &vf, NULL, 0, callbacks) < 0)
     {
         Con_Printf("error while opening Ogg Vorbis file \"%s\"\n", filename);
         Mem_Free(data);
@@ -639,12 +335,12 @@ qboolean OGG_LoadVorbisFile(const char *filename, sfx_t *sfx)
     }
 
     // Get the stream information
-    vi = qov_info(&vf, -1);
+    vi = ov_info(&vf, -1);
     if (vi->channels < 1 || vi->channels > 2)
     {
         Con_Printf("%s has an unsupported number of channels (%i)\n",
                     sfx->name, vi->channels);
-        qov_clear (&vf);
+        ov_clear (&vf);
         Mem_Free(data);
         return false;
     }
@@ -653,7 +349,7 @@ qboolean OGG_LoadVorbisFile(const char *filename, sfx_t *sfx)
     sfx->format.channels = vi->channels;
     sfx->format.width = 2;  // We always work with 16 bits samples
 
-    sfx->total_length = qov_pcm_total(&vf, -1);
+    sfx->total_length = ov_pcm_total(&vf, -1);
 
     if (snd_streaming.integer && (snd_streaming.integer >= 2 || sfx->total_length > max(sizeof(ogg_stream_perchannel_t), snd_streaming_length.value * sfx->format.speed)))
     {
@@ -669,9 +365,9 @@ qboolean OGG_LoadVorbisFile(const char *filename, sfx_t *sfx)
         sfx->fetcher_data = per_sfx;
         sfx->fetcher = &ogg_fetcher;
         sfx->flags |= SFXFLAG_STREAMED;
-        vc = qov_comment(&vf, -1);
+        vc = ov_comment(&vf, -1);
         OGG_DecodeTags(vc, &sfx->loopstart, &sfx->total_length, sfx->total_length, &peak, &gaindb);
-        qov_clear(&vf);
+        ov_clear(&vf);
     }
     else
     {
@@ -691,11 +387,11 @@ qboolean OGG_LoadVorbisFile(const char *filename, sfx_t *sfx)
         buff = (char *)sfx->fetcher_data;
         done = 0;
         bs = 0;
-        while ((ret = qov_read(&vf, &buff[done], (int)(len - done), mem_bigendian, 2, 1, &bs)) > 0)
+        while ((ret = ov_read(&vf, &buff[done], (int)(len - done), mem_bigendian, 2, 1, &bs)) > 0)
             done += ret;
-        vc = qov_comment(&vf, -1);
+        vc = ov_comment(&vf, -1);
         OGG_DecodeTags(vc, &sfx->loopstart, &sfx->total_length, sfx->total_length, &peak, &gaindb);
-        qov_clear(&vf);
+        ov_clear(&vf);
         Mem_Free(data);
     }
 

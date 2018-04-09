@@ -261,6 +261,7 @@ endif ()
 if (COMPILE_CLIENT)
     if (DP_CLIENT_SDL)
         find_package(SDL2 REQUIRED)
+        find_package(OggVorbis REQUIRED)
         add_executable(darkplaces-sdl
             ${ABS_SOURCE_COMMON}
             ${ABS_SOURCE_CLIENT_COMMON}
@@ -278,6 +279,8 @@ if (COMPILE_CLIENT)
             ${JPEG_INLUDE_DIR}
             ${PNG_INCLUDE_DIRS}
             ${FREETYPE_INCLUDE_DIRS}
+            ${OGG_INCLUDE_DIR}
+            ${VORBIS_INCLUDE_DIR}
             ${SDL2_INCLUDE_DIR}
         )
         target_link_libraries(darkplaces-sdl PRIVATE
@@ -289,6 +292,7 @@ if (COMPILE_CLIENT)
             ${JPEG_LIBRARIES}
             ${PNG_LIBRARIES}
             ${FREETYPE_LIBRARIES}
+            ${OGGVORBIS_LIBRARIES}
             ${SDL2_LIBRARY}
         )
         install(TARGETS darkplaces-sdl RUNTIME DESTINATION bin)
