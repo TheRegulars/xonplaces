@@ -8,6 +8,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <errno.h>
 #endif
 
 #include <signal.h>
@@ -148,6 +151,8 @@ void Sys_InitConsole (void)
 
 int main (int argc, char **argv)
 {
+
+    int i;
     signal(SIGFPE, SIG_IGN);
 
     com_argc = argc;
@@ -162,6 +167,20 @@ int main (int argc, char **argv)
         outfd = 2;
     else
         outfd = 1;
+
+    // FEATURE: stdin from fifo -cmdpipe
+    i = COM_CheckParm("-cmdfifo");
+    if (i && i + 1 < com_argc) {
+        int e = mkfifo(com_argv[i + 1], 0620);
+        if (e == 0 || errno == EEXIST) {
+            // linux only hack
+            int pipe_fd = open(com_argv[i+ 1], O_RDWR);
+            if (pipe_fd >= 0) {
+                close(STDIN_FILENO);
+                dup2(pipe_fd, STDIN_FILENO);
+            }
+        }
+    }
 
 #ifdef FNDELAY
     fcntl(0, F_SETFL, fcntl (0, F_GETFL, 0) | FNDELAY);
