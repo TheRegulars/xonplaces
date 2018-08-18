@@ -3854,10 +3854,8 @@ string(string key) serverkey
 */
 static void VM_CL_serverkey(prvm_prog_t *prog)
 {
-    char string[VM_STRINGTEMP_LENGTH];
-    VM_SAFEPARMCOUNT(1, VM_CL_serverkey);
-    InfoString_GetValue(cl.qw_serverinfo, PRVM_G_STRING(OFS_PARM0), string, sizeof(string));
-    PRVM_G_INT(OFS_RETURN) = PRVM_SetTempString(prog, string);
+    // REMOVED
+    PRVM_G_INT(OFS_RETURN) = 0;
 }
 
 /*

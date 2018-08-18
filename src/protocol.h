@@ -948,17 +948,6 @@ typedef struct entityframeqw_snapshot_s
 }
 entityframeqw_snapshot_t;
 
-typedef struct entityframeqw_database_s
-{
-    entityframeqw_snapshot_t snapshot[QW_UPDATE_BACKUP];
-}
-entityframeqw_database_t;
-
-entityframeqw_database_t *EntityFrameQW_AllocDatabase(mempool_t *pool);
-void EntityFrameQW_FreeDatabase(entityframeqw_database_t *d);
-void EntityStateQW_ReadPlayerUpdate(void);
-void EntityFrameQW_CL_ReadFrame(qboolean delta);
-
 struct client_s;
 void EntityFrameCSQC_LostFrame(struct client_s *client, int framenum);
 qboolean EntityFrameCSQC_WriteFrame (sizebuf_t *msg, int maxsize, int numnumbers, const unsigned short *numbers, int framenum);

@@ -171,34 +171,6 @@ typedef struct netconn_s
         unsigned int unreliableReceiveSequence;
     }
     nq;
-    struct netconn_qw_s
-    {
-        // QW protocol
-        qboolean    fatal_error;
-
-        float        last_received;        // for timeouts
-
-    // the statistics are cleared at each client begin, because
-    // the server connecting process gives a bogus picture of the data
-        float        frame_latency;        // rolling average
-        float        frame_rate;
-
-        int            drop_count;            ///< dropped packets, cleared each level
-        int            good_count;            ///< cleared each level
-
-        int            qport;
-
-    // sequencing variables
-        unsigned int        incoming_sequence;
-        unsigned int        incoming_acknowledged;
-        qboolean        incoming_reliable_acknowledged;    ///< single bit
-
-        qboolean        incoming_reliable_sequence;        ///< single bit, maintained local
-
-        qboolean        reliable_sequence;            ///< single bit
-        unsigned int        last_reliable_sequence;        ///< sequence number of last send
-    }
-    qw;
 
     // bandwidth estimator
     double        cleartime;            // if realtime > nc->cleartime, free to go

@@ -857,14 +857,6 @@ typedef struct client_static_s
     // input sequence numbers are not reset on level change, only connect
     unsigned int servermovesequence;
 
-    // quakeworld stuff below
-
-    // value of "qport" cvar at time of connection
-    int qw_qport;
-    // copied from cls.netcon->qw. variables every time they change, or set by demos (which have no cls.netcon)
-    unsigned int qw_incoming_sequence;
-    unsigned int qw_outgoing_sequence;
-
     // current file download buffer (only saved when file is completed)
     char qw_downloadname[MAX_QPATH];
     unsigned char *qw_downloadmemory;
@@ -1276,7 +1268,6 @@ typedef struct client_state_s
     unsigned int latestsendnums[LATESTFRAMENUMS];
     entityframe_database_t *entitydatabase;
     entityframe4_database_t *entitydatabase4;
-    entityframeqw_database_t *entitydatabaseqw;
 
     // keep track of quake entities because they need to be killed if they get stale
     int lastquakeentity;
@@ -1342,11 +1333,6 @@ typedef struct client_state_s
     qboolean loadcsqc;
     qboolean loadbegun;
     qboolean loadfinished;
-
-    // quakeworld stuff
-
-    // local copy of the server infostring
-    char qw_serverinfo[MAX_SERVERINFO_STRING];
 
     // time of last qw "pings" command sent to server while showing scores
     double last_ping_request;

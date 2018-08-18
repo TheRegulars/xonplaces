@@ -2556,28 +2556,6 @@ static void Host_Users_f (void) // credit: taken from QuakeWorld
 
 /*
 ==================
-Host_FullServerinfo_f
-
-Sent by server when serverinfo changes
-==================
-*/
-// TODO: shouldn't this be a cvar instead?
-static void Host_FullServerinfo_f (void) // credit: taken from QuakeWorld
-{
-    char temp[512];
-    if (Cmd_Argc() != 2)
-    {
-        Con_Printf ("usage: fullserverinfo <complete info string>\n");
-        return;
-    }
-
-    strlcpy (cl.qw_serverinfo, Cmd_Argv(1), sizeof(cl.qw_serverinfo));
-    InfoString_GetValue(cl.qw_serverinfo, "teamplay", temp, sizeof(temp));
-    cl.qw_teamplay = atoi(temp);
-}
-
-/*
-==================
 Host_FullInfo_f
 
 Allow clients to change userinfo
@@ -2863,7 +2841,6 @@ void Host_InitCommands (void)
     Cmd_AddCommand ("srcon", Host_Rcon_f, "sends a command to the server console (if your rcon_password matches the server's rcon_password), or to the address specified by rcon_address when not connected (again rcon_password must match the server's); this always works as if rcon_secure is set; note: client and server clocks must be synced e.g. via NTP");
     Cmd_AddCommand ("user", Host_User_f, "prints additional information about a player number or name on the scoreboard");
     Cmd_AddCommand ("users", Host_Users_f, "prints additional information about all players on the scoreboard");
-    Cmd_AddCommand ("fullserverinfo", Host_FullServerinfo_f, "internal use only, sent by server to client to update client's local copy of serverinfo string");
     Cmd_AddCommand ("fullinfo", Host_FullInfo_f, "allows client to modify their userinfo");
     Cmd_AddCommand ("setinfo", Host_SetInfo_f, "modifies your userinfo");
     Cmd_AddCommand ("packet", Host_Packet_f, "send a packet to the specified address:port containing a text string");
