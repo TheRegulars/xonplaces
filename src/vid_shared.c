@@ -5,15 +5,6 @@
 #endif
 #include "image.h"
 
-#ifdef SUPPORTD3D
-#include <d3d9.h>
-#ifdef _MSC_VER
-#pragma comment(lib, "d3d9.lib")
-#endif
-
-LPDIRECT3DDEVICE9 vid_d3d9dev;
-#endif
-
 #ifdef WIN32
 //#include <XInput.h>
 #define XINPUT_GAMEPAD_DPAD_UP          0x0001

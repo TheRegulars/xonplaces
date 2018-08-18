@@ -141,11 +141,6 @@ demonstrated by the game Doom3.
 #include "image.h"
 #include "dpsoftrast.h"
 
-#ifdef SUPPORTD3D
-#include <d3d9.h>
-extern LPDIRECT3DDEVICE9 vid_d3d9dev;
-#endif
-
 static void R_Shadow_EditLights_Init(void);
 
 typedef enum r_shadow_rendermode_e
