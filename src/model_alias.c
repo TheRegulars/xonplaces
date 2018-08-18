@@ -27,7 +27,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 #ifdef SSE_POSSIBLE
-static qboolean r_skeletal_use_sse_defined = false;
 cvar_t r_skeletal_use_sse = {0, "r_skeletal_use_sse", "1", "use SSE for skeletal model animation"};
 #endif
 cvar_t r_skeletal_debugbone = {0, "r_skeletal_debugbone", "-1", "development cvar for testing skeletal model code"};
@@ -175,13 +174,11 @@ static void Mod_Skeletal_AnimateVertices(const dp_model_t * RESTRICT model, cons
         return;
     }
 
-#ifdef SSE_POSSIBLE
-    if(r_skeletal_use_sse_defined)
-        if(r_skeletal_use_sse.integer)
-        {
-            Mod_Skeletal_AnimateVertices_SSE(model, frameblend, skeleton, vertex3f, normal3f, svector3f, tvector3f);
-            return;
-        }
+#ifdef __SSE__
+    if(r_skeletal_use_sse.integer) {
+        Mod_Skeletal_AnimateVertices_SSE(model, frameblend, skeleton, vertex3f, normal3f, svector3f, tvector3f);
+        return;
+    }
 #endif
     Mod_Skeletal_AnimateVertices_Generic(model, frameblend, skeleton, vertex3f, normal3f, svector3f, tvector3f);
 }
@@ -199,17 +196,9 @@ void Mod_AliasInit (void)
     Cvar_RegisterVariable(&mod_alias_force_animated);
     for (i = 0;i < 320;i++)
         mod_md3_sin[i] = sin(i * M_PI * 2.0f / 256.0);
-#ifdef SSE_POSSIBLE
-    if(Sys_HaveSSE())
-    {
-        Con_Printf("Skeletal animation uses SSE code path\n");
-        r_skeletal_use_sse_defined = true;
-        Cvar_RegisterVariable(&r_skeletal_use_sse);
-    }
-    else
-        Con_Printf("Skeletal animation uses generic code path (SSE disabled or not detected)\n");
-#else
-    Con_Printf("Skeletal animation uses generic code path (SSE not compiled in)\n");
+
+#ifdef __SSE__
+    Cvar_RegisterVariable(&r_skeletal_use_sse);
 #endif
 }
 

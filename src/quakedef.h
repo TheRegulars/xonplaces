@@ -503,13 +503,16 @@ extern cvar_t sessionid;
 # undef SSE2_PRESENT
 #endif
 
-#ifdef SSE_POSSIBLE
-// runtime detection of SSE/SSE2 capabilities for x86
-qboolean Sys_HaveSSE(void);
-qboolean Sys_HaveSSE2(void);
-#else
-#define Sys_HaveSSE() false
-#define Sys_HaveSSE2() false
+
+// hacks for msvc
+#if _M_IX86_FP == 2
+#define __SSE__ 1
+#define __SSE2__ 1
+#elif _M_IX86_FP == 1
+#define __SSE__ 1
+#elif (defined(_M_AMD64) || defined(_M_X64))
+#define __SSE__ 1
+#define __SSE2__ 1
 #endif
 
 #include "glquake.h"

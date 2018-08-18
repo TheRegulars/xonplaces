@@ -1728,16 +1728,11 @@ static dllhandle_t xinputdll_dll = NULL;
 
 void VID_Shared_Init(void)
 {
-#ifdef SSE_POSSIBLE
-    if (Sys_HaveSSE2())
-    {
+#ifdef __SSE2__
         Con_Printf("DPSOFTRAST available (SSE2 instructions detected)\n");
         Cvar_RegisterVariable(&vid_soft);
         Cvar_RegisterVariable(&vid_soft_threads);
         Cvar_RegisterVariable(&vid_soft_interlace);
-    }
-    else
-        Con_Printf("DPSOFTRAST not available (SSE2 disabled or not detected)\n");
 #else
     Con_Printf("DPSOFTRAST not available (SSE2 not compiled in)\n");
 #endif
