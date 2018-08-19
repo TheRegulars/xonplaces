@@ -9,7 +9,9 @@ if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -DNDEBUG \
     -fno-strict-aliasing -fno-math-errno -ffinite-math-only -fno-rounding-math \
     -fno-signaling-nans -fno-trapping-math -fstack-protector -fPIE -pie \
-    -D_FORTIFY_SOURCE=1")
+    -D_FORTIFY_SOURCE=1 -flto")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} \
+    -z noexecstack -z relro -z now")
 elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
     # Use LTO when building using release with clang
     # NOTE: This requires llvm-ar and gold plugin
@@ -20,7 +22,8 @@ elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
     -fno-strict-aliasing -fno-math-errno -ffinite-math-only -fno-trapping-math \
     -flto -fstack-protector -fPIE -pie -D_FORTIFY_SOURCE=1 \
     -Wno-unused-command-line-argument")
-    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-flto")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} \
+    -flto -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now")
 endif()
 
 # Add NativeRelease build type
