@@ -13,9 +13,13 @@ if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
 elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
     # Use LTO when building using release with clang
     # NOTE: This requires llvm-ar and gold plugin
+    # some clang versions have pie by default, so use
+    # -Wno-unused-command-line-argument to disable warning about unused -pie
+    # flag
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -DNDEBUG \
     -fno-strict-aliasing -fno-math-errno -ffinite-math-only -fno-trapping-math \
-    -flto -fstack-protector -fPIE -pie -D_FORTIFY_SOURCE=1")
+    -flto -fstack-protector -fPIE -pie -D_FORTIFY_SOURCE=1 \
+    -Wno-unused-command-line-argument")
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-flto")
 endif()
 
