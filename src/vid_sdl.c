@@ -22,7 +22,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include "image.h"
-#include "dpsoftrast.h"
 #include "utf8lib.h"
 
 #ifndef __IPHONEOS__
@@ -916,10 +915,6 @@ void Sys_SendKeyEvents( void )
                                 SDL_FreeSurface(vid_softsurface);
                                 vid_softsurface = SDL_CreateRGBSurface(SDL_SWSURFACE, vid.width, vid.height, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
                                 SDL_SetSurfaceBlendMode(vid_softsurface, SDL_BLENDMODE_NONE);
-                                vid.softpixels = (unsigned int *)vid_softsurface->pixels;
-                                if (vid.softdepthpixels)
-                                    free(vid.softdepthpixels);
-                                vid.softdepthpixels = (unsigned int*)calloc(1, vid.width * vid.height * 4);
                             }
 #ifdef SDL_R_RESTART
                             // better not call R_Modules_Restart from here directly, as this may wreak havoc...
@@ -1901,7 +1896,6 @@ static qboolean VID_InitModeGL(viddef_mode_t *mode)
     }
 
     vid_softsurface = NULL;
-    vid.softpixels = NULL;
 
     SDL_GL_SetSwapInterval(vid_vsync.integer != 0);
     vid_usingvsync = (vid_vsync.integer != 0);
@@ -1930,80 +1924,13 @@ extern cvar_t gl_info_version;
 extern cvar_t gl_info_platform;
 extern cvar_t gl_info_driver;
 
-static qboolean VID_InitModeSoft(viddef_mode_t *mode)
-{
-    int windowflags = SDL_WINDOW_SHOWN;
-    win_half_width = mode->width>>1;
-    win_half_height = mode->height>>1;
-
-    if(vid_resizable.integer)
-        windowflags |= SDL_WINDOW_RESIZABLE;
-
-    VID_OutputVersion();
-
-    vid_isfullscreen = false;
-    if (mode->fullscreen) {
-        if (vid_desktopfullscreen.integer)
-            windowflags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-        else
-            windowflags |= SDL_WINDOW_FULLSCREEN;
-
-        vid_isfullscreen = true;
-    }
-
-    video_bpp = mode->bitsperpixel;
-    window_flags = windowflags;
-    window = SDL_CreateWindow(gamename, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, mode->width, mode->height, windowflags);
-    if (window == NULL)
-    {
-        Con_Printf("Failed to set video mode to %ix%i: %s\n", mode->width, mode->height, SDL_GetError());
-        VID_Shutdown();
-        return false;
-    }
-    SDL_GetWindowSize(window, &mode->width, &mode->height);
-
-    // create a framebuffer using our specific color format, we let the SDL blit function convert it in VID_Finish
-    vid_softsurface = SDL_CreateRGBSurface(SDL_SWSURFACE, mode->width, mode->height, 32, 0x00FF0000, 0x0000FF00, 0x00000000FF, 0xFF000000);
-    if (vid_softsurface == NULL)
-    {
-        Con_Printf("Failed to setup software rasterizer framebuffer %ix%ix32bpp: %s\n", mode->width, mode->height, SDL_GetError());
-        VID_Shutdown();
-        return false;
-    }
-    SDL_SetSurfaceBlendMode(vid_softsurface, SDL_BLENDMODE_NONE);
-
-    vid.softpixels = (unsigned int *)vid_softsurface->pixels;
-    vid.softdepthpixels = (unsigned int *)calloc(1, mode->width * mode->height * 4);
-    if (DPSOFTRAST_Init(mode->width, mode->height, vid_soft_threads.integer, vid_soft_interlace.integer, (unsigned int *)vid_softsurface->pixels, (unsigned int *)vid.softdepthpixels) < 0)
-    {
-        Con_Printf("Failed to initialize software rasterizer\n");
-        VID_Shutdown();
-        return false;
-    }
-
-    VID_Soft_SharedSetup();
-
-    vid_hidden = false;
-    vid_activewindow = false;
-    vid_hasfocus = true;
-    vid_usingmouse = false;
-    vid_usinghidecursor = false;
-
-    return true;
-}
-
 qboolean VID_InitMode(viddef_mode_t *mode)
 {
     if (!SDL_WasInit(SDL_INIT_VIDEO) && SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
         Sys_Error ("Failed to init SDL video subsystem: %s", SDL_GetError());
 
     Cvar_SetValueQuick(&vid_touchscreen_supportshowkeyboard, SDL_HasScreenKeyboardSupport() ? 1 : 0);
-#ifdef SSE_POSSIBLE
-    if (vid_soft.integer)
-        return VID_InitModeSoft(mode);
-    else
-#endif
-        return VID_InitModeGL(mode);
+    return VID_InitModeGL(mode);
 }
 
 void VID_Shutdown (void)
@@ -2015,10 +1942,6 @@ void VID_Shutdown (void)
     if (vid_softsurface)
         SDL_FreeSurface(vid_softsurface);
     vid_softsurface = NULL;
-    vid.softpixels = NULL;
-    if (vid.softdepthpixels)
-        free(vid.softdepthpixels);
-    vid.softdepthpixels = NULL;
 
     SDL_DestroyWindow(window);
     window = NULL;
@@ -2073,20 +1996,6 @@ void VID_Finish (void)
     }
 }
             SDL_GL_SwapWindow(window);
-            break;
-        case RENDERPATH_SOFT:
-            DPSOFTRAST_Finish();
-            {
-                SDL_Surface *screen = SDL_GetWindowSurface(window);
-                SDL_BlitSurface(vid_softsurface, NULL, screen, NULL);
-                SDL_UpdateWindowSurface(window);
-            }
-            break;
-        case RENDERPATH_D3D9:
-        case RENDERPATH_D3D10:
-        case RENDERPATH_D3D11:
-            if (r_speeds.integer == 2 || gl_finish.integer)
-                GL_Finish();
             break;
         }
     }

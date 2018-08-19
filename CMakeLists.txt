@@ -93,7 +93,7 @@ set(SOURCE_COMMON
     csprogs.c csprogs.h
     curves.c curves.h
     cvar.c cvar.h
-    dpsoftrast.c dpsoftrast.h
+    gl_custom.h
     filematch.c
     fractalnoise.c
     fs.c fs.h

@@ -1,7 +1,7 @@
 
 #include "quakedef.h"
 #include "cl_collision.h"
-#include "dpsoftrast.h"
+#include "gl_custom.h"
 
 // on GLES we have to use some proper #define's
 #ifndef GL_FRAMEBUFFER
@@ -348,22 +348,6 @@ static void R_Mesh_SetUseVBO(void)
         gl_state.usevbo_dynamicvertex = (vid.support.arb_vertex_buffer_object && gl_vbo_dynamicvertex.integer && gl_vbo.integer) || vid.forcevbo;
         gl_state.usevbo_dynamicindex = (vid.support.arb_vertex_buffer_object && gl_vbo_dynamicindex.integer && gl_vbo.integer) || vid.forcevbo;
         break;
-    case RENDERPATH_D3D9:
-        gl_state.usevbo_staticvertex = gl_state.usevbo_staticindex = (vid.support.arb_vertex_buffer_object && gl_vbo.integer) || vid.forcevbo;
-        gl_state.usevbo_dynamicvertex = gl_state.usevbo_dynamicindex = (vid.support.arb_vertex_buffer_object && gl_vbo_dynamicvertex.integer && gl_vbo_dynamicindex.integer && gl_vbo.integer) || vid.forcevbo;
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_SOFT:
-        gl_state.usevbo_staticvertex = false;
-        gl_state.usevbo_staticindex = false;
-        gl_state.usevbo_dynamicvertex = false;
-        gl_state.usevbo_dynamicindex = false;
-        break;
     case RENDERPATH_GLES2:
         gl_state.usevbo_staticvertex = (vid.support.arb_vertex_buffer_object && gl_vbo.integer) || vid.forcevbo;
         gl_state.usevbo_staticindex = (vid.support.arb_vertex_buffer_object && gl_vbo.integer) || vid.forcevbo;
@@ -397,16 +381,6 @@ static void gl_backend_start(void)
         if (vid.support.ext_framebuffer_object)
             qglGetIntegerv(GL_FRAMEBUFFER_BINDING, &gl_state.defaultframebufferobject);
         break;
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_SOFT:
-        break;
     }
 }
 
@@ -419,17 +393,8 @@ static void gl_backend_shutdown(void)
     case RENDERPATH_GL11:
     case RENDERPATH_GL13:
     case RENDERPATH_GL20:
-    case RENDERPATH_SOFT:
     case RENDERPATH_GLES1:
     case RENDERPATH_GLES2:
-        break;
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
         break;
     }
 
@@ -454,17 +419,8 @@ static void gl_backend_devicelost(void)
     case RENDERPATH_GL11:
     case RENDERPATH_GL13:
     case RENDERPATH_GL20:
-    case RENDERPATH_SOFT:
     case RENDERPATH_GLES1:
     case RENDERPATH_GLES2:
-        break;
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
         break;
     }
     endindex = (int)Mem_ExpandableArray_IndexRange(&gl_state.meshbufferarray);
@@ -478,17 +434,8 @@ static void gl_backend_devicelost(void)
         case RENDERPATH_GL11:
         case RENDERPATH_GL13:
         case RENDERPATH_GL20:
-        case RENDERPATH_SOFT:
         case RENDERPATH_GLES1:
         case RENDERPATH_GLES2:
-            break;
-        case RENDERPATH_D3D9:
-            break;
-        case RENDERPATH_D3D10:
-            Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_D3D11:
-            Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
             break;
         }
     }
@@ -501,17 +448,8 @@ static void gl_backend_devicerestored(void)
     case RENDERPATH_GL11:
     case RENDERPATH_GL13:
     case RENDERPATH_GL20:
-    case RENDERPATH_SOFT:
     case RENDERPATH_GLES1:
     case RENDERPATH_GLES2:
-        break;
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
         break;
     }
 }
@@ -590,18 +528,6 @@ void GL_Finish(void)
     case RENDERPATH_GLES1:
     case RENDERPATH_GLES2:
         qglFinish();
-        break;
-    case RENDERPATH_D3D9:
-        //Con_DPrintf("FIXME D3D9 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_SOFT:
-        DPSOFTRAST_Finish();
         break;
     }
 }
@@ -738,15 +664,9 @@ qboolean R_ScissorForBBox(const float *mins, const float *maxs, int *scissor)
     // D3D Y coordinate is top to bottom, OpenGL is bottom to top, fix the D3D one
     switch(vid.renderpath)
     {
-    case RENDERPATH_D3D9:
-    case RENDERPATH_D3D10:
-    case RENDERPATH_D3D11:
-        scissor[1] = vid.height - scissor[1] - scissor[3];
-        break;
     case RENDERPATH_GL11:
     case RENDERPATH_GL13:
     case RENDERPATH_GL20:
-    case RENDERPATH_SOFT:
     case RENDERPATH_GLES1:
     case RENDERPATH_GLES2:
         break;
@@ -830,15 +750,8 @@ void R_Viewport_InitOrtho(r_viewport_t *v, const matrix4x4_t *cameramatrix, int 
     case RENDERPATH_GL11:
     case RENDERPATH_GL13:
     case RENDERPATH_GL20:
-    case RENDERPATH_SOFT:
     case RENDERPATH_GLES1:
     case RENDERPATH_GLES2:
-        break;
-    case RENDERPATH_D3D9:
-    case RENDERPATH_D3D10:
-    case RENDERPATH_D3D11:
-        m[10] = -1/(zFar - zNear);
-        m[14] = -zNear/(zFar-zNear);
         break;
     }
     v->screentodepth[0] = -farclip / (farclip - nearclip);
@@ -1081,18 +994,8 @@ void R_Viewport_InitRectSideView(r_viewport_t *v, const matrix4x4_t *cameramatri
     case RENDERPATH_GL20:
     case RENDERPATH_GL13:
     case RENDERPATH_GL11:
-    case RENDERPATH_SOFT:
     case RENDERPATH_GLES1:
     case RENDERPATH_GLES2:
-        break;
-    case RENDERPATH_D3D9:
-        m[5] *= -1;
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
         break;
     }
 
@@ -1130,17 +1033,6 @@ void R_SetViewport(const r_viewport_t *v)
             qglMatrixMode(GL_MODELVIEW);CHECKGLERROR
         }
 #endif
-        break;
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_SOFT:
-        DPSOFTRAST_Viewport(v->x, v->y, v->width, v->height);
         break;
     case RENDERPATH_GL20:
     case RENDERPATH_GLES2:
@@ -1326,12 +1218,6 @@ int R_Mesh_CreateFramebufferObject(rtexture_t *depthtexture, rtexture_t *colorte
             return temp;
         }
         return 0;
-    case RENDERPATH_D3D9:
-    case RENDERPATH_D3D10:
-    case RENDERPATH_D3D11:
-        return 1;
-    case RENDERPATH_SOFT:
-        return 1;
     }
     return 0;
 }
@@ -1352,12 +1238,6 @@ void R_Mesh_DestroyFramebufferObject(int fbo)
                 gl_state.framebufferobject = 0;
             qglDeleteFramebuffers(1, (GLuint*)&fbo);
         }
-        break;
-    case RENDERPATH_D3D9:
-    case RENDERPATH_D3D10:
-    case RENDERPATH_D3D11:
-        break;
-    case RENDERPATH_SOFT:
         break;
     }
 }
@@ -1389,29 +1269,6 @@ void R_Mesh_SetRenderTargets(int fbo, rtexture_t *depthtexture, rtexture_t *colo
             qglBindFramebuffer(GL_FRAMEBUFFER, gl_state.framebufferobject ? gl_state.framebufferobject : gl_state.defaultframebufferobject);
         }
         break;
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_SOFT:
-        if (fbo)
-        {
-            int width, height;
-            unsigned int *pointers[5];
-            memset(pointers, 0, sizeof(pointers));
-            for (i = 0;i < 5;i++)
-                pointers[i] = textures[i] ? (unsigned int *)DPSOFTRAST_Texture_GetPixelPointer(textures[i]->texnum, 0) : NULL;
-            width = DPSOFTRAST_Texture_GetWidth(textures[0] ? textures[0]->texnum : textures[4]->texnum, 0);
-            height = DPSOFTRAST_Texture_GetHeight(textures[0] ? textures[0]->texnum : textures[4]->texnum, 0);
-            DPSOFTRAST_SetRenderTargets(width, height, pointers[4], pointers[0], pointers[1], pointers[2], pointers[3]);
-        }
-        else
-            DPSOFTRAST_SetRenderTargets(vid.width, vid.height, vid.softdepthpixels, vid.softpixels, NULL, NULL, NULL);
-        break;
     }
 }
 
@@ -1441,14 +1298,6 @@ static void GL_Backend_ResetState(void)
 
     switch(vid.renderpath)
     {
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
     case RENDERPATH_GL11:
     case RENDERPATH_GL13:
     case RENDERPATH_GLES1:
@@ -1525,16 +1374,6 @@ static void GL_Backend_ResetState(void)
         CHECKGLERROR
 #endif
         break;
-    case RENDERPATH_SOFT:
-        DPSOFTRAST_ColorMask(1,1,1,1);
-        DPSOFTRAST_BlendFunc(gl_state.blendfunc1, gl_state.blendfunc2);
-        DPSOFTRAST_CullFace(gl_state.cullface);
-        DPSOFTRAST_DepthFunc(gl_state.depthfunc);
-        DPSOFTRAST_DepthMask(gl_state.depthmask);
-        DPSOFTRAST_PolygonOffset(gl_state.polygonoffset[0], gl_state.polygonoffset[1]);
-        DPSOFTRAST_SetRenderTargets(vid.width, vid.height, vid.softdepthpixels, vid.softpixels, NULL, NULL, NULL);
-        DPSOFTRAST_Viewport(0, 0, vid.width, vid.height);
-        break;
     case RENDERPATH_GL20:
     case RENDERPATH_GLES2:
         CHECKGLERROR
@@ -1604,12 +1443,6 @@ void GL_ActiveTexture(unsigned int num)
                 CHECKGLERROR
             }
             break;
-        case RENDERPATH_D3D9:
-        case RENDERPATH_D3D10:
-        case RENDERPATH_D3D11:
-            break;
-        case RENDERPATH_SOFT:
-            break;
         }
     }
 }
@@ -1632,12 +1465,6 @@ void GL_ClientActiveTexture(unsigned int num)
                 CHECKGLERROR
             }
 #endif
-            break;
-        case RENDERPATH_D3D9:
-        case RENDERPATH_D3D10:
-        case RENDERPATH_D3D11:
-            break;
-        case RENDERPATH_SOFT:
             break;
         case RENDERPATH_GL20:
         case RENDERPATH_GLES2:
@@ -1683,17 +1510,6 @@ void GL_BlendFunc(int blendfunc1, int blendfunc2)
                 }
             }
             break;
-        case RENDERPATH_D3D9:
-            break;
-        case RENDERPATH_D3D10:
-            Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_D3D11:
-            Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_SOFT:
-            DPSOFTRAST_BlendFunc(gl_state.blendfunc1, gl_state.blendfunc2);
-            break;
         }
     }
 }
@@ -1712,17 +1528,6 @@ void GL_DepthMask(int state)
         case RENDERPATH_GLES2:
             CHECKGLERROR
             qglDepthMask(gl_state.depthmask);CHECKGLERROR
-            break;
-        case RENDERPATH_D3D9:
-            break;
-        case RENDERPATH_D3D10:
-            Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_D3D11:
-            Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_SOFT:
-            DPSOFTRAST_DepthMask(gl_state.depthmask);
             break;
         }
     }
@@ -1750,17 +1555,6 @@ void GL_DepthTest(int state)
                 qglDisable(GL_DEPTH_TEST);CHECKGLERROR
             }
             break;
-        case RENDERPATH_D3D9:
-            break;
-        case RENDERPATH_D3D10:
-            Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_D3D11:
-            Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_SOFT:
-            DPSOFTRAST_DepthTest(gl_state.depthtest);
-            break;
         }
     }
 }
@@ -1779,17 +1573,6 @@ void GL_DepthFunc(int state)
         case RENDERPATH_GLES2:
             CHECKGLERROR
             qglDepthFunc(gl_state.depthfunc);CHECKGLERROR
-            break;
-        case RENDERPATH_D3D9:
-            break;
-        case RENDERPATH_D3D10:
-            Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_D3D11:
-            Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_SOFT:
-            DPSOFTRAST_DepthFunc(gl_state.depthfunc);
             break;
         }
     }
@@ -1813,17 +1596,6 @@ void GL_DepthRange(float nearfrac, float farfrac)
 #else
             qglDepthRange(gl_state.depthrange[0], gl_state.depthrange[1]);
 #endif
-            break;
-        case RENDERPATH_D3D9:
-            break;
-        case RENDERPATH_D3D10:
-            Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_D3D11:
-            Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_SOFT:
-            DPSOFTRAST_DepthRange(gl_state.depthrange[0], gl_state.depthrange[1]);
             break;
         }
     }
@@ -1870,17 +1642,6 @@ void R_SetStencilSeparate(qboolean enable, int writemask, int frontfail, int fro
 #endif
         }
         break;
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_SOFT:
-        //Con_DPrintf("FIXME SOFT %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
     }
 }
 
@@ -1913,17 +1674,6 @@ void R_SetStencil(qboolean enable, int writemask, int fail, int zfail, int zpass
         qglStencilFunc(compare, comparereference, comparemask);CHECKGLERROR
         CHECKGLERROR
         break;
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_SOFT:
-        //Con_DPrintf("FIXME SOFT %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
     }
 }
 
@@ -1941,17 +1691,6 @@ void GL_PolygonOffset(float planeoffset, float depthoffset)
         case RENDERPATH_GLES1:
         case RENDERPATH_GLES2:
             qglPolygonOffset(gl_state.polygonoffset[0], gl_state.polygonoffset[1]);
-            break;
-        case RENDERPATH_D3D9:
-            break;
-        case RENDERPATH_D3D10:
-            Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_D3D11:
-            Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_SOFT:
-            DPSOFTRAST_PolygonOffset(gl_state.polygonoffset[0], gl_state.polygonoffset[1]);
             break;
         }
     }
@@ -1976,17 +1715,6 @@ void GL_SetMirrorState(qboolean state)
         case RENDERPATH_GLES1:
         case RENDERPATH_GLES2:
             qglCullFace(gl_state.cullface);CHECKGLERROR
-            break;
-        case RENDERPATH_D3D9:
-            break;
-        case RENDERPATH_D3D10:
-            Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_D3D11:
-            Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_SOFT:
-            DPSOFTRAST_CullFace(gl_state.cullface);
             break;
         }
     }
@@ -2033,22 +1761,6 @@ void GL_CullFace(int state)
             }
         }
         break;
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_SOFT:
-        if (gl_state.cullface != state)
-        {
-            gl_state.cullface = state;
-            gl_state.cullfaceenable = state != GL_NONE ? true : false;
-            DPSOFTRAST_CullFace(gl_state.cullface);
-        }
-        break;
     }
 }
 
@@ -2075,10 +1787,6 @@ void GL_AlphaTest(int state)
             }
 #endif
             break;
-        case RENDERPATH_D3D9:
-        case RENDERPATH_D3D10:
-        case RENDERPATH_D3D11:
-        case RENDERPATH_SOFT:
         case RENDERPATH_GL20:
         case RENDERPATH_GLES2:
             break;
@@ -2097,10 +1805,6 @@ void GL_AlphaToCoverage(qboolean state)
         case RENDERPATH_GL13:
         case RENDERPATH_GLES1:
         case RENDERPATH_GLES2:
-        case RENDERPATH_D3D9:
-        case RENDERPATH_D3D10:
-        case RENDERPATH_D3D11:
-        case RENDERPATH_SOFT:
             break;
         case RENDERPATH_GL20:
 #ifdef GL_SAMPLE_ALPHA_TO_COVERAGE_ARB
@@ -2139,17 +1843,6 @@ void GL_ColorMask(int r, int g, int b, int a)
             CHECKGLERROR
             qglColorMask((GLboolean)r, (GLboolean)g, (GLboolean)b, (GLboolean)a);CHECKGLERROR
             break;
-        case RENDERPATH_D3D9:
-            break;
-        case RENDERPATH_D3D10:
-            Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_D3D11:
-            Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_SOFT:
-            DPSOFTRAST_ColorMask(r, g, b, a);
-            break;
         }
     }
 }
@@ -2173,14 +1866,6 @@ void GL_Color(float cr, float cg, float cb, float ca)
             CHECKGLERROR
 #endif
             break;
-        case RENDERPATH_D3D9:
-        case RENDERPATH_D3D10:
-        case RENDERPATH_D3D11:
-            // no equivalent in D3D
-            break;
-        case RENDERPATH_SOFT:
-            DPSOFTRAST_Color4f(cr, cg, cb, ca);
-            break;
         case RENDERPATH_GL20:
         case RENDERPATH_GLES2:
             qglVertexAttrib4f(GLSLATTRIB_COLOR, cr, cg, cb, ca);
@@ -2201,17 +1886,6 @@ void GL_Scissor (int x, int y, int width, int height)
         CHECKGLERROR
         qglScissor(x, y,width,height);
         CHECKGLERROR
-        break;
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_SOFT:
-        DPSOFTRAST_Scissor(x, y, width, height);
         break;
     }
 }
@@ -2234,17 +1908,6 @@ void GL_ScissorTest(int state)
             else
                 qglDisable(GL_SCISSOR_TEST);
             CHECKGLERROR
-            break;
-        case RENDERPATH_D3D9:
-            break;
-        case RENDERPATH_D3D10:
-            Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_D3D11:
-            Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_SOFT:
-            DPSOFTRAST_ScissorTest(gl_state.scissortest);
             break;
         }
     }
@@ -2288,20 +1951,6 @@ void GL_Clear(int mask, const float *colorvalue, float depthvalue, int stencilva
         }
         qglClear(mask);CHECKGLERROR
         break;
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_SOFT:
-        if (mask & GL_COLOR_BUFFER_BIT)
-            DPSOFTRAST_ClearColor(colorvalue[0], colorvalue[1], colorvalue[2], colorvalue[3]);
-        if (mask & GL_DEPTH_BUFFER_BIT)
-            DPSOFTRAST_ClearDepth(depthvalue);
-        break;
     }
 }
 
@@ -2339,17 +1988,6 @@ void GL_ReadPixelsBGRA(int x, int y, int width, int height, unsigned char *outpi
         qglReadPixels(x, y, width, height, GL_BGRA, GL_UNSIGNED_BYTE, outpixels);CHECKGLERROR
 #endif
             break;
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_SOFT:
-        DPSOFTRAST_GetPixelsBGRA(x, y, width, height, outpixels);
-        break;
     }
 }
 
@@ -2507,12 +2145,6 @@ void R_Mesh_Draw(int firstvertex, int numvertices, int firsttriangle, int numtri
             element3i_indexbuffer = NULL;
             element3s_indexbuffer = NULL;
         }
-        break;
-    case RENDERPATH_D3D9:
-    case RENDERPATH_D3D10:
-    case RENDERPATH_D3D11:
-        break;
-    case RENDERPATH_SOFT:
         break;
     }
     // upload a dynamic index buffer if needed
@@ -2905,17 +2537,6 @@ void R_Mesh_Draw(int firstvertex, int numvertices, int firsttriangle, int numtri
                 CHECKGLERROR
             }
             break;
-        case RENDERPATH_D3D9:
-            break;
-        case RENDERPATH_D3D10:
-            Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_D3D11:
-            Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_SOFT:
-            DPSOFTRAST_DrawTriangles(firstvertex, numvertices, numtriangles, element3i, element3s);
-            break;
         case RENDERPATH_GLES1:
         case RENDERPATH_GLES2:
             // GLES does not have glDrawRangeElements so this is a bit shorter than the GL20 path
@@ -3035,16 +2656,6 @@ void R_Mesh_UpdateMeshBuffer(r_meshbuffer_t *buffer, const void *data, size_t si
         if (buffer->isuniformbuffer)
             GL_BindUBO(0);
         break;
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_SOFT:
-        break;
     }
 }
 
@@ -3067,16 +2678,6 @@ void R_Mesh_DestroyMeshBuffer(r_meshbuffer_t *buffer)
         if (gl_state.elementbufferobject == buffer->bufferobject)
             gl_state.elementbufferobject = 0;
         qglDeleteBuffersARB(1, (GLuint *)&buffer->bufferobject);
-        break;
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_SOFT:
         break;
     }
     Mem_ExpandableArray_FreeRecord(&gl_state.meshbufferarray, (void *)buffer);
@@ -3171,11 +2772,6 @@ void R_Mesh_VertexPointer(int components, int gltype, size_t stride, const void 
             qglVertexAttribPointer(GLSLATTRIB_POSITION, components, gltype & ~0x80000000, (gltype & 0x80000000) == 0, (GLsizei)stride, bufferobject ? (void *)bufferoffset : pointer);CHECKGLERROR
         }
         break;
-    case RENDERPATH_D3D9:
-    case RENDERPATH_D3D10:
-    case RENDERPATH_D3D11:
-    case RENDERPATH_SOFT:
-        break;
     }
 }
 
@@ -3267,11 +2863,6 @@ void R_Mesh_ColorPointer(int components, int gltype, size_t stride, const void *
             }
         }
         break;
-    case RENDERPATH_D3D9:
-    case RENDERPATH_D3D10:
-    case RENDERPATH_D3D11:
-    case RENDERPATH_SOFT:
-        break;
     }
 }
 
@@ -3360,11 +2951,6 @@ void R_Mesh_TexCoordPointer(unsigned int unitnum, int components, int gltype, si
             }
         }
         break;
-    case RENDERPATH_D3D9:
-    case RENDERPATH_D3D10:
-    case RENDERPATH_D3D11:
-    case RENDERPATH_SOFT:
-        break;
     }
 }
 
@@ -3394,17 +2980,6 @@ void R_Mesh_CopyToTexture(rtexture_t *tex, int tx, int ty, int sx, int sy, int w
         R_Mesh_TexBind(0, tex);
         GL_ActiveTexture(0);CHECKGLERROR
         qglCopyTexSubImage2D(GL_TEXTURE_2D, 0, tx, ty, sx, sy, width, height);CHECKGLERROR
-        break;
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_SOFT:
-        DPSOFTRAST_CopyRectangleToTexture(tex->texnum, 0, tx, ty, sx, sy, width, height);
         break;
     }
 }
@@ -3541,28 +3116,6 @@ void R_Mesh_TexBind(unsigned int unitnum, rtexture_t *tex)
             qglBindTexture(GL_TEXTURE_CUBE_MAP, unit->tcubemap);CHECKGLERROR
         }
         break;
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_SOFT:
-        if (!tex)
-        {
-            tex = r_texture_white;
-            // not initialized enough yet...
-            if (!tex)
-                return;
-        }
-        texnum = R_GetTexture(tex);
-        if (unit->texture == tex)
-            return;
-        unit->texture = tex;
-        DPSOFTRAST_SetTexture(unitnum, texnum);
-        break;
     }
 }
 
@@ -3609,12 +3162,6 @@ void R_Mesh_TexMatrix(unsigned int unitnum, const matrix4x4_t *matrix)
             }
         }
 #endif
-        break;
-    case RENDERPATH_D3D9:
-    case RENDERPATH_D3D10:
-    case RENDERPATH_D3D11:
-        break;
-    case RENDERPATH_SOFT:
         break;
     }
 }
@@ -3698,12 +3245,6 @@ void R_Mesh_TexCombine(unsigned int unitnum, int combinergb, int combinealpha, i
             qglTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, unit->combine);CHECKGLERROR
         }
         break;
-    case RENDERPATH_D3D9:
-    case RENDERPATH_D3D10:
-    case RENDERPATH_D3D11:
-        break;
-    case RENDERPATH_SOFT:
-        break;
     }
 #endif
 }
@@ -3722,10 +3263,6 @@ void R_Mesh_ResetTextureState(void)
     {
     case RENDERPATH_GL20:
     case RENDERPATH_GLES2:
-    case RENDERPATH_D3D9:
-    case RENDERPATH_D3D10:
-    case RENDERPATH_D3D11:
-    case RENDERPATH_SOFT:
         break;
     case RENDERPATH_GL11:
     case RENDERPATH_GL13:
@@ -3807,23 +3344,6 @@ void R_Mesh_PrepareVertices_Vertex3f(int numvertices, const float *vertex3f, con
             R_Mesh_ColorPointer(4, GL_FLOAT, sizeof(float[4]), NULL, NULL, 0);
             R_Mesh_TexCoordPointer(0, 2, GL_FLOAT, sizeof(float[2]), NULL, NULL, 0);
         }
-        break;
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_SOFT:
-        DPSOFTRAST_SetVertexPointer(vertex3f, sizeof(float[3]));
-        DPSOFTRAST_SetColorPointer(NULL, 0);
-        DPSOFTRAST_SetTexCoordPointer(0, 2, sizeof(float[2]), NULL);
-        DPSOFTRAST_SetTexCoordPointer(1, 2, sizeof(float[2]), NULL);
-        DPSOFTRAST_SetTexCoordPointer(2, 2, sizeof(float[2]), NULL);
-        DPSOFTRAST_SetTexCoordPointer(3, 2, sizeof(float[2]), NULL);
-        DPSOFTRAST_SetTexCoordPointer(4, 2, sizeof(float[2]), NULL);
         break;
     }
 }
@@ -3912,19 +3432,6 @@ void R_Mesh_PrepareVertices_Generic_Arrays(int numvertices, const float *vertex3
             return;
         }
         break;
-    case RENDERPATH_D3D9:
-    case RENDERPATH_D3D10:
-    case RENDERPATH_D3D11:
-        break;
-    case RENDERPATH_SOFT:
-        DPSOFTRAST_SetVertexPointer(vertex3f, sizeof(float[3]));
-        DPSOFTRAST_SetColorPointer(color4f, sizeof(float[4]));
-        DPSOFTRAST_SetTexCoordPointer(0, 2, sizeof(float[2]), texcoord2f);
-        DPSOFTRAST_SetTexCoordPointer(1, 2, sizeof(float[2]), NULL);
-        DPSOFTRAST_SetTexCoordPointer(2, 2, sizeof(float[2]), NULL);
-        DPSOFTRAST_SetTexCoordPointer(3, 2, sizeof(float[2]), NULL);
-        DPSOFTRAST_SetTexCoordPointer(4, 2, sizeof(float[2]), NULL);
-        return;
     }
 
     // no quick path for this case, convert to vertex structs
@@ -4016,23 +3523,6 @@ void R_Mesh_PrepareVertices_Generic(int numvertices, const r_vertexgeneric_t *ve
             R_Mesh_ColorPointer(      4, GL_FLOAT        , sizeof(*vertex), vertex->color4f           , NULL, 0);
             R_Mesh_TexCoordPointer(0, 2, GL_FLOAT        , sizeof(*vertex), vertex->texcoord2f        , NULL, 0);
         }
-        break;
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_SOFT:
-        DPSOFTRAST_SetVertexPointer(vertex->vertex3f, sizeof(*vertex));
-        DPSOFTRAST_SetColorPointer(vertex->color4f, sizeof(*vertex));
-        DPSOFTRAST_SetTexCoordPointer(0, 2, sizeof(*vertex), vertex->texcoord2f);
-        DPSOFTRAST_SetTexCoordPointer(1, 2, sizeof(*vertex), NULL);
-        DPSOFTRAST_SetTexCoordPointer(2, 2, sizeof(*vertex), NULL);
-        DPSOFTRAST_SetTexCoordPointer(3, 2, sizeof(*vertex), NULL);
-        DPSOFTRAST_SetTexCoordPointer(4, 2, sizeof(*vertex), NULL);
         break;
     }
 }
@@ -4133,19 +3623,6 @@ void R_Mesh_PrepareVertices_Mesh_Arrays(int numvertices, const float *vertex3f, 
             return;
         }
         break;
-    case RENDERPATH_D3D9:
-    case RENDERPATH_D3D10:
-    case RENDERPATH_D3D11:
-        break;
-    case RENDERPATH_SOFT:
-        DPSOFTRAST_SetVertexPointer(vertex3f, sizeof(float[3]));
-        DPSOFTRAST_SetColorPointer(color4f, sizeof(float[4]));
-        DPSOFTRAST_SetTexCoordPointer(0, 2, sizeof(float[2]), texcoordtexture2f);
-        DPSOFTRAST_SetTexCoordPointer(1, 3, sizeof(float[3]), svector3f);
-        DPSOFTRAST_SetTexCoordPointer(2, 3, sizeof(float[3]), tvector3f);
-        DPSOFTRAST_SetTexCoordPointer(3, 3, sizeof(float[3]), normal3f);
-        DPSOFTRAST_SetTexCoordPointer(4, 2, sizeof(float[2]), texcoordlightmap2f);
-        return;
     }
 
     vertex = R_Mesh_PrepareVertices_Mesh_Lock(numvertices);
@@ -4249,23 +3726,6 @@ void R_Mesh_PrepareVertices_Mesh(int numvertices, const r_vertexmesh_t *vertex, 
             R_Mesh_TexCoordPointer(0, 2, GL_FLOAT        , sizeof(*vertex), vertex->texcoordtexture2f , NULL, 0);
         }
         break;
-    case RENDERPATH_D3D9:
-        break;
-    case RENDERPATH_D3D10:
-        Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_D3D11:
-        Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-        break;
-    case RENDERPATH_SOFT:
-        DPSOFTRAST_SetVertexPointer(vertex->vertex3f, sizeof(*vertex));
-        DPSOFTRAST_SetColorPointer(vertex->color4f, sizeof(*vertex));
-        DPSOFTRAST_SetTexCoordPointer(0, 2, sizeof(*vertex), vertex->texcoordtexture2f);
-        DPSOFTRAST_SetTexCoordPointer(1, 3, sizeof(*vertex), vertex->svector3f);
-        DPSOFTRAST_SetTexCoordPointer(2, 3, sizeof(*vertex), vertex->tvector3f);
-        DPSOFTRAST_SetTexCoordPointer(3, 3, sizeof(*vertex), vertex->normal3f);
-        DPSOFTRAST_SetTexCoordPointer(4, 2, sizeof(*vertex), vertex->texcoordlightmap2f);
-        break;
     }
 }
 
@@ -4282,17 +3742,6 @@ void GL_BlendEquationSubtract(qboolean negated)
         case RENDERPATH_GLES2:
             qglBlendEquationEXT(GL_FUNC_REVERSE_SUBTRACT);
             break;
-        case RENDERPATH_D3D9:
-            break;
-        case RENDERPATH_D3D10:
-            Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_D3D11:
-            Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_SOFT:
-            DPSOFTRAST_BlendSubtract(true);
-            break;
         }
     }
     else
@@ -4305,17 +3754,6 @@ void GL_BlendEquationSubtract(qboolean negated)
         case RENDERPATH_GLES1:
         case RENDERPATH_GLES2:
             qglBlendEquationEXT(GL_FUNC_ADD);
-            break;
-        case RENDERPATH_D3D9:
-            break;
-        case RENDERPATH_D3D10:
-            Con_DPrintf("FIXME D3D10 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_D3D11:
-            Con_DPrintf("FIXME D3D11 %s:%i %s\n", __FILE__, __LINE__, __FUNCTION__);
-            break;
-        case RENDERPATH_SOFT:
-            DPSOFTRAST_BlendSubtract(false);
             break;
         }
     }
