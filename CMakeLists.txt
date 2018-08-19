@@ -173,7 +173,6 @@ endif ()
 if (COMPILE_CD)
     list(APPEND COMPILE_DEFS_CLIENT "-DCONFIG_CD")
     list(APPEND SOURCE_CLIENT_COMMON cd_shared.c cdaudio.h)
-    list(APPEND SOURCE_CLIENT_SDL cd_sdl.c)
 endif ()
 
 if (COMPILE_VIDEO_CAPTURE)
