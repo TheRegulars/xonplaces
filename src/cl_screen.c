@@ -8,7 +8,6 @@
 #include "csprogs.h"
 #ifdef CONFIG_VIDEO_CAPTURE
 #include "cap_avi.h"
-#include "cap_ogg.h"
 #endif
 
 // we have to include snd_main.h here only to get access to snd_renderbuffer->format.speed when writing the AVI headers
@@ -69,7 +68,6 @@ cvar_t cl_capturevideo_realtime = {0, "cl_capturevideo_realtime", "0", "causes v
 cvar_t cl_capturevideo_fps = {CVAR_SAVE, "cl_capturevideo_fps", "30", "how many frames per second to save (29.97 for NTSC, 30 for typical PC video, 15 can be useful)"};
 cvar_t cl_capturevideo_nameformat = {CVAR_SAVE, "cl_capturevideo_nameformat", "dpvideo", "prefix for saved videos (the date is encoded using strftime escapes)"};
 cvar_t cl_capturevideo_number = {CVAR_SAVE, "cl_capturevideo_number", "1", "number to append to video filename, incremented each time a capture begins"};
-cvar_t cl_capturevideo_ogg = {CVAR_SAVE, "cl_capturevideo_ogg", "1", "save captured video data as Ogg/Vorbis/Theora streams"};
 cvar_t cl_capturevideo_framestep = {CVAR_SAVE, "cl_capturevideo_framestep", "1", "when set to n >= 1, render n frames to capture one (useful for motion blur like effects)"};
 #endif
 cvar_t r_letterbox = {0, "r_letterbox", "0", "reduces vertical height of view to simulate a letterboxed movie effect (can be used by mods for cutscenes)"};
@@ -1372,7 +1370,6 @@ void CL_Screen_Init(void)
     Cvar_RegisterVariable (&cl_capturevideo_fps);
     Cvar_RegisterVariable (&cl_capturevideo_nameformat);
     Cvar_RegisterVariable (&cl_capturevideo_number);
-    Cvar_RegisterVariable (&cl_capturevideo_ogg);
     Cvar_RegisterVariable (&cl_capturevideo_framestep);
 #endif
     Cvar_RegisterVariable (&r_letterbox);
@@ -1412,11 +1409,6 @@ void CL_Screen_Init(void)
     Cmd_AddCommand ("screenshot",SCR_ScreenShot_f, "takes a screenshot of the next rendered frame");
     Cmd_AddCommand ("envmap", R_Envmap_f, "render a cubemap (skybox) of the current scene");
     Cmd_AddCommand ("infobar", SCR_InfoBar_f, "display a text in the infobar (usage: infobar expiretime string)");
-
-#ifdef CONFIG_VIDEO_CAPTURE
-    SCR_CaptureVideo_Ogg_Init();
-#endif
-
     scr_initialized = true;
 }
 
@@ -1645,17 +1637,6 @@ Cr = R *  .500 + G * -.419 + B * -.0813 + 128.;
         cls.capturevideo.yuvnormalizetable[0][i] = 16 + i * (236-16) / 256;
         cls.capturevideo.yuvnormalizetable[1][i] = 16 + i * (240-16) / 256;
         cls.capturevideo.yuvnormalizetable[2][i] = 16 + i * (240-16) / 256;
-    }
-
-    if (cl_capturevideo_ogg.integer)
-    {
-        if(SCR_CaptureVideo_Ogg_Available())
-        {
-            SCR_CaptureVideo_Ogg_BeginVideo();
-            return;
-        }
-        else
-            Con_Print("cl_capturevideo_ogg: libraries not available. Capturing in AVI instead.\n");
     }
 
     SCR_CaptureVideo_Avi_BeginVideo();

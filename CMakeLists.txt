@@ -184,7 +184,7 @@ endif ()
 
 if (COMPILE_VIDEO_CAPTURE)
     list(APPEND COMPILE_DEFS_CLIENT -DCONFIG_VIDEO_CAPTURE)
-    list(APPEND SOURCE_CLIENT_COMMON cap_avi.c cap_avi.h cap_ogg.c cap_ogg.h)
+    list(APPEND SOURCE_CLIENT_COMMON cap_avi.c cap_avi.h)
 endif ()
 
 list(APPEND SOURCE_CLIENT_SDL vid_sdl.c)
