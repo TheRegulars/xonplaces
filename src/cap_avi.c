@@ -499,16 +499,24 @@ void SCR_CaptureVideo_Avi_BeginVideo(void)
 {
     int width = cls.capturevideo.width;
     int height = cls.capturevideo.height;
-    int n, d;
+    int n, d, arg;
     unsigned int i;
     double aspect;
     char vabuf[1024];
+    const char *filename;
 
     aspect = vid.width / (vid.height * vid_pixelheight.value);
 
     cls.capturevideo.format = CAPTUREVIDEOFORMAT_AVI_I420;
     cls.capturevideo.formatextension = "avi";
-    cls.capturevideo.videofile = FS_OpenRealFile(va(vabuf, sizeof(vabuf), "%s.%s", cls.capturevideo.basename, cls.capturevideo.formatextension), "wb", false);
+    // FEATURE: -videoutput
+    arg = COM_CheckParm("-videoutput");
+    if (arg && arg + 1 < com_argc) {
+        filename = com_argv[arg + 1];
+    } else {
+        filename = va(vabuf, sizeof(vabuf), "%s.%s", cls.capturevideo.basename, cls.capturevideo.formatextension);
+    }
+    cls.capturevideo.videofile = FS_OpenRealFile(filename, "wb", false);
     cls.capturevideo.endvideo = SCR_CaptureVideo_Avi_EndVideo;
     cls.capturevideo.videoframes = SCR_CaptureVideo_Avi_VideoFrames;
     cls.capturevideo.soundframe = SCR_CaptureVideo_Avi_SoundFrame;
@@ -518,7 +526,7 @@ void SCR_CaptureVideo_Avi_BeginVideo(void)
         format->canseek = (FS_Seek(cls.capturevideo.videofile, 0, SEEK_SET) == 0);
         SCR_CaptureVideo_RIFF_Start();
         // enclosing RIFF chunk (there can be multiple of these in >1GB files, the later ones are "AVIX" instead of "AVI " and have no header/stream info)
-        SCR_CaptureVideo_RIFF_Push("RIFF", "AVI ", format->canseek ? -1 : 12+(8+56+12+(12+52+8+40+8+68)+(cls.capturevideo.soundrate?(12+12+52+8+18):0)+12+(8+4))+12+(8+(((int) strlen(engineversion) | 1) + 1))+12);
+        SCR_CaptureVideo_RIFF_Push("RIFF", "AVI ", -1);
         // AVI main header
         SCR_CaptureVideo_RIFF_Push("LIST", "hdrl", format->canseek ? -1 : 8+56+12+(12+52+8+40+8+68)+(cls.capturevideo.soundrate?(12+12+52+8+18):0)+12+(8+4));
         SCR_CaptureVideo_RIFF_Push("avih", NULL, 56);
