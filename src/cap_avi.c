@@ -373,7 +373,7 @@ static void SCR_CaptureVideo_ConvertFrame_BGRA_to_I420_flip(int width, int heigh
 static void SCR_CaptureVideo_Avi_VideoFrames(int num)
 {
     LOAD_FORMATSPECIFIC_AVI();
-    int x = 0, width = cls.capturevideo.width, height = cls.capturevideo.height;
+    int x = 0, width = vid.width, height = vid.height;
     unsigned char *in, *out;
     // FIXME: width/height must be multiple of 2, enforce this?
     in = cls.capturevideo.outbuffer;
@@ -497,8 +497,8 @@ static void SCR_CaptureVideo_Avi_SoundFrame(const portable_sampleframe_t *paintb
 
 void SCR_CaptureVideo_Avi_BeginVideo(void)
 {
-    int width = cls.capturevideo.width;
-    int height = cls.capturevideo.height;
+    int width = vid.width;
+    int height = vid.height;
     int n, d, arg;
     unsigned int i;
     double aspect;

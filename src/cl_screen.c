@@ -62,8 +62,6 @@ cvar_t scr_screenshot_timestamp = {CVAR_SAVE, "scr_screenshot_timestamp", "1", "
 cvar_t cl_capturevideo = {0, "cl_capturevideo", "0", "enables saving of video to a .avi file using uncompressed I420 colorspace and PCM audio, note that scr_screenshot_gammaboost affects the brightness of the output)"};
 cvar_t cl_capturevideo_demo_stop = {CVAR_SAVE, "cl_capturevideo_demo_stop", "1", "automatically stops video recording when demo ends"};
 cvar_t cl_capturevideo_printfps = {CVAR_SAVE, "cl_capturevideo_printfps", "1", "prints the frames per second captured in capturevideo (is only written to the log file, not to the console, as that would be visible on the video)"};
-cvar_t cl_capturevideo_width = {CVAR_SAVE, "cl_capturevideo_width", "0", "scales all frames to this resolution before saving the video"};
-cvar_t cl_capturevideo_height = {CVAR_SAVE, "cl_capturevideo_height", "0", "scales all frames to this resolution before saving the video"};
 cvar_t cl_capturevideo_realtime = {0, "cl_capturevideo_realtime", "0", "causes video saving to operate in realtime (mostly useful while playing, not while capturing demos), this can produce a much lower quality video due to poor sound/video sync and will abort saving if your machine stalls for over a minute"};
 cvar_t cl_capturevideo_fps = {CVAR_SAVE, "cl_capturevideo_fps", "30", "how many frames per second to save (29.97 for NTSC, 30 for typical PC video, 15 can be useful)"};
 cvar_t cl_capturevideo_nameformat = {CVAR_SAVE, "cl_capturevideo_nameformat", "dpvideo", "prefix for saved videos (the date is encoded using strftime escapes)"};
@@ -1364,8 +1362,6 @@ void CL_Screen_Init(void)
     Cvar_RegisterVariable (&cl_capturevideo);
     Cvar_RegisterVariable (&cl_capturevideo_demo_stop);
     Cvar_RegisterVariable (&cl_capturevideo_printfps);
-    Cvar_RegisterVariable (&cl_capturevideo_width);
-    Cvar_RegisterVariable (&cl_capturevideo_height);
     Cvar_RegisterVariable (&cl_capturevideo_realtime);
     Cvar_RegisterVariable (&cl_capturevideo_fps);
     Cvar_RegisterVariable (&cl_capturevideo_nameformat);
@@ -1540,30 +1536,13 @@ static void SCR_CaptureVideo_BeginVideo(void)
 {
     double r, g, b;
     unsigned int i;
-    int width = cl_capturevideo_width.integer, height = cl_capturevideo_height.integer;
+
     if (cls.capturevideo.active)
         return;
+
     memset(&cls.capturevideo, 0, sizeof(cls.capturevideo));
     // soundrate is figured out on the first SoundFrame
 
-    if(width == 0 && height != 0)
-        width = (int) (height * (double)vid.width / ((double)vid.height * vid_pixelheight.value)); // keep aspect
-    if(width != 0 && height == 0)
-        height = (int) (width * ((double)vid.height * vid_pixelheight.value) / (double)vid.width); // keep aspect
-
-    if(width < 2 || width > vid.width) // can't scale up
-        width = vid.width;
-    if(height < 2 || height > vid.height) // can't scale up
-        height = vid.height;
-
-    // ensure it's all even; if not, scale down a little
-    if(width % 1)
-        --width;
-    if(height % 1)
-        --height;
-
-    cls.capturevideo.width = width;
-    cls.capturevideo.height = height;
     cls.capturevideo.active = true;
     cls.capturevideo.framerate = bound(1, cl_capturevideo_fps.value, 1001) * bound(1, cl_capturevideo_framestep.integer, 64);
     cls.capturevideo.framestep = cl_capturevideo_framestep.integer;
@@ -1574,8 +1553,7 @@ static void SCR_CaptureVideo_BeginVideo(void)
     cls.capturevideo.starttime = cls.capturevideo.lastfpstime = realtime;
     cls.capturevideo.soundsampleframe = 0;
     cls.capturevideo.realtime = cl_capturevideo_realtime.integer != 0;
-    cls.capturevideo.screenbuffer = (unsigned char *)Mem_Alloc(tempmempool, vid.width * vid.height * 4);
-    cls.capturevideo.outbuffer = (unsigned char *)Mem_Alloc(tempmempool, width * height * (4+4) + 18);
+    cls.capturevideo.outbuffer = (unsigned char *)Mem_Alloc(tempmempool, vid.width * vid.height * (4+4) + 18);
     dpsnprintf(cls.capturevideo.basename, sizeof(cls.capturevideo.basename), "video/%s%03i", Sys_TimeString(cl_capturevideo_nameformat.string), cl_capturevideo_number.integer);
     Cvar_SetValueQuick(&cl_capturevideo_number, cl_capturevideo_number.integer + 1);
 
@@ -1655,11 +1633,6 @@ void SCR_CaptureVideo_EndVideo(void)
         cls.capturevideo.endvideo();
     }
 
-    if (cls.capturevideo.screenbuffer)
-    {
-        Mem_Free (cls.capturevideo.screenbuffer);
-        cls.capturevideo.screenbuffer = NULL;
-    }
 
     if (cls.capturevideo.outbuffer)
     {
@@ -1670,58 +1643,10 @@ void SCR_CaptureVideo_EndVideo(void)
     memset(&cls.capturevideo, 0, sizeof(cls.capturevideo));
 }
 
-static void SCR_ScaleDownBGRA(unsigned char *in, int inw, int inh, unsigned char *out, int outw, int outh)
-{
-    // TODO optimize this function
-
-    int x, y;
-    float area;
-
-    // memcpy is faster than me
-    if(inw == outw && inh == outh)
-    {
-        memcpy(out, in, 4 * inw * inh);
-        return;
-    }
-
-    // otherwise: a box filter
-    area = (float)outw * (float)outh / (float)inw / (float)inh;
-    for(y = 0; y < outh; ++y)
-    {
-        float iny0 =  y    / (float)outh * inh; int iny0_i = (int) floor(iny0);
-        float iny1 = (y+1) / (float)outh * inh; int iny1_i = (int) ceil(iny1);
-        for(x = 0; x < outw; ++x)
-        {
-            float inx0 =  x    / (float)outw * inw; int inx0_i = (int) floor(inx0);
-            float inx1 = (x+1) / (float)outw * inw; int inx1_i = (int) ceil(inx1);
-            float r = 0, g = 0, b = 0, alpha = 0;
-            int xx, yy;
-
-            for(yy = iny0_i; yy < iny1_i; ++yy)
-            {
-                float ya = min(yy+1, iny1) - max(iny0, yy);
-                for(xx = inx0_i; xx < inx1_i; ++xx)
-                {
-                    float a = ya * (min(xx+1, inx1) - max(inx0, xx));
-                    r += a * in[4*(xx + inw * yy)+0];
-                    g += a * in[4*(xx + inw * yy)+1];
-                    b += a * in[4*(xx + inw * yy)+2];
-                    alpha += a * in[4*(xx + inw * yy)+3];
-                }
-            }
-
-            out[4*(x + outw * y)+0] = (unsigned char) (r * area);
-            out[4*(x + outw * y)+1] = (unsigned char) (g * area);
-            out[4*(x + outw * y)+2] = (unsigned char) (b * area);
-            out[4*(x + outw * y)+3] = (unsigned char) (alpha * area);
-        }
-    }
-}
-
 static void SCR_CaptureVideo_VideoFrame(int newframestepframenum)
 {
     int x = 0, y = 0;
-    int width = cls.capturevideo.width, height = cls.capturevideo.height;
+    int width = vid.width, height = vid.height;
 
     if(newframestepframenum == cls.capturevideo.framestepframe)
         return;
@@ -1729,9 +1654,7 @@ static void SCR_CaptureVideo_VideoFrame(int newframestepframenum)
     CHECKGLERROR
     // speed is critical here, so do saving as directly as possible
 
-    GL_ReadPixelsBGRA(x, y, vid.width, vid.height, cls.capturevideo.screenbuffer);
-
-    SCR_ScaleDownBGRA (cls.capturevideo.screenbuffer, vid.width, vid.height, cls.capturevideo.outbuffer, width, height);
+    GL_ReadPixelsBGRA(x, y, vid.width, vid.height, cls.capturevideo.outbuffer);
 
     cls.capturevideo.videoframes(newframestepframenum - cls.capturevideo.framestepframe);
     cls.capturevideo.framestepframe = newframestepframenum;

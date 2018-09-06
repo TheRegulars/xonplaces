@@ -715,7 +715,6 @@ qw_downloadtype_t;
 typedef enum capturevideoformat_e
 {
     CAPTUREVIDEOFORMAT_AVI_I420,
-    CAPTUREVIDEOFORMAT_OGG_VORBIS_THEORA
 }
 capturevideoformat_t;
 
@@ -735,10 +734,8 @@ typedef struct capturevideostate_s
     double lastfpstime;
     int lastfpsframe;
     int soundsampleframe;
-    unsigned char *screenbuffer;
     unsigned char *outbuffer;
     char basename[MAX_QPATH];
-    int width, height;
 
     // precomputed RGB to YUV tables
     // converts the RGB values to YUV (see cap_avi.c for how to use them)
