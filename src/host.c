@@ -90,6 +90,7 @@ cvar_t timeformat = {CVAR_SAVE, "timeformat", "[%Y-%m-%d %H:%M:%S] ", "time form
 
 cvar_t sessionid = {CVAR_READONLY, "sessionid", "", "ID of the current session (use the -sessionid parameter to set it); this is always either empty or begins with a dot (.)"};
 cvar_t locksession = {0, "locksession", "0", "Lock the session? 0 = no, 1 = yes and abort on failure, 2 = yes and continue on failure"};
+cvar_t host_crash_reconnect = {1, "host_crash_reconnect", "1", "Reconnect clients during server crash"};
 
 /*
 ================
@@ -105,6 +106,54 @@ void Host_AbortCurrentFrame(void)
     Sys_MakeProcessMean();
 
     longjmp (host_abortframe, 1);
+}
+
+// TODO: Fix this
+static void Host_ShutdownServerCrash() {
+    prvm_prog_t *prog = SVVM_prog;
+    int i;
+
+    Con_DPrintf("Host_ShutdownServer\n");
+    unsigned char bufdata[1024];
+    sizebuf_t buf;
+    memset(&buf, 0, sizeof(buf));
+    buf.data = bufdata;
+    buf.maxsize = sizeof(bufdata);
+    if (host_crash_reconnect.integer == 1) {
+        MSG_WriteByte(&buf, svc_print);
+        const char *msg = "^1Server crashed, you will be reconnected automatically in few seconds\n";
+        MSG_WriteString(&buf, msg);
+        MSG_WriteByte(&buf, svc_disconnect);
+        MSG_WriteByte(&buf, svc_stufftext);
+        const char *cmd = "disconnect; alias _crash_reconnect \"reconnect; unalias _crash_reconnect\"; defer 3 _crash_reconnect";
+        MSG_WriteString(&buf, cmd);
+    } else {
+        MSG_WriteByte(&buf, svc_print);
+        const char *msg = "^1Server crashed, you will be disconnected from server\n^2You can try to reconnect\n";
+        MSG_WriteString(&buf, msg);
+        MSG_WriteByte(&buf, svc_disconnect);
+    }
+
+// make sure all the clients know we're disconnecting
+    World_End(&sv.world);
+    for (i = 0, host_client = svs.clients;i < svs.maxclients;i++, host_client++) {
+        if (host_client->active) {
+            NetConn_SendUnreliableMessage(host_client->netconnection, &buf, sv.protocol, 10000, 0, false);
+            NetConn_SendUnreliableMessage(host_client->netconnection, &buf, sv.protocol, 10000, 0, false);
+            NetConn_SendUnreliableMessage(host_client->netconnection, &buf, sv.protocol, 10000, 0, false);
+        }
+    }
+
+    NetConn_CloseServerPorts();
+
+    sv.active = false;
+//
+// clear structures
+//
+    memset(&sv, 0, sizeof(sv));
+    memset(svs.clients, 0, svs.maxclients*sizeof(client_t));
+
+    cl.islocalgame = false;
 }
 
 /*
@@ -160,7 +209,10 @@ void Host_Error (const char *error, ...)
     Cvar_SetValueQuick(&csqc_progsize, -1);
 
     SV_LockThreadMutex();
-    Host_ShutdownServer ();
+    if (cls.state == ca_dedicated)
+        Host_ShutdownServerCrash();
+    else
+        Host_ShutdownServer ();
     SV_UnlockThreadMutex();
 
     if (cls.state == ca_dedicated)
@@ -173,6 +225,7 @@ void Host_Error (const char *error, ...)
 
     Host_AbortCurrentFrame();
 }
+
 
 static void Host_ServerOptions (void)
 {
@@ -270,6 +323,7 @@ static void Host_InitLocal (void)
 
     Cvar_RegisterVariable (&sv_writepicture_quality);
     Cvar_RegisterVariable (&r_texture_jpeg_fastpicmip);
+    Cvar_RegisterVariable (&host_crash_reconnect);
 }
 
 
