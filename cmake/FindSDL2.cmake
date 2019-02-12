@@ -93,21 +93,21 @@ FIND_LIBRARY(SDL2_LIBRARY_TEMP
   PATHS ${SDL2_SEARCH_PATHS} ${SDL2_INCLUDE_DIR}/../..
 )
 
-IF(NOT SDL2_BUILDING_LIBRARY)
-  IF(NOT ${SDL2_INCLUDE_DIR} MATCHES ".framework")
+#IF(NOT SDL2_BUILDING_LIBRARY)
+#  IF(NOT ${SDL2_INCLUDE_DIR} MATCHES ".framework")
     # Non-OS X framework versions expect you to also dynamically link to
     # SDL2main. This is mainly for Windows and OS X. Other (Unix) platforms
     # seem to provide SDL2main for compatibility even though they don't
     # necessarily need it.
-    FIND_LIBRARY(SDL2MAIN_LIBRARY
-      NAMES SDL2main
-      HINTS
-      $ENV{SDL2DIR}
-      PATH_SUFFIXES lib64 lib
-      PATHS ${SDL2_SEARCH_PATHS}
-    )
-  ENDIF(NOT ${SDL2_INCLUDE_DIR} MATCHES ".framework")
-ENDIF(NOT SDL2_BUILDING_LIBRARY)
+    #    FIND_LIBRARY(SDL2MAIN_LIBRARY
+    #  NAMES SDL2main
+    #  HINTS
+    #  $ENV{SDL2DIR}
+    #  PATH_SUFFIXES lib64 lib
+    #  PATHS ${SDL2_SEARCH_PATHS}
+    #)
+    #  ENDIF(NOT ${SDL2_INCLUDE_DIR} MATCHES ".framework")
+    #ENDIF(NOT SDL2_BUILDING_LIBRARY)
 
 # SDL2 may require threads on your system.
 # The Apple build may not need an explicit flag because one of the
@@ -127,9 +127,9 @@ ENDIF(MINGW)
 IF(SDL2_LIBRARY_TEMP)
   # For SDL2main
   IF(NOT SDL2_BUILDING_LIBRARY)
-    IF(SDL2MAIN_LIBRARY)
-      SET(SDL2_LIBRARY_TEMP ${SDL2MAIN_LIBRARY} ${SDL2_LIBRARY_TEMP})
-    ENDIF(SDL2MAIN_LIBRARY)
+      #    IF(SDL2MAIN_LIBRARY)
+      #      SET(SDL2_LIBRARY_TEMP ${SDL2MAIN_LIBRARY} ${SDL2_LIBRARY_TEMP})
+      #    ENDIF(SDL2MAIN_LIBRARY)
   ENDIF(NOT SDL2_BUILDING_LIBRARY)
 
   # For OS X, SDL2 uses Cocoa as a backend so it must link to Cocoa.
@@ -163,4 +163,4 @@ ENDIF(SDL2_LIBRARY_TEMP)
 INCLUDE(FindPackageHandleStandardArgs)
 
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(SDL2 REQUIRED_VARS SDL2_LIBRARY SDL2_INCLUDE_DIR)
-MARK_AS_ADVANCED(SDL2MAIN_LIBRARY SDL2_INCLUDE_DIR SDL2_LIBRARY)
+MARK_AS_ADVANCED(SDL2_INCLUDE_DIR SDL2_LIBRARY)
