@@ -549,7 +549,9 @@ void PRVM_Crash(prvm_prog_t *prog)
     if(prvm_errordump.integer)
     {
         // make a savegame
-        Host_Savegame_to(prog, va(vabuf, sizeof(vabuf), "crash-%s.dmp", prog->name));
+        // TODO: Fix this crap
+        char *crash_time = Sys_TimeString("%Y_%m_%d_%H_%M_%S");
+        Host_Savegame_to(prog, va(vabuf, sizeof(vabuf), "crash-%s-%s.dmp", prog->name, crash_time));
     }
 
     // dump the stack so host_error can shutdown functions
