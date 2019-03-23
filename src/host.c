@@ -724,7 +724,7 @@ void Host_Main(void)
     double wait;
     int pass1, pass2, pass3, i;
     char vabuf[1024];
-    qboolean playing;
+    qboolean playing = false;
 
     Host_Init();
 
@@ -899,6 +899,7 @@ void Host_Main(void)
             // slow down if the server is taking too long.
             int framecount, framelimit = 1;
             double advancetime, aborttime = 0;
+            double maxadvancetime;
             float offset;
             prvm_prog_t *prog = SVVM_prog;
 
@@ -915,15 +916,21 @@ void Host_Main(void)
             }
             else
             {
-                advancetime = sys_ticrate.value;
+                if (playing) {
+                    advancetime = sys_ticrate.value;
+                    maxadvancetime = 0.1;
+                } else {
+                    advancetime = sys_idle_ticrate.value;
+                    maxadvancetime = 0.6;
+                }
                 // listen servers can run multiple server frames per client frame
                 framelimit = cl_maxphysicsframesperserverframe.integer;
                 aborttime = Sys_DirtyTime() + 0.1;
             }
             if(slowmo.value > 0 && slowmo.value < 1)
-                advancetime = min(advancetime, 0.1 / slowmo.value);
+                advancetime = min(advancetime, maxadvancetime / slowmo.value);
             else
-                advancetime = min(advancetime, 0.1);
+                advancetime = min(advancetime, maxadvancetime);
 
             if(advancetime > 0)
             {
