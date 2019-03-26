@@ -19,8 +19,6 @@ static cvar_t cl_curl_useragent_append = {0, "cl_curl_useragent_append","", "a s
 
 #define LOADTYPE_NONE 0
 #define LOADTYPE_PAK 1
-#define LOADTYPE_CACHEPIC 2
-#define LOADTYPE_SKINFRAME 3
 
 void *curl_mutex = NULL;
 
@@ -251,30 +249,6 @@ static void curl_quiet_callback(int status, size_t length_received, unsigned cha
     curl_default_callback(status, length_received, buffer, cbdata);
 }
 
-static unsigned char *decode_image(downloadinfo *di, const char *content_type)
-{
-    unsigned char *pixels = NULL;
-    fs_offset_t filesize = 0;
-    unsigned char *data = FS_LoadFile(di->filename, tempmempool, true, &filesize);
-    if(data)
-    {
-        int mip = 0;
-        if(!strcmp(content_type, "image/jpeg"))
-            pixels = JPEG_LoadImage_BGRA(data, filesize, &mip);
-        else if(!strcmp(content_type, "image/png"))
-            pixels = PNG_LoadImage_BGRA(data, filesize, &mip);
-        else if(filesize >= 7 && !strncmp((char *) data, "\xFF\xD8", 7))
-            pixels = JPEG_LoadImage_BGRA(data, filesize, &mip);
-        else if(filesize >= 7 && !strncmp((char *) data, "\x89PNG\x0D\x0A\x1A\x0A", 7))
-            pixels = PNG_LoadImage_BGRA(data, filesize, &mip);
-        else
-            Con_Printf("Did not detect content type: %s\n", content_type);
-        Mem_Free(data);
-    }
-    // do we call Image_MakeLinearColorsFromsRGB or not?
-    return pixels;
-}
-
 /*
 ====================
 Curl_EndDownload
@@ -356,40 +330,6 @@ static void Curl_EndDownload(downloadinfo *di, CurlStatus status, CURLcode error
     {
         ok = FS_AddPack(di->filename, NULL, true);
         if(!ok)
-            CLEAR_AND_RETRY();
-    }
-    else if(ok && di->loadtype == LOADTYPE_CACHEPIC)
-    {
-        const char *p;
-        unsigned char *pixels = NULL;
-
-        p = di->filename;
-#ifdef WE_ARE_EVIL
-        if(!strncmp(p, "dlcache/", 8))
-            p += 8;
-#endif
-
-        pixels = decode_image(di, content_type);
-        if(pixels)
-            Draw_NewPic(p, image_width, image_height, true, pixels);
-        else
-            CLEAR_AND_RETRY();
-    }
-    else if(ok && di->loadtype == LOADTYPE_SKINFRAME)
-    {
-        const char *p;
-        unsigned char *pixels = NULL;
-
-        p = di->filename;
-#ifdef WE_ARE_EVIL
-        if(!strncmp(p, "dlcache/", 8))
-            p += 8;
-#endif
-
-        pixels = decode_image(di, content_type);
-        if(pixels)
-            R_SkinFrame_LoadInternalBGRA(p, TEXF_FORCE_RELOAD | TEXF_MIPMAP | TEXF_ALPHA, pixels, image_width, image_height, false); // TODO what sRGB argument to put here?
-        else
             CLEAR_AND_RETRY();
     }
 
@@ -1185,14 +1125,6 @@ static void Curl_Curl_f(void)
         else if(!strcmp(a, "--pak"))
         {
             loadtype = LOADTYPE_PAK;
-        }
-        else if(!strcmp(a, "--cachepic"))
-        {
-            loadtype = LOADTYPE_CACHEPIC;
-        }
-        else if(!strcmp(a, "--skinframe"))
-        {
-            loadtype = LOADTYPE_SKINFRAME;
         }
         else if(!strcmp(a, "--for")) // must be last option
         {
