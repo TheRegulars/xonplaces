@@ -93,7 +93,6 @@ typedef char filename_t[MAX_QPATH];
 #ifdef MAXTRACKS
 static filename_t remap[MAXTRACKS];
 #endif
-static unsigned char maxTrack;
 static int faketrack = -1;
 
 static float saved_vol = 1.0f;

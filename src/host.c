@@ -110,7 +110,6 @@ void Host_AbortCurrentFrame(void)
 
 // TODO: Fix this
 static void Host_ShutdownServerCrash() {
-    prvm_prog_t *prog = SVVM_prog;
     int i;
 
     Con_DPrintf("Host_ShutdownServer\n");
