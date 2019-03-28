@@ -68,7 +68,7 @@ static rtexture_t *draw_generateconchars(void)
     double random;
     rtexture_t *tex;
 
-    data = LoadTGA_BGRA (concharimage, FONT_FILESIZE, NULL);
+    data = Load_SDL_Image_MEM_BGRA(concharimage, FONT_FILESIZE, "TGA");
 // Gold numbers
     for (i = 0;i < 8192;i++)
     {

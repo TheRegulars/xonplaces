@@ -4358,24 +4358,9 @@ static void Mod_Q2BSP_LoadTexinfo(sizebuf_t *sb)
             {
                 texture_t *tx = loadmodel->data_textures + j;
                 int q2flags = out->q2flags;
-                unsigned char *walfile = NULL;
-                fs_offset_t walfilesize = 0;
                 Mod_LoadTextureFromQ3Shader(tx, filename, true, true, TEXF_ALPHA | TEXF_MIPMAP | TEXF_ISWORLD | TEXF_PICMIP | TEXF_COMPRESS);
-                // now read the .wal file to get metadata (even if a .tga was overriding it, we still need the wal data)
-                walfile = FS_LoadFile(filename, tempmempool, true, &walfilesize);
-                if (walfile)
-                {
-                    int w, h;
-                    LoadWAL_GetMetadata(walfile, (int)walfilesize, &w, &h, NULL, NULL, &tx->q2contents, NULL);
-                    tx->width = w;
-                    tx->height = h;
-                    Mem_Free(walfile);
-                }
-                else
-                {
-                    tx->width = 16;
-                    tx->height = 16;
-                }
+                tx->width = 16;
+                tx->height = 16;
                 tx->q2flags = out->q2flags;
                 tx->q2value = out->q2value;
                 // also modify the texture to have the correct contents and such based on flags

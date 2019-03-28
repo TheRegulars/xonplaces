@@ -3959,3 +3959,87 @@ unsigned char *FS_Inflate(const unsigned char *data, size_t size, size_t *inflat
     
     return out;
 }
+
+// SDL adapters
+static Sint64 FS_SDL_Filesize(SDL_RWops *context) {
+    return FS_FileSize((qfile_t*)context->hidden.unknown.data1);
+}
+
+static Sint64 FS_SDL_Seek(SDL_RWops *context, Sint64 offset, int whence) {
+    int ret = FS_Seek((qfile_t*)context->hidden.unknown.data1, offset, whence);
+    return (ret == -1) ? -1 : FS_Tell((qfile_t*)context->hidden.unknown.data1);
+}
+
+static size_t FS_SDL_Read(SDL_RWops *context, void *ptr, size_t size, size_t maxnum) {
+    size_t read_size = FS_Read((qfile_t*)context->hidden.unknown.data1, ptr, size * maxnum);
+    return read_size / size;
+}
+
+static size_t FS_SDL_Write(SDL_RWops *context, const void *ptr, size_t size, size_t num) {
+    size_t write_size = FS_Write((qfile_t*)context->hidden.unknown.data1, ptr, size * num);
+    return write_size / size;
+}
+
+static int FS_SDL_Close(SDL_RWops *context) {
+    int ret = FS_Close((qfile_t*)context->hidden.unknown.data1);
+    SDL_FreeRW(context);
+    return ret;
+}
+
+SDL_RWops* FS_SDL_OpenRealFile(const char* filepath, const char* mode, qboolean quiet) {
+    qfile_t* file = FS_OpenRealFile(filepath, mode, quiet);
+
+    if (file == NULL) {
+        return NULL;
+    }
+
+    SDL_RWops *rw = SDL_AllocRW();
+
+    if (rw == NULL) {
+        FS_Close(file);
+        return NULL;
+    }
+
+    rw->hidden.unknown.data1 = (void*)file;
+
+
+    rw->size = FS_SDL_Filesize;
+    rw->seek = FS_SDL_Seek;
+    rw->read = FS_SDL_Read;
+    rw->write = FS_SDL_Write;
+    rw->close = FS_SDL_Close;
+    rw->type = SDL_RWOPS_UNKNOWN;
+    return rw;
+}
+
+SDL_RWops* FS_SDL_OpenVirtualFile(const char* filepath, qboolean quiet) {
+    /*
+    fs_offset_t filesize;
+    char* f;
+    f = FS_LoadFile(filepath, tempmempool, true, &filesize);
+    return SDL_RWFromConstMem(f, filesize);
+    */
+
+    qfile_t* vfile = FS_OpenVirtualFile(filepath, quiet);
+
+    if (vfile == NULL) {
+        return NULL;
+    }
+
+    SDL_RWops *rw = SDL_AllocRW();
+
+    if (rw == NULL) {
+        FS_Close(vfile);
+        return NULL;
+    }
+
+    rw->hidden.unknown.data1 = (void*)vfile;
+
+    rw->size = FS_SDL_Filesize;
+    rw->seek = FS_SDL_Seek;
+    rw->read = FS_SDL_Read;
+    rw->write = FS_SDL_Write;
+    rw->close = FS_SDL_Close;
+    rw->type = SDL_RWOPS_UNKNOWN;
+    return rw;
+}

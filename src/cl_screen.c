@@ -1,8 +1,6 @@
 
 #include "quakedef.h"
 #include "image.h"
-#include "image_jpeg.h"
-#include "image_png.h"
 #include "cl_collision.h"
 #include "libcurl.h"
 #include "csprogs.h"
@@ -1893,7 +1891,8 @@ void SHOWLMP_drawall(void)
 qboolean SCR_ScreenShot(char *filename, unsigned char *buffer1, unsigned char *buffer2, int x, int y, int width, int height, qboolean flipx, qboolean flipy, qboolean flipdiagonal, qboolean jpeg, qboolean png, qboolean gammacorrect, qboolean keep_alpha)
 {
     int    indices[4] = {0,1,2,3}; // BGRA
-    qboolean ret;
+    //qboolean ret;
+    int ret;
 
     GL_ReadPixelsBGRA(x, y, width, height, buffer1);
 
@@ -1927,33 +1926,35 @@ qboolean SCR_ScreenShot(char *filename, unsigned char *buffer1, unsigned char *b
         }
     }
 
-    if(keep_alpha && !jpeg)
-    {
-        if(!png)
-            flipy = !flipy; // TGA: not preflipped
+    if(keep_alpha && !jpeg) {
+
+        flipy = !flipy; // TGA: not preflipped
         Image_CopyMux (buffer2, buffer1, width, height, flipx, flipy, flipdiagonal, 4, 4, indices);
-        if (png)
-            ret = PNG_SaveImage_preflipped (filename, width, height, true, buffer2);
-        else
-            ret = Image_WriteTGABGRA(filename, width, height, buffer2);
-    }
-    else
-    {
-        if(jpeg)
-        {
-            indices[0] = 2;
-            indices[2] = 0; // RGB
+        if (png) {
+            saveimg_params_t params;
+            params.png.has_alpha = true;
+            ret = Image_SaveIMG(filename, width, height, buffer2, SAVEIMG_PNG, &params);
+        } else {
+            return Image_WriteTGABGRA(filename, width, height, buffer2);
         }
+    } else {
+
+        if(jpeg || png)
+            flipy = !flipy;
         Image_CopyMux (buffer2, buffer1, width, height, flipx, flipy, flipdiagonal, 3, 4, indices);
-        if (jpeg)
-            ret = JPEG_SaveImage_preflipped (filename, width, height, buffer2);
-        else if (png)
-            ret = PNG_SaveImage_preflipped (filename, width, height, false, buffer2);
-        else
-            ret = Image_WriteTGABGR_preflipped (filename, width, height, buffer2);
+        if (jpeg) {
+            saveimg_params_t params;
+            params.jpeg.quality = (int)(scr_screenshot_jpeg_quality.value * 100);
+            ret = Image_SaveIMG(filename, width, height, buffer2, SAVEIMG_JPEG, &params);
+        } else if (png) {
+            saveimg_params_t params;
+            params.png.has_alpha = false;
+            ret = Image_SaveIMG(filename, width, height, buffer2, SAVEIMG_PNG, &params);
+        } else
+            return Image_WriteTGABGR_preflipped (filename, width, height, buffer2);
     }
 
-    return ret;
+    return (ret == 0) ? true : false;
 }
 
 //=============================================================================

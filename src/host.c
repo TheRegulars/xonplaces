@@ -1290,6 +1290,9 @@ static void Host_Init (void)
     // initialize console window (only used by sys_win.c)
     Sys_InitConsole();
 
+    // init images
+    Image_Init();
+
     // initialize the self-pack (must be before COM_InitGameType as it may add command line options)
     FS_Init_SelfPack();
 
@@ -1521,6 +1524,7 @@ void Host_Shutdown(void)
 
     S_Shutdown();
     Con_Shutdown();
+    Image_Shutdown();
     Memory_Shutdown();
 }
 

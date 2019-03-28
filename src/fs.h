@@ -37,7 +37,7 @@ typedef __int64 fs_offset_t; ///< 64bit (lots of warnings, and read/write still 
 typedef long long fs_offset_t;
 #endif
 
-
+#include <SDL.h>
 
 // ------ Variables ------ //
 
@@ -137,5 +137,9 @@ void FS_Init_SelfPack(void);
 void FS_Init(void);
 void FS_Shutdown(void);
 void FS_Init_Commands(void);
+
+
+SDL_RWops* FS_SDL_OpenRealFile(const char* filepath, const char* mode, qboolean quiet);
+SDL_RWops* FS_SDL_OpenVirtualFile(const char* filepath, qboolean quiet);
 
 #endif

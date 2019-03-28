@@ -25,9 +25,6 @@
 #define IMAGE_JPEG_H
 
 
-unsigned char* JPEG_LoadImage_BGRA (const unsigned char *f, int filesize, int *miplevel);
-qboolean JPEG_SaveImage_preflipped (const char *filename, int width, int height, unsigned char *data);
-
 /*! \returns 0 if failed, or the size actually used.
  */
 size_t JPEG_SaveImage_to_Buffer (char *jpegbuf, size_t jpegsize, int width, int height, unsigned char *data);

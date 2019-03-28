@@ -115,7 +115,6 @@ set(SOURCE_COMMON
     host.c
     host_cmd.c
     image.c image.h
-    image_png.c image_png.h
     image_jpeg.c image_jpeg.h
     keys.c keys.h
     lhnet.c lhnet.h
@@ -254,6 +253,7 @@ if (COMPILE_SERVER)
         ${JPEG_INLUDE_DIR}
         ${FREETYPE_INCLUDE_DIRS}
         ${PNG_INCLUDE_DIRS}
+        ${SDL2_INCLUDE_DIR} # this is temporary, I will fix it ;)
     )
     target_link_libraries(darkplaces-dedicated PRIVATE
         ${LIBS_COMMON}
@@ -262,7 +262,8 @@ if (COMPILE_SERVER)
         ${ZLIB_LIBRARIES}
         ${JPEG_LIBRARIES}
         ${FREETYPE_LIBRARIES}
-        ${PNG_LIBRARIES}
+        ${SDL2_LIBRARY}
+        ${SDL2_IMAGE_LIBRARY}
     )
     install(TARGETS darkplaces-dedicated RUNTIME DESTINATION bin)
 endif ()
@@ -303,6 +304,7 @@ if (COMPILE_CLIENT)
             ${FREETYPE_LIBRARIES}
             ${OGGVORBIS_LIBRARIES}
             ${SDL2_LIBRARY}
+            ${SDL2_IMAGE_LIBRARY}
         )
         install(TARGETS darkplaces-sdl RUNTIME DESTINATION bin)
     endif()

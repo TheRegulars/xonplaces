@@ -7100,33 +7100,6 @@ static void R_tcMod_ApplyToMatrix(matrix4x4_t *texmatrix, q3shaderinfo_layer_tcm
     Matrix4x4_Concat(texmatrix, &matrix, &temp);
 }
 
-static void R_LoadQWSkin(r_qwskincache_t *cache, const char *skinname)
-{
-    int textureflags = (r_mipskins.integer ? TEXF_MIPMAP : 0) | TEXF_PICMIP;
-    char name[MAX_QPATH];
-    skinframe_t *skinframe;
-    unsigned char pixels[296*194];
-    strlcpy(cache->name, skinname, sizeof(cache->name));
-    dpsnprintf(name, sizeof(name), "skins/%s.pcx", cache->name);
-    if (developer_loading.integer)
-        Con_Printf("loading %s\n", name);
-    skinframe = R_SkinFrame_Find(name, textureflags, 0, 0, 0, false);
-    if (!skinframe || !skinframe->base)
-    {
-        unsigned char *f;
-        fs_offset_t filesize;
-        skinframe = NULL;
-        f = FS_LoadFile(name, tempmempool, true, &filesize);
-        if (f)
-        {
-            if (LoadPCX_QWSkin(f, (int)filesize, pixels, 296, 194))
-                skinframe = R_SkinFrame_LoadInternalQuake(name, textureflags, true, r_fullbrights.integer, pixels, image_width, image_height);
-            Mem_Free(f);
-        }
-    }
-    cache->skinframe = skinframe;
-}
-
 texture_t *R_GetCurrentTexture(texture_t *t)
 {
     int i;
@@ -7173,24 +7146,7 @@ texture_t *R_GetCurrentTexture(texture_t *t)
         texture->currentframe = t;
     }
 
-    // update currentskinframe to be a qw skin or animation frame
-    if (rsurface.ent_qwskin >= 0)
-    {
-        i = rsurface.ent_qwskin;
-        if (!r_qwskincache || r_qwskincache_size != cl.maxclients)
-        {
-            r_qwskincache_size = cl.maxclients;
-            if (r_qwskincache)
-                Mem_Free(r_qwskincache);
-            r_qwskincache = (r_qwskincache_t *)Mem_Alloc(r_main_mempool, sizeof(*r_qwskincache) * r_qwskincache_size);
-        }
-        if (strcmp(r_qwskincache[i].name, cl.scores[i].qw_skin))
-            R_LoadQWSkin(&r_qwskincache[i], cl.scores[i].qw_skin);
-        t->currentskinframe = r_qwskincache[i].skinframe;
-        if (t->currentskinframe == NULL)
-            t->currentskinframe = t->skinframes[LoopingFrameNumberFromDouble(rsurface.shadertime * t->skinframerate, t->numskinframes)];
-    }
-    else if (t->numskinframes >= 2)
+    if (t->numskinframes >= 2)
         t->currentskinframe = t->skinframes[LoopingFrameNumberFromDouble(rsurface.shadertime * t->skinframerate, t->numskinframes)];
     if (t->backgroundnumskinframes >= 2)
         t->backgroundcurrentskinframe = t->backgroundskinframes[LoopingFrameNumberFromDouble(rsurface.shadertime * t->backgroundskinframerate, t->backgroundnumskinframes)];
@@ -7453,7 +7409,6 @@ void RSurf_ActiveWorldEntity(void)
     rsurface.skeleton = NULL;
     memset(rsurface.userwavefunc_param, 0, sizeof(rsurface.userwavefunc_param));
     rsurface.ent_skinnum = 0;
-    rsurface.ent_qwskin = -1;
     rsurface.ent_flags = r_refdef.scene.worldentity->flags;
     rsurface.shadertime = r_refdef.scene.time;
     rsurface.matrix = identitymatrix;
@@ -7582,7 +7537,6 @@ void RSurf_ActiveModelEntity(const entity_render_t *ent, qboolean wantnormals, q
     rsurface.skeleton = ent->skeleton;
     memcpy(rsurface.userwavefunc_param, ent->userwavefunc_param, sizeof(rsurface.userwavefunc_param));
     rsurface.ent_skinnum = ent->skinnum;
-    rsurface.ent_qwskin = -1;
     rsurface.ent_flags = ent->flags;
     rsurface.shadertime = r_refdef.scene.time - ent->shadertime;
     rsurface.matrix = ent->matrix;
@@ -7830,7 +7784,6 @@ void RSurf_ActiveCustomEntity(const matrix4x4_t *matrix, const matrix4x4_t *inve
     rsurface.entity = r_refdef.scene.worldentity;
     rsurface.skeleton = NULL;
     rsurface.ent_skinnum = 0;
-    rsurface.ent_qwskin = -1;
     rsurface.ent_flags = entflags;
     rsurface.shadertime = r_refdef.scene.time - shadertime;
     rsurface.modelnumvertices = numvertices;

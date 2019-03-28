@@ -194,28 +194,6 @@ static void Palette_SetupSpecialPalettes(void)
     palette_bgra_font[0] = 0;
 }
 
-static void Palette_LoadQ2Colormap(void)
-{
-    fs_offset_t filesize;
-    unsigned char * q2colormapfile = FS_LoadFile("pics/colormap.pcx", tempmempool, true, &filesize);
-    if (q2colormapfile && filesize >= 768)
-    {
-        unsigned char q2palette_rgb[256][3];
-        unsigned char *out = (unsigned char *) q2palette_bgra_complete; // palette is accessed as 32bit for speed reasons, but is created as 8bit bytes
-        int i;
-        LoadPCX_PaletteOnly(q2colormapfile, filesize, q2palette_rgb[0]);
-        // this stops at color 255 because it is a pink transparent color that we don't actually want to preserve color on.
-        for (i = 0;i < 255;i++)
-        {
-            out[i*4+2] = q2palette_rgb[i][0];
-            out[i*4+1] = q2palette_rgb[i][1];
-            out[i*4+0] = q2palette_rgb[i][2];
-            out[i*4+3] = 255;
-        }
-        Mem_Free(q2colormapfile);
-    }
-}
-
 void BuildGammaTable8(float prescale, float gamma, float scale, float base, float contrastboost, unsigned char *out, int rampsize)
 {
     int i, adjusted;
@@ -359,8 +337,6 @@ static void Palette_Load(void)
     }
 
     Palette_SetupSpecialPalettes();
-
-    Palette_LoadQ2Colormap();
 }
 
 void Palette_Init(void)

@@ -4,6 +4,25 @@
 
 extern int image_width, image_height;
 
+typedef enum save_img_e {
+    SAVEIMG_JPEG,
+    SAVEIMG_PNG,
+    SAVEIMG_BMP
+} saveimg_t;
+
+struct saveimg_jpeg_params {
+    int quality;
+};
+
+struct saveimg_png_params {
+    qboolean has_alpha;
+};
+
+typedef union {
+    struct saveimg_jpeg_params jpeg;
+    struct saveimg_png_params png;
+} saveimg_params_t;
+
 
 // swizzle components (even converting number of components) and flip images
 // (warning: input must be different than output due to non-linear read/write)
@@ -19,20 +38,8 @@ void Image_Copy8bitBGRA(const unsigned char *in, unsigned char *out, int pixels,
 
 void Image_StripImageExtension (const char *in, char *out, size_t size_out);
 
-// called by conchars.tga loader in gl_draw.c, otherwise private
-unsigned char *LoadTGA_BGRA (const unsigned char *f, int filesize, int *miplevel);
-
 // loads a texture, as pixel data
 unsigned char *loadimagepixelsbgra (const char *filename, qboolean complain, qboolean allowFixtrans, qboolean convertsRGB, int *miplevel);
-
-// loads an 8bit pcx image into a 296x194x8bit buffer, with cropping as needed
-qboolean LoadPCX_QWSkin(const unsigned char *f, int filesize, unsigned char *pixels, int outwidth, int outheight);
-
-// loads the palette from an 8bit pcx image into your provided array
-qboolean LoadPCX_PaletteOnly(const unsigned char *f, int filesize, unsigned char *palette768b);
-
-// get the metadata from a Quake2 wal file
-qboolean LoadWAL_GetMetadata(const unsigned char *f, int filesize, int *retwidth, int *retheight, int *retflags, int *retvalue, int *retcontents, char *retanimname32c);
 
 // loads a texture, as a texture
 rtexture_t *loadtextureimage (rtexturepool_t *pool, const char *filename, qboolean complain, int flags, qboolean allowFixtrans, qboolean sRGB);
@@ -63,6 +70,16 @@ extern cvar_t r_fixtrans_auto;
 
 void Image_MakeLinearColorsFromsRGB(unsigned char *pout, const unsigned char *pin, int numpixels);
 void Image_MakesRGBColorsFromLinear_Lightmap(unsigned char *pout, const unsigned char *pin, int numpixels);
+
+void Image_Init();
+void Image_Shutdown();
+
+unsigned char* Load_SDL_Image_BGRA(const char* filename, const char* type);
+unsigned char* Load_SDL_Image_MEM_BGRA(const unsigned char *raw, int filesize, const char* type);
+
+// returns 0 on success, -1 on error
+int Image_SaveIMG (const char *filename, int width, int height, unsigned char *data,
+                   saveimg_t format, saveimg_params_t *params);
 
 #endif
 

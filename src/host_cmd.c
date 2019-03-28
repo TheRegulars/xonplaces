@@ -43,7 +43,6 @@ cvar_t rcon_address = {0, "rcon_address", "", "server address to send rcon comma
 cvar_t team = {CVAR_USERINFO | CVAR_SAVE, "team", "none", "QW team (4 character limit, example: blue)"};
 cvar_t skin = {CVAR_USERINFO | CVAR_SAVE, "skin", "", "QW player skin name (example: base)"};
 cvar_t noaim = {CVAR_USERINFO | CVAR_SAVE, "noaim", "1", "QW option to disable vertical autoaim"};
-cvar_t r_fixtrans_auto = {0, "r_fixtrans_auto", "0", "automatically fixtrans textures (when set to 2, it also saves the fixed versions to a fixtrans directory)"};
 qboolean allowcheats = false;
 
 extern qboolean host_shuttingdown;
@@ -2849,9 +2848,6 @@ void Host_InitCommands (void)
 
     Cmd_AddCommand_WithClientCommand ("pings", NULL, Host_Pings_f, "command sent by clients to request updated ping and packetloss of players on scoreboard (originally from QW, but also used on NQ servers)");
     Cmd_AddCommand ("pingplreport", Host_PingPLReport_f, "command sent by server containing client ping and packet loss values for scoreboard, triggered by pings command from client (not used by QW servers)");
-
-    Cmd_AddCommand ("fixtrans", Image_FixTransparentPixels_f, "change alpha-zero pixels in an image file to sensible values, and write out a new TGA (warning: SLOW)");
-    Cvar_RegisterVariable (&r_fixtrans_auto);
 
     Cvar_RegisterVariable (&team);
     Cvar_RegisterVariable (&skin);

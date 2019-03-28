@@ -3,9 +3,6 @@
 #include "libcurl.h"
 #include "thread.h"
 
-#include "image.h"
-#include "image_jpeg.h"
-#include "image_png.h"
 #include <curl/curl.h>
 
 static cvar_t cl_curl_maxdownloads = {CVAR_SAVE, "cl_curl_maxdownloads","1", "maximum number of concurrent HTTP/FTP downloads"};

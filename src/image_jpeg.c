@@ -38,7 +38,6 @@ typedef int jboolean;
 
 #include <jpeglib.h>
 
-static unsigned char jpeg_eoi_marker [2] = {0xFF, JPEG_EOI};
 static jmp_buf error_in_jpeg;
 static qboolean jpeg_toolarge;
 
@@ -61,161 +60,12 @@ typedef my_destination_mgr* my_dest_ptr;
 =================================================================
 */
 
-static void JPEG_Noop (j_decompress_ptr cinfo) {}
-
-static jboolean JPEG_FillInputBuffer (j_decompress_ptr cinfo)
-{
-    // Insert a fake EOI marker
-    cinfo->src->next_input_byte = jpeg_eoi_marker;
-    cinfo->src->bytes_in_buffer = 2;
-
-    return TRUE;
-}
-
-static void JPEG_SkipInputData (j_decompress_ptr cinfo, long num_bytes)
-{
-    if (cinfo->src->bytes_in_buffer <= (unsigned long)num_bytes)
-    {
-        cinfo->src->bytes_in_buffer = 0;
-        return;
-    }
-
-    cinfo->src->next_input_byte += num_bytes;
-    cinfo->src->bytes_in_buffer -= num_bytes;
-}
-
-static void JPEG_MemSrc (j_decompress_ptr cinfo, const unsigned char *buffer, size_t filesize)
-{
-    cinfo->src = (struct jpeg_source_mgr *)cinfo->mem->alloc_small ((j_common_ptr) cinfo, JPOOL_PERMANENT, sizeof (struct jpeg_source_mgr));
-
-    cinfo->src->next_input_byte = buffer;
-    cinfo->src->bytes_in_buffer = filesize;
-
-    cinfo->src->init_source = JPEG_Noop;
-    cinfo->src->fill_input_buffer = JPEG_FillInputBuffer;
-    cinfo->src->skip_input_data = JPEG_SkipInputData;
-    cinfo->src->resync_to_restart = jpeg_resync_to_restart; // use the default method
-    cinfo->src->term_source = JPEG_Noop;
-}
-
 static void JPEG_ErrorExit (j_common_ptr cinfo)
 {
     ((struct jpeg_decompress_struct*)cinfo)->err->output_message (cinfo);
     longjmp(error_in_jpeg, 1);
 }
 
-
-/*
-====================
-JPEG_LoadImage
-
-Load a JPEG image into a BGRA buffer
-====================
-*/
-unsigned char* JPEG_LoadImage_BGRA (const unsigned char *f, int filesize, int *miplevel)
-{
-    struct jpeg_decompress_struct cinfo;
-    struct jpeg_error_mgr jerr;
-    unsigned char *image_buffer = NULL, *scanline = NULL;
-    unsigned int line;
-    int submip = 0;
-
-    if(miplevel && r_texture_jpeg_fastpicmip.integer)
-        submip = bound(0, *miplevel, 3);
-
-    cinfo.err = jpeg_std_error (&jerr);
-    jpeg_create_decompress (&cinfo);
-    if(setjmp(error_in_jpeg))
-        goto error_caught;
-    cinfo.err = jpeg_std_error (&jerr);
-    cinfo.err->error_exit = JPEG_ErrorExit;
-    JPEG_MemSrc (&cinfo, f, filesize);
-    jpeg_read_header (&cinfo, TRUE);
-    cinfo.scale_num = 1;
-    cinfo.scale_denom = (1 << submip);
-    jpeg_start_decompress (&cinfo);
-
-    image_width = cinfo.output_width;
-    image_height = cinfo.output_height;
-
-    if (image_width > 32768 || image_height > 32768 || image_width <= 0 || image_height <= 0)
-    {
-        Con_Printf("JPEG_LoadImage: invalid image size %ix%i\n", image_width, image_height);
-        return NULL;
-    }
-
-    image_buffer = (unsigned char *)Mem_Alloc(tempmempool, image_width * image_height * 4);
-    scanline = (unsigned char *)Mem_Alloc(tempmempool, image_width * cinfo.output_components);
-    if (!image_buffer || !scanline)
-    {
-        if (image_buffer)
-            Mem_Free (image_buffer);
-        if (scanline)
-            Mem_Free (scanline);
-
-        Con_Printf("JPEG_LoadImage: not enough memory for %i by %i image\n", image_width, image_height);
-        jpeg_finish_decompress (&cinfo);
-        jpeg_destroy_decompress (&cinfo);
-        return NULL;
-    }
-
-    // Decompress the image, line by line
-    line = 0;
-    while (cinfo.output_scanline < cinfo.output_height)
-    {
-        unsigned char *buffer_ptr;
-        int ind;
-
-        jpeg_read_scanlines (&cinfo, &scanline, 1);
-
-        // Convert the image to BGRA
-        switch (cinfo.output_components)
-        {
-            // RGB images
-            case 3:
-                buffer_ptr = &image_buffer[image_width * line * 4];
-                for (ind = 0; ind < image_width * 3; ind += 3, buffer_ptr += 4)
-                {
-                    buffer_ptr[2] = scanline[ind];
-                    buffer_ptr[1] = scanline[ind + 1];
-                    buffer_ptr[0] = scanline[ind + 2];
-                    buffer_ptr[3] = 255;
-                }
-                break;
-
-            // Greyscale images (default to it, just in case)
-            case 1:
-            default:
-                buffer_ptr = &image_buffer[image_width * line * 4];
-                for (ind = 0; ind < image_width; ind++, buffer_ptr += 4)
-                {
-                    buffer_ptr[0] = scanline[ind];
-                    buffer_ptr[1] = scanline[ind];
-                    buffer_ptr[2] = scanline[ind];
-                    buffer_ptr[3] = 255;
-                }
-        }
-
-        line++;
-    }
-    Mem_Free (scanline); scanline = NULL;
-
-    jpeg_finish_decompress (&cinfo);
-    jpeg_destroy_decompress (&cinfo);
-
-    if(miplevel)
-        *miplevel -= submip;
-
-    return image_buffer;
-
-error_caught:
-    if(scanline)
-        Mem_Free (scanline);
-    if(image_buffer)
-        Mem_Free (image_buffer);
-    jpeg_destroy_decompress (&cinfo);
-    return NULL;
-}
 
 
 /*
@@ -227,51 +77,6 @@ error_caught:
 */
 
 #define JPEG_OUTPUT_BUF_SIZE 4096
-static void JPEG_InitDestination (j_compress_ptr cinfo)
-{
-    my_dest_ptr dest = (my_dest_ptr)cinfo->dest;
-    dest->buffer = (unsigned char*)cinfo->mem->alloc_small ((j_common_ptr) cinfo, JPOOL_IMAGE, JPEG_OUTPUT_BUF_SIZE * sizeof(unsigned char));
-    dest->pub.next_output_byte = dest->buffer;
-    dest->pub.free_in_buffer = JPEG_OUTPUT_BUF_SIZE;
-}
-
-static jboolean JPEG_EmptyOutputBuffer (j_compress_ptr cinfo)
-{
-    my_dest_ptr dest = (my_dest_ptr)cinfo->dest;
-
-    if (FS_Write (dest->outfile, dest->buffer, JPEG_OUTPUT_BUF_SIZE) != (size_t) JPEG_OUTPUT_BUF_SIZE)
-        longjmp(error_in_jpeg, 1);
-
-    dest->pub.next_output_byte = dest->buffer;
-    dest->pub.free_in_buffer = JPEG_OUTPUT_BUF_SIZE;
-    return true;
-}
-
-static void JPEG_TermDestination (j_compress_ptr cinfo)
-{
-    my_dest_ptr dest = (my_dest_ptr)cinfo->dest;
-    size_t datacount = JPEG_OUTPUT_BUF_SIZE - dest->pub.free_in_buffer;
-
-    // Write any data remaining in the buffer
-    if (datacount > 0)
-        if (FS_Write (dest->outfile, dest->buffer, datacount) != (fs_offset_t)datacount)
-            longjmp(error_in_jpeg, 1);
-}
-
-static void JPEG_FileDest (j_compress_ptr cinfo, qfile_t* outfile)
-{
-    my_dest_ptr dest;
-
-    // First time for this JPEG object?
-    if (cinfo->dest == NULL)
-        cinfo->dest = (struct jpeg_destination_mgr *)(*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT, sizeof(my_destination_mgr));
-
-    dest = (my_dest_ptr)cinfo->dest;
-    dest->pub.init_destination = JPEG_InitDestination;
-    dest->pub.empty_output_buffer = JPEG_EmptyOutputBuffer;
-    dest->pub.term_destination = JPEG_TermDestination;
-    dest->outfile = outfile;
-}
 
 static void JPEG_Mem_InitDestination (j_compress_ptr cinfo)
 {
@@ -312,76 +117,6 @@ static void JPEG_MemDest (j_compress_ptr cinfo, void* buf, size_t bufsize)
     dest->bufsize = bufsize;
 }
 
-
-/*
-====================
-JPEG_SaveImage_preflipped
-
-Save a preflipped JPEG image to a file
-====================
-*/
-qboolean JPEG_SaveImage_preflipped (const char *filename, int width, int height, unsigned char *data)
-{
-    struct jpeg_compress_struct cinfo;
-    struct jpeg_error_mgr jerr;
-    unsigned char *scanline;
-    unsigned int offset, linesize;
-    qfile_t* file;
-
-    // Open the file
-    file = FS_OpenRealFile(filename, "wb", true);
-    if (!file)
-        return false;
-
-    if(setjmp(error_in_jpeg))
-        goto error_caught;
-    cinfo.err = jpeg_std_error (&jerr);
-    cinfo.err->error_exit = JPEG_ErrorExit;
-
-    jpeg_create_compress (&cinfo);
-    JPEG_FileDest (&cinfo, file);
-
-    // Set the parameters for compression
-    cinfo.image_width = width;
-    cinfo.image_height = height;
-    cinfo.in_color_space = JCS_RGB;
-    cinfo.input_components = 3;
-    jpeg_set_defaults (&cinfo);
-    jpeg_set_quality (&cinfo, (int)(scr_screenshot_jpeg_quality.value * 100), TRUE);
-    jpeg_simple_progression (&cinfo);
-
-    // turn off subsampling (to make text look better)
-    cinfo.optimize_coding = 1;
-    cinfo.comp_info[0].h_samp_factor = 1;
-    cinfo.comp_info[0].v_samp_factor = 1;
-    cinfo.comp_info[1].h_samp_factor = 1;
-    cinfo.comp_info[1].v_samp_factor = 1;
-    cinfo.comp_info[2].h_samp_factor = 1;
-    cinfo.comp_info[2].v_samp_factor = 1;
-
-    jpeg_start_compress (&cinfo, true);
-
-    // Compress each scanline
-    linesize = cinfo.image_width * 3;
-    offset = linesize * (cinfo.image_height - 1);
-    while (cinfo.next_scanline < cinfo.image_height)
-    {
-        scanline = &data[offset - cinfo.next_scanline * linesize];
-
-        jpeg_write_scanlines (&cinfo, &scanline, 1);
-    }
-
-    jpeg_finish_compress (&cinfo);
-    jpeg_destroy_compress (&cinfo);
-
-    FS_Close (file);
-    return true;
-
-error_caught:
-    jpeg_destroy_compress (&cinfo);
-    FS_Close (file);
-    return false;
-}
 
 static size_t JPEG_try_SaveImage_to_Buffer (struct jpeg_compress_struct *cinfo, char *jpegbuf, size_t jpegsize, int quality, int width, int height, unsigned char *data)
 {
