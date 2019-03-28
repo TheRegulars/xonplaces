@@ -165,7 +165,7 @@ CONSTANTS
 /// real file will be removed on close
 #define QFILE_FLAG_REMOVE (1 << 3)
 
-#define FILE_BUFF_SIZE 2048
+#define FILE_BUFF_SIZE 4096
 typedef struct
 {
     z_stream    zstream;
