@@ -32,7 +32,6 @@ cvar_t scr_centertime = {0, "scr_centertime","2", "how long centerprint messages
 cvar_t scr_showram = {CVAR_SAVE, "showram","1", "show ram icon if low on surface cache memory (not used)"};
 cvar_t scr_showturtle = {CVAR_SAVE, "showturtle","0", "show turtle icon when framerate is too low"};
 cvar_t scr_showpause = {CVAR_SAVE, "showpause","1", "show pause icon when game is paused"};
-cvar_t scr_showbrand = {0, "showbrand","0", "shows gfx/brand.tga in a corner of the screen (different values select different positions, including centered)"};
 cvar_t scr_printspeed = {0, "scr_printspeed","0", "speed of intermission printing (episode end texts), a value of 0 disables the slow printing"};
 cvar_t scr_loadingscreen_background = {0, "scr_loadingscreen_background","0", "show the last visible background during loading screen (costs one screenful of video memory)"};
 cvar_t scr_loadingscreen_scale = {0, "scr_loadingscreen_scale","1", "scale factor of the background"};
@@ -452,62 +451,6 @@ static void SCR_DrawPause (void)
 
     pic = Draw_CachePic ("gfx/pause");
     DrawQ_Pic ((vid_conwidth.integer - pic->width)/2, (vid_conheight.integer - pic->height)/2, pic, 0, 0, 1, 1, 1, 1, 0);
-}
-
-/*
-==============
-SCR_DrawBrand
-==============
-*/
-static void SCR_DrawBrand (void)
-{
-    cachepic_t    *pic;
-    float        x, y;
-
-    if (!scr_showbrand.value)
-        return;
-
-    pic = Draw_CachePic ("gfx/brand");
-
-    switch ((int)scr_showbrand.value)
-    {
-    case 1:    // bottom left
-        x = 0;
-        y = vid_conheight.integer - pic->height;
-        break;
-    case 2:    // bottom centre
-        x = (vid_conwidth.integer - pic->width) / 2;
-        y = vid_conheight.integer - pic->height;
-        break;
-    case 3:    // bottom right
-        x = vid_conwidth.integer - pic->width;
-        y = vid_conheight.integer - pic->height;
-        break;
-    case 4:    // centre right
-        x = vid_conwidth.integer - pic->width;
-        y = (vid_conheight.integer - pic->height) / 2;
-        break;
-    case 5:    // top right
-        x = vid_conwidth.integer - pic->width;
-        y = 0;
-        break;
-    case 6:    // top centre
-        x = (vid_conwidth.integer - pic->width) / 2;
-        y = 0;
-        break;
-    case 7:    // top left
-        x = 0;
-        y = 0;
-        break;
-    case 8:    // centre left
-        x = 0;
-        y = (vid_conheight.integer - pic->height) / 2;
-        break;
-    default:
-        return;
-    }
-
-    DrawQ_Pic (x, y, pic, 0, 0, 1, 1, 1, 1, 0);
 }
 
 /*
@@ -1342,7 +1285,6 @@ void CL_Screen_Init(void)
     Cvar_RegisterVariable (&scr_showram);
     Cvar_RegisterVariable (&scr_showturtle);
     Cvar_RegisterVariable (&scr_showpause);
-    Cvar_RegisterVariable (&scr_showbrand);
     Cvar_RegisterVariable (&scr_centertime);
     Cvar_RegisterVariable (&scr_printspeed);
     Cvar_RegisterVariable (&vid_conwidth);
@@ -2159,8 +2101,6 @@ static void SCR_DrawScreen (void)
     R_Shadow_EditLights_DrawSelectedLightProperties();
 
     SCR_DrawConsole();
-
-    SCR_DrawBrand();
 
     SCR_DrawInfobar();
 
