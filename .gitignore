@@ -19,5 +19,5 @@ Makefile.win
 *.dll
 *.dylib
 *.dSYM
-*.sw[op]
+*.sw[opn]
 build/
