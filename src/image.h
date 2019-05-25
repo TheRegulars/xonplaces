@@ -70,12 +70,15 @@ void Image_MakesRGBColorsFromLinear_Lightmap(unsigned char *pout, const unsigned
 void Image_Init();
 void Image_Shutdown();
 
+#ifndef DEDICATED_SERVER
 unsigned char* Load_SDL_Image_BGRA(const char* filename, const char* type);
 unsigned char* Load_SDL_Image_MEM_BGRA(const unsigned char *raw, int filesize, const char* type);
 
 // returns 0 on success, -1 on error
 int Image_SaveIMG (const char *filename, int width, int height, unsigned char *data,
                    saveimg_t format, saveimg_params_t *params);
+
+#endif // DEDICATED_SERVER
 
 #endif
 

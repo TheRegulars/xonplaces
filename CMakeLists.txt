@@ -253,7 +253,6 @@ if (COMPILE_SERVER)
         ${JPEG_INLUDE_DIR}
         ${FREETYPE_INCLUDE_DIRS}
         ${PNG_INCLUDE_DIRS}
-        ${SDL2_INCLUDE_DIR} # this is temporary, I will fix it ;)
     )
     target_link_libraries(darkplaces-dedicated PRIVATE
         ${LIBS_COMMON}
@@ -262,8 +261,6 @@ if (COMPILE_SERVER)
         ${ZLIB_LIBRARIES}
         ${JPEG_LIBRARIES}
         ${FREETYPE_LIBRARIES}
-        ${SDL2_LIBRARY}
-        ${SDL2_IMAGE_LIBRARY}
     )
     install(TARGETS darkplaces-dedicated RUNTIME DESTINATION bin)
 endif ()

@@ -3960,6 +3960,8 @@ unsigned char *FS_Inflate(const unsigned char *data, size_t size, size_t *inflat
     return out;
 }
 
+#ifndef DEDICATED_SERVER
+
 // SDL adapters
 static Sint64 FS_SDL_Filesize(SDL_RWops *context) {
     return FS_FileSize((qfile_t*)context->hidden.unknown.data1);
@@ -4013,13 +4015,6 @@ SDL_RWops* FS_SDL_OpenRealFile(const char* filepath, const char* mode, qboolean 
 }
 
 SDL_RWops* FS_SDL_OpenVirtualFile(const char* filepath, qboolean quiet) {
-    /*
-    fs_offset_t filesize;
-    char* f;
-    f = FS_LoadFile(filepath, tempmempool, true, &filesize);
-    return SDL_RWFromConstMem(f, filesize);
-    */
-
     qfile_t* vfile = FS_OpenVirtualFile(filepath, quiet);
 
     if (vfile == NULL) {
@@ -4043,3 +4038,4 @@ SDL_RWops* FS_SDL_OpenVirtualFile(const char* filepath, qboolean quiet) {
     rw->type = SDL_RWOPS_UNKNOWN;
     return rw;
 }
+#endif // DEDICATED_SERVER

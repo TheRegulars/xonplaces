@@ -3,12 +3,16 @@
 #include "image.h"
 #include "r_shadow.h"
 
+#ifndef DEDICATED_SERVER
 #include <SDL.h>
 #include <SDL_image.h>
+#endif // DEDICATED_SERVER
 
 int        image_width;
 int        image_height;
 
+
+#ifndef DEDICATED_SERVER
 static void Image_CopyAlphaFromBlueBGRA(unsigned char *outpixels, const unsigned char *inpixels, int w, int h)
 {
     int i, n;
@@ -16,6 +20,8 @@ static void Image_CopyAlphaFromBlueBGRA(unsigned char *outpixels, const unsigned
     for(i = 0; i < n; ++i)
         outpixels[4*i+3] = inpixels[4*i]; // blue channel
 }
+
+#endif // DEDICATED_SERVER
 
 #if 1
 // written by LordHavoc in a readable way, optimized by Vic, further optimized by LordHavoc (the non-special index case), readable version preserved below this
@@ -259,6 +265,8 @@ imageformat_t imageformats_other[] =
     {NULL, NULL}
 };
 
+#ifndef DEDICATED_SERVER
+
 unsigned char *loadimagepixelsbgra (const char *filename, qboolean complain, qboolean allowFixtrans, qboolean convertsRGB, int *miplevel)
 {
     imageformat_t *firstformat, *format;
@@ -359,6 +367,8 @@ rtexture_t *loadtextureimage (rtexturepool_t *pool, const char *filename, qboole
     Mem_Free(data);
     return rt;
 }
+
+#endif // DEDICATED_SERVER
 
 qboolean Image_WriteTGABGR_preflipped (const char *filename, int width, int height, const unsigned char *data)
 {
@@ -758,6 +768,7 @@ void Image_HeightmapToNormalmap_BGRA(const unsigned char *inpixels, unsigned cha
     }
 }
 
+#ifndef DEDICATED_SERVER
 void Image_Init() {
     // TODO: check result
     IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
@@ -864,3 +875,20 @@ int Image_SaveIMG(
     SDL_FreeSurface(surface);
     return result;
 }
+
+#else
+
+rtexture_t *loadtextureimage (rtexturepool_t *pool, const char *filename, qboolean complain, int flags, qboolean allowFixtrans, qboolean sRGB) {
+    return NULL;
+}
+
+unsigned char *loadimagepixelsbgra (const char *filename, qboolean complain, qboolean allowFixtrans, qboolean convertsRGB, int *miplevel) {
+    return NULL;
+}
+
+void Image_Init() {
+}
+
+void Image_Shutdown() {
+}
+#endif // DEDICATED_SERVER

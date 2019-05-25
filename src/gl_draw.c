@@ -56,6 +56,7 @@ static int numcachepics;
 
 rtexturepool_t *drawtexturepool;
 
+#ifndef DEDICATED_SERVER
 static const unsigned char concharimage[FONT_FILESIZE] =
 {
 #include "lhfont.h"
@@ -114,6 +115,11 @@ static rtexture_t *draw_generateconchars(void)
     Mem_Free(data);
     return tex;
 }
+#else
+static rtexture_t *draw_generateconchars() {
+    return NULL;
+}
+#endif //DEDICATED_SERVER
 
 static rtexture_t *draw_generateditherpattern(void)
 {

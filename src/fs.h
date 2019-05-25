@@ -37,8 +37,6 @@ typedef __int64 fs_offset_t; ///< 64bit (lots of warnings, and read/write still 
 typedef long long fs_offset_t;
 #endif
 
-#include <SDL.h>
-
 // ------ Variables ------ //
 
 extern char fs_gamedir [MAX_OSPATH];
@@ -139,7 +137,11 @@ void FS_Shutdown(void);
 void FS_Init_Commands(void);
 
 
+#ifndef DEDICATED_SERVER
+#include <SDL.h>
+
 SDL_RWops* FS_SDL_OpenRealFile(const char* filepath, const char* mode, qboolean quiet);
 SDL_RWops* FS_SDL_OpenVirtualFile(const char* filepath, qboolean quiet);
+#endif // DEDICATED_SERVER
 
 #endif

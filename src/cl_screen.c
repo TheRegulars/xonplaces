@@ -1586,7 +1586,7 @@ void SCR_CaptureVideo_EndVideo(void)
 static void SCR_CaptureVideo_VideoFrame(int newframestepframenum)
 {
     int x = 0, y = 0;
-    int width = vid.width, height = vid.height;
+    //int width = vid.width, height = vid.height;
 
     if(newframestepframenum == cls.capturevideo.framestepframe)
         return;
@@ -1832,6 +1832,7 @@ void SHOWLMP_drawall(void)
 // buffer2: 3*w*h (or 4*w*h if screenshotting alpha too)
 qboolean SCR_ScreenShot(char *filename, unsigned char *buffer1, unsigned char *buffer2, int x, int y, int width, int height, qboolean flipx, qboolean flipy, qboolean flipdiagonal, qboolean jpeg, qboolean png, qboolean gammacorrect, qboolean keep_alpha)
 {
+#ifndef DEDICATED_SERVER
     int    indices[4] = {0,1,2,3}; // BGRA
     //qboolean ret;
     int ret;
@@ -1897,7 +1898,11 @@ qboolean SCR_ScreenShot(char *filename, unsigned char *buffer1, unsigned char *b
     }
 
     return (ret == 0) ? true : false;
+#else
+    return false;
+#endif // DEDICATED_SERVER
 }
+
 
 //=============================================================================
 
