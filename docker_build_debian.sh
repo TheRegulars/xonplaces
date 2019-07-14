@@ -3,8 +3,6 @@ set -e
 
 SRC=$1
 
-export CC="/usr/bin/clang"
-export CXX="/usr/bin/clang++"
 export CFLAGS="-march=haswell"
 
 cmake -DCOMPILE_CLIENT=OFF \
@@ -16,10 +14,7 @@ cmake -DCOMPILE_CLIENT=OFF \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_C_FLAGS="$CFLAGS" \
       -DCMAKE_CXX_FLAGS="$CFLAGS" \
-      -DCMAKE_C_COMPILER_AR="/usr/bin/llvm-ar" \
-      -DCMAKE_C_COMPILER_RANLIB="/usr/bin/llvm-ranlib" \
-      -DCMAKE_RANLIB="/usr/bin/llvm-ranlib" \
       -DCMAKE_VERBOSE_MAKEFILE=ON \
-    "$SRC"
+      "$SRC"
 
 make -j$(nproc)

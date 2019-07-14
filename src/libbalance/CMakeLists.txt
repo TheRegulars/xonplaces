@@ -1,0 +1,10 @@
+add_library(balance OBJECT balance.cpp balance.h)
+
+if(BUILD_TESTING)
+    enable_testing()
+    find_package(GTest REQUIRED)
+    add_executable(testbalance testbalance.cpp balance.h)
+    set_target_properties(testbalance PROPERTIES LINKER_LANGUAGE CXX)
+    target_link_libraries(testbalance PUBLIC balance GTest::GTest GTest::Main)
+    add_test(NAME testbalance COMMAND testbalance)
+endif()

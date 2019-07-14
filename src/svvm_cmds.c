@@ -2,6 +2,7 @@
 
 #include "prvm_cmds.h"
 #include "image_jpeg.h"
+#include "libbalance/balance.h"
 
 //============================================================================
 // Server
@@ -2722,6 +2723,18 @@ static void VM_SV_serverkey(prvm_prog_t *prog)
     PRVM_G_INT(OFS_RETURN) = PRVM_SetTempString(prog, string);
 }
 
+//#370 string(string teams_str, int teams_count) balanceteams
+static void VM_SV_balanceteams(prvm_prog_t *prog) {
+    char result_str[VM_STRINGTEMP_LENGTH];
+    VM_SAFEPARMCOUNT(2, VM_SV_balanceteams);
+    int e = team_balance(PRVM_G_STRING(OFS_PARM0), (int)PRVM_G_FLOAT(OFS_PARM1), result_str, VM_STRINGTEMP_LENGTH);
+    if (e == 0) {
+        PRVM_G_INT(OFS_RETURN) = PRVM_SetTempString(prog, result_str);
+    } else {
+        PRVM_G_INT(OFS_RETURN) = PRVM_SetTempString(prog, "error");
+    }
+}
+
 //#333 void(entity e, float mdlindex) setmodelindex (EXT_CSQC)
 static void VM_SV_setmodelindex(prvm_prog_t *prog)
 {
@@ -3555,7 +3568,7 @@ NULL,                            // #366 string() readstring (EXT_CSQC)
 NULL,                            // #367 float() readfloat (EXT_CSQC)
 NULL,                            // #368
 NULL,                            // #369
-NULL,                            // #370
+VM_SV_balanceteams,              // #370 // balance str input
 NULL,                            // #371
 NULL,                            // #372
 NULL,                            // #373

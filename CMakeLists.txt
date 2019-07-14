@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.2)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-project(darkplaces C)
+project(darkplaces LANGUAGES C CXX)
 set(SOURCE_ROOT "${PROJECT_SOURCE_DIR}/src")
 include(ExternalProject)
+include(CTest)
 
 if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe")
@@ -12,6 +13,7 @@ if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
     -D_FORTIFY_SOURCE=1 -flto")
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} \
     -z noexecstack -z relro -z now")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
 elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
     # Use LTO when building using release with clang
     # NOTE: This requires llvm-ar and gold plugin
@@ -24,6 +26,7 @@ elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
     -Wno-unused-command-line-argument")
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} \
     -flto -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
 endif()
 
 # Add NativeRelease build type
@@ -31,9 +34,12 @@ set(CMAKE_C_FLAGS_NATIVERELEASE
     "${CMAKE_C_FLAGS_RELEASE}" CACHE STRING "C flags for native build")
 set(CMAKE_EXE_LINKER_FLAGS_NATIVERELEASE
     "${CMAKE_EXE_LINKER_FLAGS_RELEASE}" CACHE STRING "linker flags for native build")
+set(CMAKE_CXX_FLAGS_NATIVERELEASE
+    "${CMAKE_C_FLAGS_RELEASE}" CACHE STRING "C flags for native build")
 mark_as_advanced(
     CMAKE_C_FLAGS_NATIVERELEASE
     CMAKE_EXE_LINKER_FLAGS_NATIVERELEASE
+    CMAKE_CXX_FLAGS_NATIVERELEASE
 )
 
 if("${CMAKE_C_COMPILER_ID}" MATCHES "^(GNU|Clang)$")
@@ -43,6 +49,8 @@ if("${CMAKE_C_COMPILER_ID}" MATCHES "^(GNU|Clang)$")
         "${CMAKE_C_FLAGS_DEBUG} -Wall -Werror=unused-variable \
         -Werror=unused-function"
     )
+    set(CMAKE_CXX_FLAGS_NATIVERELEASE
+        "${CMAKE_CXX_FLAGS_NATIVERELEASE} -DNDEBUG -march=native")
 endif()
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -238,6 +246,7 @@ find_library(GMP_LIBRARY NAMES gmp PATHS
 )
 mark_as_advanced(GMP_PREFIX GMP_LIBRARY)
 set(D0_LIBS ${D0_BLINID_LIBS_STATIC} ${GMP_LIBRARY})
+add_subdirectory("${SOURCE_ROOT}/libbalance/")
 
 if (COMPILE_SERVER)
     add_executable(darkplaces-dedicated ${ABS_SOURCE_SERVER} ${ABS_SOURCE_COMMON})
@@ -257,6 +266,7 @@ if (COMPILE_SERVER)
     target_link_libraries(darkplaces-dedicated PRIVATE
         ${LIBS_COMMON}
         ${D0_LIBS}
+        balance
         ${CURL_LIBRARIES}
         ${ZLIB_LIBRARIES}
         ${JPEG_LIBRARIES}
@@ -293,6 +303,7 @@ if (COMPILE_CLIENT)
         target_link_libraries(darkplaces-sdl PRIVATE
             ${LIBS_COMMON}
             ${D0_LIBS}
+            balance
             ${CURL_LIBRARIES}
             ${ZLIB_LIBRARIES}
             ${ZLIB_LIBRARIES}
