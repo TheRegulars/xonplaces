@@ -250,7 +250,6 @@ PREPEND(ABS_SOURCE_CLIENT_SDL ${SOURCE_ROOT} ${SOURCE_CLIENT_SDL})
 find_package(CURL REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(JPEG REQUIRED)
-find_package(PNG REQUIRED)
 find_package(Freetype REQUIRED)
 # add d0_blind_id
 include(D0BlindId)
@@ -281,7 +280,6 @@ if (COMPILE_SERVER)
         ${ZLIB_INCLUDE_DIRS}
         ${JPEG_INLUDE_DIR}
         ${FREETYPE_INCLUDE_DIRS}
-        ${PNG_INCLUDE_DIRS}
     )
     target_link_libraries(darkplaces-dedicated PRIVATE
         ${LIBS_COMMON}
@@ -297,6 +295,7 @@ endif ()
 
 if (COMPILE_CLIENT)
     if (DP_CLIENT_SDL)
+        find_package(PNG REQUIRED)
         find_package(SDL2 REQUIRED)
         find_package(OggVorbis REQUIRED)
         add_executable(darkplaces-sdl
