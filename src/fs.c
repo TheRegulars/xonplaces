@@ -1394,11 +1394,13 @@ qboolean FS_ChangeGameDirs(int numgamedirs, char gamedirs[][MAX_QPATH], qboolean
     // reinitialize filesystem to detect the new paks
     FS_Rescan();
 
+#ifndef DEDICATED_SERVER
     if (cls.demoplayback)
     {
         CL_Disconnect_f();
         cls.demonum = 0;
     }
+#endif
 
     // unload all sounds so they will be reloaded from the new files as needed
     S_UnloadAllSounds_f();

@@ -1832,7 +1832,6 @@ void SHOWLMP_drawall(void)
 // buffer2: 3*w*h (or 4*w*h if screenshotting alpha too)
 qboolean SCR_ScreenShot(char *filename, unsigned char *buffer1, unsigned char *buffer2, int x, int y, int width, int height, qboolean flipx, qboolean flipy, qboolean flipdiagonal, qboolean jpeg, qboolean png, qboolean gammacorrect, qboolean keep_alpha)
 {
-#ifndef DEDICATED_SERVER
     int    indices[4] = {0,1,2,3}; // BGRA
     //qboolean ret;
     int ret;
@@ -1898,9 +1897,6 @@ qboolean SCR_ScreenShot(char *filename, unsigned char *buffer1, unsigned char *b
     }
 
     return (ret == 0) ? true : false;
-#else
-    return false;
-#endif // DEDICATED_SERVER
 }
 
 
@@ -2329,10 +2325,8 @@ static void SCR_DrawLoadingScreen_SharedSetup (qboolean clear)
     float x, y, w, h, sw, sh, f;
     char vabuf[1024];
     // release mouse grab while loading
-#ifndef DEDICATED_SERVER
     if (!vid.fullscreen)
         VID_SetMouse(false, false, false);
-#endif
 //    CHECKGLERROR
     r_refdef.draw2dstage = true;
     R_Viewport_InitOrtho(&viewport, &identitymatrix, 0, 0, vid.width, vid.height, 0, 0, vid_conwidth.integer, vid_conheight.integer, -10, 100, NULL);
@@ -2425,9 +2419,7 @@ static void SCR_DrawLoadingScreen_SharedFinish (qboolean clear)
 {
     R_Mesh_Finish();
     // refresh
-#ifndef DEDICATED_SERVER
     VID_Finish();
-#endif
 }
 
 static double loadingscreen_lastupdate;
@@ -2510,9 +2502,7 @@ void SCR_UpdateLoadingScreen (qboolean clear, qboolean startup)
     key_dest = key_void;
     key_consoleactive = false;
     Key_EventQueue_Block();
-#ifndef DEDICATED_SERVER
     Sys_SendKeyEvents();
-#endif
     key_dest = old_key_dest;
     key_consoleactive = old_key_consoleactive;
 }
@@ -2637,9 +2627,7 @@ void CL_UpdateScreen(void)
 
     if (vid_hidden)
     {
-#ifndef DEDICATED_SERVER
         VID_Finish();
-#endif
         return;
     }
 
@@ -2794,7 +2782,6 @@ void CL_UpdateScreen(void)
     if (qglFlush)
         qglFlush(); // FIXME: should we really be using qglFlush here?
 
-#ifndef DEDICATED_SERVER
     if (!vid_activewindow)
         VID_SetMouse(false, false, false);
     else if (key_consoleactive)
@@ -2808,7 +2795,6 @@ void CL_UpdateScreen(void)
 
     VID_Finish();
 
-#endif
 }
 
 void CL_Screen_NewMap(void)

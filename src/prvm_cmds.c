@@ -3239,6 +3239,7 @@ void VM_iscachedpic(prvm_prog_t *prog)
     PRVM_G_FLOAT(OFS_RETURN) = false;
 }
 
+#ifndef DEDICATED_SERVER
 /*
 =========
 VM_precache_pic
@@ -3699,7 +3700,6 @@ void VM_loadfont(prvm_prog_t *prog)
     // return index of loaded font
     PRVM_G_FLOAT(OFS_RETURN) = (f - dp_fonts.f);
 }
-
 /*
 =========
 VM_drawpic
@@ -4084,6 +4084,7 @@ void VM_setbindmaps (prvm_prog_t *prog)
         if(Key_SetBindMap((int)PRVM_G_VECTOR(OFS_PARM0)[0], (int)PRVM_G_VECTOR(OFS_PARM0)[1]))
             PRVM_G_FLOAT(OFS_RETURN) = 1;
 }
+#endif // DEDICATED_SERVER
 
 // CL_Video interface functions
 
@@ -4270,6 +4271,7 @@ void VM_vectorvectors (prvm_prog_t *prog)
     VectorCopy(up, PRVM_gameglobalvector(v_up));
 }
 
+#ifndef DEDICATED_SERVER
 /*
 ========================
 VM_drawline
@@ -4292,6 +4294,7 @@ void VM_drawline (prvm_prog_t *prog)
     flags    = (int)PRVM_G_FLOAT(OFS_PARM5);
     DrawQ_Line(width, c1[0], c1[1], c2[0], c2[1], rgb[0], rgb[1], rgb[2], alpha, flags);
 }
+#endif // DEDICATED_SERVER
 
 // float(float number, float quantity) bitshift (EXT_BITSHIFT)
 void VM_bitshift (prvm_prog_t *prog)
@@ -6850,12 +6853,16 @@ static void animatemodel(prvm_prog_t *prog, dp_model_t *model, prvm_edict_t *ed)
 
 static void getmatrix(prvm_prog_t *prog, prvm_edict_t *ed, matrix4x4_t *out)
 {
+#ifndef DEDICATED_SERVER
     if (prog == SVVM_prog)
         SV_GetEntityMatrix(prog, ed, out, false);
     else if (prog == CLVM_prog)
         CL_GetEntityMatrix(prog, ed, out, false);
     else
         *out = identitymatrix;
+#else // DEDICATED_SERVER
+        SV_GetEntityMatrix(prog, ed, out, false);
+#endif // DEFAULT_SOUND_PACKET_ATTENUATION
 }
 
 static void applytransform_forward(prvm_prog_t *prog, const vec3_t in, prvm_edict_t *ed, vec3_t out)

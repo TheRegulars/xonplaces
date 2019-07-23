@@ -1805,8 +1805,10 @@ void Cmd_ExecuteString (const char *text, cmd_source_t src, qboolean lockmutex)
     {
         if (!strcasecmp (cmd_argv[0],cmd->name))
         {
+#ifndef DEDICATED_SERVER
             if (cmd->csqcfunc && CL_VM_ConsoleCommand (text))    //[515]: csqc
                 goto done;
+#endif
             switch (src)
             {
             case src_command:

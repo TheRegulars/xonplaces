@@ -573,7 +573,6 @@ qboolean GL_CheckExtension(const char *minglver_or_ext, const dllfunction_t *fun
         }
     }
 
-#ifndef DEDICATED_SERVER
     for (func = funcs;func && func->name != NULL;func++)
     {
         // Con_DPrintf("\n    %s...  ", func->name);
@@ -588,7 +587,6 @@ qboolean GL_CheckExtension(const char *minglver_or_ext, const dllfunction_t *fun
             failed = true;
         }
     }
-#endif
     // delay the return so it prints all missing functions
     if (failed)
         return false;
@@ -1241,9 +1239,7 @@ qboolean VID_JoyBlockEmulatedKeys(int keycode)
         return false;
 
     // block system-generated key events for arrow keys if we're emulating the arrow keys ourselves
-#ifndef DEDICATED_SERVER
     VID_BuildJoyState(&joystate);
-#endif
     for (j = 32;j < 36;j++)
         if (vid_joystate.button[j] || joystate.button[j])
             return true;
@@ -1465,9 +1461,7 @@ static void Force_CenterView_f (void)
 static int gamma_forcenextframe = false;
 static float cachegamma, cachebrightness, cachecontrast, cacheblack[3], cachegrey[3], cachewhite[3], cachecontrastboost;
 static int cachecolorenable;
-#ifndef DEDICATED_SERVER
 static int cachehwgamma;
-#endif
 
 unsigned int vid_gammatables_serial = 0; // so other subsystems can poll if gamma parameters have changed
 qboolean vid_gammatables_trivial = true;
@@ -1536,7 +1530,6 @@ void VID_BuildGammaTables(unsigned short *ramps, int rampsize)
 void VID_UpdateGamma(qboolean force, int rampsize)
 {
 
-#ifndef DEDICATED_SERVER
     cvar_t *c;
     float f;
     int wantgamma;
@@ -1648,9 +1641,7 @@ void VID_UpdateGamma(qboolean force, int rampsize)
                 vid_gammaramps = (unsigned short *)Z_Malloc(6 * vid_gammarampsize * sizeof(unsigned short));
                 vid_systemgammaramps = vid_gammaramps + 3 * vid_gammarampsize;
             }
-#ifndef DEDICATED_SERVER
             VID_GetGamma(vid_systemgammaramps, vid_gammarampsize);
-#endif
         }
 
         VID_BuildGammaTables(vid_gammaramps, vid_gammarampsize);
@@ -1675,12 +1666,10 @@ void VID_UpdateGamma(qboolean force, int rampsize)
             VID_SetGamma(vid_systemgammaramps, vid_gammarampsize);
         }
     }
-#endif
 }
 
 void VID_RestoreSystemGamma(void)
 {
-#ifndef DEDICATED_SERVER
     if (vid_usinghwgamma)
     {
         vid_usinghwgamma = false;
@@ -1688,7 +1677,6 @@ void VID_RestoreSystemGamma(void)
         // force gamma situation to be reexamined next frame
         gamma_forcenextframe = true;
     }
-#endif
 }
 
 #ifdef WIN32
@@ -1823,7 +1811,6 @@ void VID_Shared_Init(void)
 
 static int VID_Mode(int fullscreen, int width, int height, int bpp, float refreshrate, int stereobuffer, int samples)
 {
-#ifndef DEDICATED_SERVER
     viddef_mode_t mode;
     char vabuf[1024];
 
@@ -1905,9 +1892,6 @@ static int VID_Mode(int fullscreen, int width, int height, int bpp, float refres
     }
     else
         return false;
-#else
-        return false;
-#endif
 }
 
 static void VID_OpenSystems(void)
@@ -1943,9 +1927,7 @@ void VID_Restart_f(void)
         vid.mode.fullscreen ? "fullscreen" : "window", vid.mode.width, vid.mode.height, vid.mode.bitsperpixel, vid.mode.fullscreen && vid.mode.userefreshrate ? va(vabuf, sizeof(vabuf), "x%.2fhz", vid.mode.refreshrate) : "", vid.mode.samples > 1 ? va(vabuf2, sizeof(vabuf2), " (%ix AA)", vid.mode.samples) : "",
         vid_fullscreen.integer ? "fullscreen" : "window", vid_width.integer, vid_height.integer, vid_bitsperpixel.integer, vid_fullscreen.integer && vid_userefreshrate.integer ? va(vabuf, sizeof(vabuf), "x%.2fhz", vid_refreshrate.value) : "", vid_samples.integer > 1 ? va(vabuf2, sizeof(vabuf2), " (%ix AA)", vid_samples.integer) : "");
     VID_CloseSystems();
-#ifndef DEDICATED_SERVER
     VID_Shutdown();
-#endif
     if (!VID_Mode(vid_fullscreen.integer, vid_width.integer, vid_height.integer, vid_bitsperpixel.integer, vid_refreshrate.value, vid_stereobuffer.integer, vid_samples.integer))
     {
         Con_Print("Video mode change failed\n");
@@ -2028,9 +2010,7 @@ void VID_Start(void)
 void VID_Stop(void)
 {
     VID_CloseSystems();
-#ifndef DEDICATED_SERVER
     VID_Shutdown();
-#endif
 }
 
 static int VID_SortModes_Compare(const void *a_, const void *b_)

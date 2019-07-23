@@ -151,7 +151,9 @@ Mod_Init
 static void Mod_Print(void);
 static void Mod_Precache (void);
 static void Mod_Decompile_f(void);
+#ifndef DEDICATED_SERVER
 static void Mod_GenerateLightmaps_f(void);
+#endif // DEDICATED_SERVER
 void Mod_Init (void)
 {
     mod_mempool = Mem_AllocPool("modelinfo", 0, NULL);
@@ -178,7 +180,9 @@ void Mod_Init (void)
     Cmd_AddCommand ("modellist", Mod_Print, "prints a list of loaded models");
     Cmd_AddCommand ("modelprecache", Mod_Precache, "load a model");
     Cmd_AddCommand ("modeldecompile", Mod_Decompile_f, "exports a model in several formats for editing purposes");
+#ifndef DEDICATED_SERVER
     Cmd_AddCommand ("mod_generatelightmaps", Mod_GenerateLightmaps_f, "rebuilds lighting on current worldmodel");
+#endif // DEDICATED_SERVER
 }
 
 void Mod_RenderInit(void)
@@ -3496,6 +3500,7 @@ static void Mod_Decompile_f(void)
     }
 }
 
+#ifndef DEDICATED_SERVER
 void Mod_AllocLightmap_Init(mod_alloclightmap_state_t *state, int width, int height)
 {
     int y;
@@ -4480,3 +4485,4 @@ static void Mod_GenerateLightmaps_f(void)
     }
     Mod_GenerateLightmaps(cl.worldmodel);
 }
+#endif // DEDICATED_SERVER

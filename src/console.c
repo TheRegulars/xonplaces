@@ -1478,6 +1478,7 @@ DRAWING
 ==============================================================================
 */
 
+#ifndef DEDICATED_SERVER
 /*
 ================
 Con_DrawInput
@@ -1570,6 +1571,8 @@ static void Con_DrawInput (void)
     }
 }
 
+#endif // DEDICATED_SERVER
+
 typedef struct
 {
     dp_font_t *font;
@@ -1586,6 +1589,7 @@ typedef struct
 }
 con_text_info_t;
 
+#ifndef DEDICATED_SERVER
 static float Con_WordWidthFunc(void *passthrough, const char *w, size_t *length, float maxWidth)
 {
     con_text_info_t *ti = (con_text_info_t *) passthrough;
@@ -2045,6 +2049,8 @@ void Con_DrawConsole (int lines)
     r_draw2d_force = false;
     if (con_mutex) Thread_UnlockMutex(con_mutex);
 }
+
+#endif //DEDICATED_SERVER
 
 /*
 GetMapList

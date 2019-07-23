@@ -32,6 +32,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "snd_main.h"
 #include "thread.h"
 #include "utf8lib.h"
+#include "image.h"
 
 /*
 
@@ -190,7 +191,9 @@ void Host_Error (const char *error, ...)
 
     strlcpy(hosterrorstring2, hosterrorstring1, sizeof(hosterrorstring2));
 
+#ifndef DEDICATED_SERVER
     CL_Parse_DumpPacket();
+#endif
 
     CL_Parse_ErrorCleanUp();
 
@@ -1054,20 +1057,26 @@ void Host_Main(void)
                 time1 = Sys_DirtyTime();
             R_TimeReport("pre-input");
 
+#ifndef DEDICATED_SERVER
             // Collect input into cmd
             CL_Input();
+#endif
 
             R_TimeReport("input");
 
             // check for new packets
             NetConn_ClientFrame();
 
+#ifndef DEDICATED_SERVER
             // read a new frame from a demo if needed
             CL_ReadDemoMessage();
+#endif
             R_TimeReport("clientnetwork");
 
             // now that packets have been read, send input to server
+#ifndef DEDICATED_SERVER
             CL_SendMove();
+#endif
             R_TimeReport("sendmove");
 
             // update client world (interpolate entities, create trails, etc)
@@ -1342,7 +1351,9 @@ static void Host_Init (void)
         Con_DPrintf("Initializing client\n");
 
         R_Modules_Init();
+#ifndef DEDICATED_SERVER
         Palette_Init();
+#endif
 #ifdef CONFIG_MENU
         MR_Init_Commands();
 #endif

@@ -3147,3 +3147,40 @@ void NetConn_Shutdown(void)
     netconn_mutex = NULL;
 }
 
+// returns true if the packet is valid, false if end of file is reached
+// used for dumping the CSQC download into demo files
+qboolean MakeDownloadPacket(const char *filename, unsigned char *data, size_t len, int crc, int cnt, sizebuf_t *buf, int protocol)
+{
+    int packetsize = buf->maxsize - 7; // byte short long
+    int npackets = ((int)len + packetsize - 1) / (packetsize);
+    char vabuf[1024];
+
+    SZ_Clear(buf);
+    if(cnt == 0)
+    {
+        MSG_WriteByte(buf, svc_stufftext);
+        MSG_WriteString(buf, va(vabuf, sizeof(vabuf), "\ncl_downloadbegin %lu %s\n", (unsigned long)len, filename));
+        return true;
+    }
+    else if(cnt >= 1 && cnt <= npackets)
+    {
+        unsigned long thispacketoffset = (cnt - 1) * packetsize;
+        int thispacketsize = (int)len - thispacketoffset;
+        if(thispacketsize > packetsize)
+            thispacketsize = packetsize;
+
+        MSG_WriteByte(buf, svc_downloaddata);
+        MSG_WriteLong(buf, thispacketoffset);
+        MSG_WriteShort(buf, thispacketsize);
+        SZ_Write(buf, data + thispacketoffset, thispacketsize);
+
+        return true;
+    }
+    else if(cnt == npackets + 1)
+    {
+        MSG_WriteByte(buf, svc_stufftext);
+        MSG_WriteString(buf, va(vabuf, sizeof(vabuf), "\ncl_downloadfinished %lu %d\n", (unsigned long)len, crc));
+        return true;
+    }
+    return false;
+}

@@ -1573,9 +1573,11 @@ static void R_Q1BSP_LoadSplitSky (unsigned char *src, int width, int height, int
     unsigned int *solidpixels = (unsigned int *)Mem_Alloc(tempmempool, w*h*sizeof(unsigned char[4]));
     unsigned int *alphapixels = (unsigned int *)Mem_Alloc(tempmempool, w*h*sizeof(unsigned char[4]));
 
+#ifndef DEDICATED_SERVER
     // allocate a texture pool if we need it
     if (loadmodel->texturepool == NULL && cls.state != ca_dedicated)
         loadmodel->texturepool = R_AllocTexturePool();
+#endif // DEDICATED_SERVER
 
     if (bytesperpixel == 4)
     {
@@ -2505,7 +2507,9 @@ static void Mod_Q1BSP_LoadFaces(sizebuf_t *sb)
     int i, j, count, surfacenum, planenum, smax, tmax, ssize, tsize, firstedge, numedges, totalverts, totaltris, lightmapnumber, lightmapsize, totallightmapsamples, lightmapoffset, texinfoindex;
     float texmins[2], texmaxs[2], val;
     rtexture_t *lightmaptexture, *deluxemaptexture;
+#ifndef DEDICATED_SERVER
     char vabuf[1024];
+#endif
     int structsize = loadmodel->brush.isbsp2 ? 28 : 20;
 
     if (sb->cursize % structsize)
@@ -2693,9 +2697,9 @@ static void Mod_Q1BSP_LoadFaces(sizebuf_t *sb)
     for (lightmapsize = 64; (lightmapsize < i) && (lightmapsize < bound(128, gl_max_lightmapsize.integer, (int)vid.maxtexturesize_2d)) && (totallightmapsamples > lightmapsize*lightmapsize); lightmapsize*=2)
         ;
 
+#ifndef DEDICATED_SERVER
     // now that we've decided the lightmap texture size, we can do the rest
-    if (cls.state != ca_dedicated)
-    {
+    if (cls.state != ca_dedicated) {
         int stainmapsize = 0;
         mod_alloclightmap_state_t allocState;
 
@@ -2771,6 +2775,7 @@ static void Mod_Q1BSP_LoadFaces(sizebuf_t *sb)
             }
         }
     }
+#endif
 
     // generate ushort elements array if possible
     if (loadmodel->surfmesh.data_element3s)
@@ -3778,6 +3783,7 @@ static void Mod_Q1BSP_RoundUpToHullSize(dp_model_t *cmodel, const vec3_t inmins,
 
 static int Mod_Q1BSP_CreateShadowMesh(dp_model_t *mod)
 {
+#ifndef DEDICATED_SERVER
     int j;
     int numshadowmeshtriangles = 0;
     msurface_t *surface;
@@ -3799,6 +3805,9 @@ static int Mod_Q1BSP_CreateShadowMesh(dp_model_t *mod)
         Mod_BuildTriangleNeighbors(mod->brush.shadowmesh->neighbor3i, mod->brush.shadowmesh->element3i, mod->brush.shadowmesh->numtriangles);
 
     return numshadowmeshtriangles;
+#else // DEDICATED_SERVER
+    return 0;
+#endif // DEDICATED_SERVER
 }
 
 void Mod_CollisionBIH_TraceLineAgainstSurfaces(dp_model_t *model, const frameblend_t *frameblend, const skeleton_t *skeleton, trace_t *trace, const vec3_t start, const vec3_t end, int hitsupercontentsmask, int skipsupercontentsmask);
@@ -5703,9 +5712,11 @@ static void Mod_Q3BSP_LoadLightmaps(lump_t *l, lump_t *faceslump)
     if (loadmodel->brushq3.deluxemapping)
         loadmodel->brushq3.data_deluxemaps = (rtexture_t **)Mem_Alloc(loadmodel->mempool, loadmodel->brushq3.num_mergedlightmaps * sizeof(rtexture_t *));
 
+#ifndef DEDICATED_SERVER
     // allocate a texture pool if we need it
     if (loadmodel->texturepool == NULL && cls.state != ca_dedicated)
         loadmodel->texturepool = R_AllocTexturePool();
+#endif // DEDICATED_SERVER
 
     mergedpixels = (unsigned char *) Mem_Alloc(tempmempool, mergedwidth * mergedheight * 4);
     mergeddeluxepixels = loadmodel->brushq3.deluxemapping ? (unsigned char *) Mem_Alloc(tempmempool, mergedwidth * mergedheight * 4) : NULL;
@@ -5842,7 +5853,9 @@ static void Mod_Q3BSP_LoadFaces(lump_t *l)
     q3dface_t *in, *oldin;
     msurface_t *out, *oldout;
     int i, oldi, j, n, count, invalidelements, patchsize[2], finalwidth, finalheight, xtess, ytess, finalvertices, finaltriangles, firstvertex, firstelement, type, oldnumtriangles, oldnumtriangles2, meshvertices, meshtriangles, collisionvertices, collisiontriangles, numvertices, numtriangles, cxtess, cytess;
+#ifndef DEDICATED_SERVER
     float lightmaptcbase[2], lightmaptcscale[2];
+#endif // DEDICATED_SERVER
     //int *originalelement3i;
     //int *originalneighbor3i;
     float *originalvertex3f;
@@ -6232,8 +6245,8 @@ static void Mod_Q3BSP_LoadFaces(lump_t *l)
         VectorClear(out->maxs);
         if (out->num_vertices)
         {
-            if (cls.state != ca_dedicated && out->lightmaptexture)
-            {
+#ifndef DEDICATED_SERVER
+            if (cls.state != ca_dedicated && out->lightmaptexture) {
                 // figure out which part of the merged lightmap this fits into
                 int lightmapindex = LittleLong(in->lightmapindex) >> (loadmodel->brushq3.deluxemapping ? 1 : 0);
                 int mergewidth = R_TextureWidth(out->lightmaptexture) / loadmodel->brushq3.lightmapsize;
@@ -6250,6 +6263,7 @@ static void Mod_Q3BSP_LoadFaces(lump_t *l)
                     v[1] = v[1] * lightmaptcscale[1] + lightmaptcbase[1];
                 }
             }
+#endif // DEDICATED_SERVER
             VectorCopy((loadmodel->surfmesh.data_vertex3f + 3 * out->num_firstvertex), out->mins);
             VectorCopy((loadmodel->surfmesh.data_vertex3f + 3 * out->num_firstvertex), out->maxs);
             for (j = 1, v = (loadmodel->surfmesh.data_vertex3f + 3 * out->num_firstvertex) + 3;j < out->num_vertices;j++, v += 3)

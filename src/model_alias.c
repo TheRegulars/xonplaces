@@ -892,6 +892,7 @@ static void Mod_MDL_LoadFrames (unsigned char* datapointer, int inverts, int *ve
 
 static void Mod_BuildAliasSkinFromSkinFrame(texture_t *texture, skinframe_t *skinframe)
 {
+#ifndef DEDICATED_SERVER
     if (cls.state == ca_dedicated)
         return;
     // hack
@@ -929,6 +930,7 @@ static void Mod_BuildAliasSkinFromSkinFrame(texture_t *texture, skinframe_t *ski
     texture->transparentsort = TRANSPARENTSORT_DISTANCE;
     // WHEN ADDING DEFAULTS HERE, REMEMBER TO PUT DEFAULTS IN ALL LOADERS
     // JUST GREP FOR "specularscalemod = 1".
+#endif // DEDICATED_SERVER
 }
 
 void Mod_BuildAliasSkinsFromSkinFiles(texture_t *skin, skinfile_t *skinfile, const char *meshname, const char *shadername)

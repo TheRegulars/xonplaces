@@ -447,5 +447,7 @@ challenge_t;
 
 extern challenge_t challenges[MAX_CHALLENGES];
 
+qboolean MakeDownloadPacket(const char *filename, unsigned char *data, size_t len, int crc, int cnt, sizebuf_t *buf, int protocol);
+
 #endif
 

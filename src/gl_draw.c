@@ -56,7 +56,6 @@ static int numcachepics;
 
 rtexturepool_t *drawtexturepool;
 
-#ifndef DEDICATED_SERVER
 static const unsigned char concharimage[FONT_FILESIZE] =
 {
 #include "lhfont.h"
@@ -115,11 +114,6 @@ static rtexture_t *draw_generateconchars(void)
     Mem_Free(data);
     return tex;
 }
-#else
-static rtexture_t *draw_generateconchars() {
-    return NULL;
-}
-#endif //DEDICATED_SERVER
 
 static rtexture_t *draw_generateditherpattern(void)
 {
@@ -641,6 +635,8 @@ void Draw_FreePic(const char *picname)
 
 static float snap_to_pixel_x(float x, float roundUpAt);
 extern int con_linewidth; // to force rewrapping
+
+
 void LoadFont(qboolean override, const char *name, dp_font_t *fnt, float scale, float voffset)
 {
     int i, ch;
@@ -789,6 +785,7 @@ void LoadFont(qboolean override, const char *name, dp_font_t *fnt, float scale, 
     if(fnt == FONT_CONSOLE)
         con_linewidth = -1; // rewrap console in next frame
 }
+
 
 extern cvar_t developer_font;
 dp_font_t *FindFont(const char *title, qboolean allocate_new)

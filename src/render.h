@@ -209,8 +209,6 @@ qboolean R_AnimCache_GetEntity(entity_render_t *ent, qboolean wantnormals, qbool
 /// generate animcache data for all entities marked visible
 void R_AnimCache_CacheVisibleEntities(void);
 
-#include "r_lerpanim.h"
-
 extern cvar_t r_render;
 extern cvar_t r_renderview;
 extern cvar_t r_waterwarp;
@@ -621,8 +619,11 @@ void R_DrawModelShadowMaps(int fbo, rtexture_t *depthtexture, rtexture_t *colort
 void R_BuildLightMap(const entity_render_t *ent, msurface_t *surface);
 void R_Water_AddWaterPlane(msurface_t *surface, int entno);
 int R_Shadow_GetRTLightInfo(unsigned int lightindex, float *origin, float *radius, float *color);
+
+#ifndef DEDICATED_SERVER
 dp_font_t *FindFont(const char *title, qboolean allocate_new);
 void LoadFont(qboolean override, const char *name, dp_font_t *fnt, float scale, float voffset);
+#endif // DEDICATED_SERVER
 
 void Render_Init(void);
 
@@ -639,7 +640,6 @@ void gl_backend_init(void);
 void Sbar_Init(void);
 void R_LightningBeams_Init(void);
 void Mod_RenderInit(void);
-void Font_Init(void);
 
 qboolean R_CompileShader_CheckStaticParms(void);
 void R_GLSL_Restart_f(void);

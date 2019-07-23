@@ -1706,19 +1706,16 @@ static void VM_CL_ReadPicture (prvm_prog_t *prog)
 {
     const char *name;
     unsigned short size;
-#ifndef DEDICATED_SERVER
     unsigned char *data;
     unsigned char *buf;
     int i;
     cachepic_t *pic;
-#endif
 
     VM_SAFEPARMCOUNT(0, VM_CL_ReadPicture);
 
     name = MSG_ReadString(&cl_message, cl_readstring, sizeof(cl_readstring));
     size = (unsigned short) MSG_ReadShort(&cl_message);
 
-#ifndef DEDICATED_SERVER
     // check if a texture of that name exists
     // if yes, it is used and the data is discarded
     // if not, the (low quality) data is used to build a new texture, whose name will get returned
@@ -1748,8 +1745,6 @@ static void VM_CL_ReadPicture (prvm_prog_t *prog)
             Mem_Free(data);
         }
     }
-
-#endif // DEDICATED_SERVER
 
     PRVM_G_INT(OFS_RETURN) = PRVM_SetTempString(prog, name);
 }

@@ -10,7 +10,7 @@ if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -DNDEBUG \
     -fno-strict-aliasing -fno-math-errno -ffinite-math-only -fno-rounding-math \
     -fno-signaling-nans -fno-trapping-math -fstack-protector -fPIE -pie \
-    -D_FORTIFY_SOURCE=1 -flto")
+    -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=1 -flto")
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} \
     -z noexecstack -z relro -z now")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
@@ -112,45 +112,25 @@ set(SOURCE_COMMON
     sys.h
     bih.c bih.h
     crypto.c crypto.h
-    cl_collision.c cl_collision.h
-    cl_demo.c
-    cl_dyntexture.c cl_dyntexture.h
-    cl_input.c
-    cl_main.c
-    cl_parse.c
-    cl_particles.c
-    cl_screen.c cl_screen.h
-    clvm_cmds.c clvm_cmds.h
     cmd.c cmd.h
     collision.c collision.h
     common.c common.h
     console.c console.h
-    csprogs.c csprogs.h
     curves.c curves.h
     cvar.c cvar.h
-    gl_custom.h
     filematch.c
-    fractalnoise.c
     fs.c fs.h
-    ft2.c ft2.h ft2_fontdefs.h
     utf8lib.c utf8lib.h
-    gl_backend.c gl_backend.h
-    gl_draw.c lhfont.h
-    gl_rmain.c
-    gl_rsurf.c
-    gl_textures.c
     hmac.c hmac.h
     host.c
     host_cmd.c
     image.c image.h
     image_jpeg.c image_jpeg.h
-    keys.c keys.h
     lhnet.c lhnet.h
     libcurl.c libcurl.h
     mathlib.c mathlib.h
     matrixlib.c matrixlib.h
     mdfour.c mdfour.h
-    meshqueue.c meshqueue.h
     mod_skeletal_animatevertices_sse.c mod_skeletal_animatevertices_sse.h
     mod_skeletal_animatevertices_generic.c mod_skeletal_animatevertices_generic.h
     model_alias.c model_alias.h
@@ -158,31 +138,18 @@ set(SOURCE_COMMON
     model_shared.c model_shared.h
     model_sprite.c model_sprite.h
     netconn.c netconn.h
-    palette.c palette.h
     polygon.c polygon.h
-    portals.c portals.h
     protocol.c protocol.h
     prvm_cmds.c prvm_cmds.h
     prvm_edict.c
     prvm_exec.c
-    r_explosion.c
-    r_lerpanim.c r_lerpanim.h
-    r_lightning.c
-    r_modules.c r_modules.h
-    r_shadow.c r_shadow.h
-    r_sky.c
-    r_sprites.c
-    sbar.c sbar.h
     sv_demo.c sv_demo.h
     sv_main.c
     sv_move.c
     sv_phys.c
     sv_user.c
-    svbsp.c svbsp.h
     svvm_cmds.c
     sys_shared.c
-    vid_shared.c vid.h
-    view.c
     wad.c wad.h
     world.c world.h
     zone.c zone.h
@@ -217,10 +184,46 @@ endif ()
 list(APPEND SOURCE_CLIENT_SDL vid_sdl.c)
 
 list(APPEND SOURCE_CLIENT_COMMON
-        snd_main.c snd_main.h snd_mem.c snd_mix.c snd_ogg.c snd_ogg.h snd_wav.c
-        snd_wav.h)
+    cl_collision.c cl_collision.h
+    cl_demo.c
+    cl_dyntexture.c cl_dyntexture.h
+    cl_input.c
+    cl_main.c
+    cl_parse.c
+    cl_particles.c
+    cl_screen.c cl_screen.h
+    clvm_cmds.c clvm_cmds.h
+    csprogs.c csprogs.h
+    fractalnoise.c
+    ft2.c ft2.h ft2_fontdefs.h
+    gl_backend.c gl_backend.h
+    gl_custom.h
+    gl_draw.c
+    gl_rmain.c
+    gl_rsurf.c
+    gl_textures.c
+    keys.c keys.h
+    lhfont.h
+    meshqueue.c meshqueue.h
+    palette.c palette.h
+    portals.c portals.h
+    r_explosion.c
+    r_lightning.c
+    r_modules.c r_modules.h
+    r_shadow.c r_shadow.h
+    r_sky.c
+    r_sprites.c
+    sbar.c sbar.h
+    snd_main.c snd_main.h
+    snd_mem.c snd_mix.c
+    snd_ogg.c snd_ogg.h
+    snd_wav.c snd_wav.h
+    svbsp.c svbsp.h
+    vid_shared.c vid.h
+    view.c
+    )
 list(APPEND SOURCE_CLIENT_SDL snd_sdl.c sys_sdl.c)
-list(APPEND SOURCE_SERVER snd_null.c)
+list(APPEND SOURCE_SERVER snd_null.c server_null.c)
 
 if (WIN32)
     list(APPEND SOURCE_SERVER sys_win.c)
@@ -250,7 +253,6 @@ PREPEND(ABS_SOURCE_CLIENT_SDL ${SOURCE_ROOT} ${SOURCE_CLIENT_SDL})
 find_package(CURL REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(JPEG REQUIRED)
-find_package(Freetype REQUIRED)
 # add d0_blind_id
 include(D0BlindId)
 
@@ -279,7 +281,6 @@ if (COMPILE_SERVER)
         ${CURL_INCLUDE_DIRS}
         ${ZLIB_INCLUDE_DIRS}
         ${JPEG_INLUDE_DIR}
-        ${FREETYPE_INCLUDE_DIRS}
     )
     target_link_libraries(darkplaces-dedicated PRIVATE
         ${LIBS_COMMON}
@@ -288,7 +289,6 @@ if (COMPILE_SERVER)
         ${CURL_LIBRARIES}
         ${ZLIB_LIBRARIES}
         ${JPEG_LIBRARIES}
-        ${FREETYPE_LIBRARIES}
     )
     install(TARGETS darkplaces-dedicated RUNTIME DESTINATION bin)
 endif ()
@@ -296,6 +296,7 @@ endif ()
 if (COMPILE_CLIENT)
     if (DP_CLIENT_SDL)
         find_package(PNG REQUIRED)
+        find_package(Freetype REQUIRED)
         find_package(SDL2 REQUIRED)
         find_package(OggVorbis REQUIRED)
         add_executable(darkplaces-sdl

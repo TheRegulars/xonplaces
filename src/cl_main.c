@@ -108,7 +108,9 @@ void CL_ClearState(void)
     int i;
     entity_t *ent;
 
+#ifndef DEDICATED_SERVER
     CL_VM_ShutDown();
+#endif
 
 // wipe the entire cl structure
     Mem_EmptyPool(cls.levelmempool);
@@ -204,8 +206,10 @@ void CL_ClearState(void)
     // mark all frames invalid for delta
     memset(cl.qw_deltasequence, -1, sizeof(cl.qw_deltasequence));
 
+#ifndef DEDICATED_SERVER
     // set bestweapon data back to Quake data
     IN_BestWeapon_ResetData();
+#endif
 
     CL_Screen_NewMap();
 }
@@ -327,6 +331,7 @@ Sends a disconnect message to the server
 This is also called on Host_Error, so it shouldn't cause any errors
 =====================
 */
+#ifndef DEDICATED_SERVER
 void CL_Disconnect(void)
 {
     if (cls.state == ca_dedicated)
@@ -385,6 +390,10 @@ void CL_Disconnect(void)
     cls.demoplayback = cls.timedemo = false;
     cls.signon = 0;
 }
+#else // DEDICATED_SERVER
+void CL_Disconnect() {
+}
+#endif // DEDICATED_SERVER
 
 void CL_Disconnect_f(void)
 {
@@ -405,6 +414,7 @@ Host should be either "local" or a net address
 */
 void CL_EstablishConnection(const char *host, int firstarg)
 {
+#ifndef DEDICATED_SERVER
     if (cls.state == ca_dedicated)
         return;
 
@@ -460,6 +470,7 @@ void CL_EstablishConnection(const char *host, int firstarg)
         M_Update_Return_Reason("No network");
 #endif
     }
+#endif // DEDICATED_SERVER
 }
 
 /*
@@ -1910,8 +1921,10 @@ void CL_UpdateWorld(void)
         // network entities before the prediction code can be run
         CL_UpdateNetworkCollisionEntities();
 
+#ifndef DEDICATED_SERVER
         // now update the player prediction
         CL_ClientMovement_Replay();
+#endif
 
         // update the player entity (which may be predicted)
         CL_UpdateNetworkEntity(cl.entities + cl.viewentity, 32, true);
@@ -2387,7 +2400,9 @@ void CL_Init (void)
     r_refdef.scene.maxtempentities = MAX_TEMPENTITIES;
     r_refdef.scene.tempentities = (entity_render_t *)Mem_Alloc(cls.permanentmempool, sizeof(entity_render_t) * r_refdef.scene.maxtempentities);
 
+#ifndef DEDICATED_SERVER
     CL_InitInput ();
+#endif
 
 //
 // register our commands
@@ -2421,10 +2436,12 @@ void CL_Init (void)
 
     Cmd_AddCommand ("entities", CL_PrintEntities_f, "print information on network entities known to client");
     Cmd_AddCommand ("disconnect", CL_Disconnect_f, "disconnect from server (or disconnect all clients if running a server)");
+#ifndef DEDICATED_SERVER
     Cmd_AddCommand ("record", CL_Record_f, "record a demo");
     Cmd_AddCommand ("stop", CL_Stop_f, "stop recording or playing a demo");
     Cmd_AddCommand ("playdemo", CL_PlayDemo_f, "watch a demo file");
     Cmd_AddCommand ("timedemo", CL_TimeDemo_f, "play back a demo as fast as possible and save statistics to benchmark.log");
+#endif
 
     // Support Client-side Model Index List
     Cmd_AddCommand ("cl_modelindexlist", CL_ModelIndexList_f, "list information on all models in the client modelindex");

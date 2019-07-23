@@ -2266,6 +2266,7 @@ DEMO LOOP CONTROL
 */
 
 
+#ifndef DEDICATED_SERVER
 /*
 ==================
 Host_Startdemos_f
@@ -2302,7 +2303,6 @@ static void Host_Startdemos_f (void)
         cls.demonum = -1;
 }
 
-
 /*
 ==================
 Host_Demos_f
@@ -2334,6 +2334,7 @@ static void Host_Stopdemo_f (void)
     CL_Disconnect ();
     Host_ShutdownServer ();
 }
+#endif // DEDICATED_SERVER
 
 static void Host_SendCvar_f (void)
 {
@@ -2801,9 +2802,11 @@ void Host_InitCommands (void)
     Cmd_AddCommand ("load", Host_Loadgame_f, "load a saved game file");
     Cmd_AddCommand ("save", Host_Savegame_f, "save the game to a file");
 
+#ifndef DEDICATED_SERVER
     Cmd_AddCommand ("startdemos", Host_Startdemos_f, "start playing back the selected demos sequentially (used at end of startup script)");
     Cmd_AddCommand ("demos", Host_Demos_f, "restart looping demos defined by the last startdemos command");
     Cmd_AddCommand ("stopdemo", Host_Stopdemo_f, "stop playing or recording demo (like stop command) and return to looping demos");
+#endif // DEDICATED_SERVER
 
     Cmd_AddCommand ("viewmodel", Host_Viewmodel_f, "change model of viewthing entity in current level");
     Cmd_AddCommand ("viewframe", Host_Viewframe_f, "change animation frame of viewthing entity in current level");
