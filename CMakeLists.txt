@@ -73,7 +73,27 @@ option(COMPILE_MENU          "Enable game menu" ON)
 option(COMPILE_CD            "Enable CD player support" ON)
 option(COMPILE_VIDEO_CAPTURE "Enable video capture" ON)
 option(COMPILE_UTILS         "Enable compilling of various utils" OFF)
+option(CODE_COVERAGE         "Enable code coverage" OFF)
 option(CPACK_PACKAGING       "Build package with CPACK" OFF)
+
+# code coverage
+if(CODE_COVERAGE)
+    if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-instr-generate \
+            -fcoverage-mapping"
+        )
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-instr-generate \
+            -fcoverage-mapping"
+        )
+    elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage -fprofile-arcs \
+            -ftest-coverage"
+        )
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -fprofile-arcs \
+            -ftest-coverage"
+        )
+    endif()
+endif()
 
 # Global build params
 SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib:$ORIGIN/lib:$ORIGIN/")
