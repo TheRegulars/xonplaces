@@ -1,6 +1,6 @@
 FROM debian:buster as builder
 
-RUN apt-get update && apt-get install -y build-essential cmake libjpeg-dev libpng-dev libfreetype6-dev \
+RUN apt-get update && apt-get install -y build-essential cmake libjpeg-dev \
     libcurl4-gnutls-dev libgmp-dev autoconf automake ninja-build zlib1g-dev libtool && \
     mkdir /src && mkdir /build
 
@@ -10,4 +10,4 @@ RUN cd /build && /src/docker_build_debian.sh /src
 
 FROM debian:buster-slim
 COPY --from=builder /build/darkplaces-dedicated /usr/bin/
-RUN apt-get update && apt-get install -y libjpeg62-turbo libcurl3-gnutls libfreetype6 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y libjpeg62-turbo libcurl3-gnutls && rm -rf /var/lib/apt/lists/*
