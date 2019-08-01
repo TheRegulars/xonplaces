@@ -159,7 +159,7 @@ struct dynamic_balance {
 
         init_memoize(table_size);
         int result_score = build_path(perfect_score, 0, min_team, max_team);
-        return std::make_pair(result_score, std::move(resolve_path(perfect_score, max_team)));
+        return std::make_pair(result_score, resolve_path(perfect_score, max_team));
     }
     
     private:
@@ -312,7 +312,7 @@ int format_teams(const sorted_teams& teams, char *result, size_t max_size) {
             os << player;
         }
     }
-    std::string output = std::move(os.str());
+    std::string output = os.str();
     if ((output.length() + 1) <= max_size) {
         std::memcpy(result, output.c_str(), output.length() + 1);
         return 0;
