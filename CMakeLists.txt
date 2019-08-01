@@ -78,6 +78,7 @@ option(COMPILE_CD            "Enable CD player support" ON)
 option(COMPILE_VIDEO_CAPTURE "Enable video capture" ON)
 option(COMPILE_UTILS         "Enable compilling of various utils" OFF)
 option(CPACK_PACKAGING       "Build package with CPACK" OFF)
+option(BUILD_FUZZERS         "Enable fuzzer compilation" OFF)
 
 # Global build params
 SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib:$ORIGIN/lib:$ORIGIN/")
