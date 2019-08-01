@@ -35,7 +35,7 @@ set(CMAKE_C_FLAGS_NATIVERELEASE
 set(CMAKE_EXE_LINKER_FLAGS_NATIVERELEASE
     "${CMAKE_EXE_LINKER_FLAGS_RELEASE}" CACHE STRING "linker flags for native build")
 set(CMAKE_CXX_FLAGS_NATIVERELEASE
-    "${CMAKE_C_FLAGS_RELEASE}" CACHE STRING "C flags for native build")
+    "${CMAKE_CXX_FLAGS_RELEASE}" CACHE STRING "C flags for native build")
 mark_as_advanced(
     CMAKE_C_FLAGS_NATIVERELEASE
     CMAKE_EXE_LINKER_FLAGS_NATIVERELEASE
@@ -47,10 +47,14 @@ if("${CMAKE_C_COMPILER_ID}" MATCHES "^(GNU|Clang)$")
         "${CMAKE_C_FLAGS_NATIVERELEASE} -march=native")
     set(CMAKE_C_FLAGS_DEBUG
         "${CMAKE_C_FLAGS_DEBUG} -Wall -Werror=unused-variable \
-        -Werror=unused-function"
+        -Werror=unused-function -fno-omit-frame-pointer"
     )
     set(CMAKE_CXX_FLAGS_NATIVERELEASE
         "${CMAKE_CXX_FLAGS_NATIVERELEASE} -DNDEBUG -march=native")
+    set(CMAKE_CXX_FLAGS_DEBUG
+        "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Werror=unused-variable \
+        -Werror=unused-function -fno-omit-frame-pointer"
+    )
 endif()
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -73,30 +77,13 @@ option(COMPILE_MENU          "Enable game menu" ON)
 option(COMPILE_CD            "Enable CD player support" ON)
 option(COMPILE_VIDEO_CAPTURE "Enable video capture" ON)
 option(COMPILE_UTILS         "Enable compilling of various utils" OFF)
-option(CODE_COVERAGE         "Enable code coverage" OFF)
 option(CPACK_PACKAGING       "Build package with CPACK" OFF)
-
-# code coverage
-if(CODE_COVERAGE)
-    if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-instr-generate \
-            -fcoverage-mapping"
-        )
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-instr-generate \
-            -fcoverage-mapping"
-        )
-    elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage -fprofile-arcs \
-            -ftest-coverage"
-        )
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -fprofile-arcs \
-            -ftest-coverage"
-        )
-    endif()
-endif()
 
 # Global build params
 SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib:$ORIGIN/lib:$ORIGIN/")
+
+include(coverage)
+include(sanitizers)
 
 # detect client type
 SET(DP_CLIENT_SDL OFF)
