@@ -139,7 +139,6 @@ set(SOURCE_COMMON
     sv_user.c
     svvm_cmds.c
     sys_shared.c
-    wad.c wad.h
     world.c world.h
     zone.c zone.h
     )

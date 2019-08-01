@@ -23,7 +23,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "r_shadow.h"
 #include "polygon.h"
 #include "curves.h"
-#include "wad.h"
 
 
 //cvar_t r_subdivide_size = {CVAR_SAVE, "r_subdivide_size", "128", "how large water polygons should be (smaller values produce more polygons which give better warping effects)"};
@@ -1823,6 +1822,7 @@ static void Mod_Q1BSP_LoadTextures(sizebuf_t *sb)
             tx->surfaceflags = mod_q1bsp_texture_solid.surfaceflags;
         }
 
+#ifndef DEDICATED_SERVER
         if (cls.state != ca_dedicated)
         {
             // LordHavoc: HL sky textures are entirely different than quake
@@ -1848,26 +1848,7 @@ static void Mod_Q1BSP_LoadTextures(sizebuf_t *sb)
                     tx->offsetmapping = OFFSETMAPPING_DEFAULT; // allow offsetmapping on external textures without a q3 shader
                 if (!skinframe)
                 {
-                    // did not find external texture, load it from the bsp or wad3
-                    if (loadmodel->brush.ishlbsp)
-                    {
-                        // internal texture overrides wad
-                        unsigned char *pixels, *freepixels;
-                        pixels = freepixels = NULL;
-                        if (mtdata)
-                            pixels = W_ConvertWAD3TextureBGRA(&miptexsb);
-                        if (pixels == NULL)
-                            pixels = freepixels = W_GetTextureBGRA(tx->name);
-                        if (pixels != NULL)
-                        {
-                            tx->width = image_width;
-                            tx->height = image_height;
-                            skinframe = R_SkinFrame_LoadInternalBGRA(tx->name, TEXF_ALPHA | TEXF_MIPMAP | TEXF_ISWORLD | TEXF_PICMIP, pixels, image_width, image_height, true);
-                        }
-                        if (freepixels)
-                            Mem_Free(freepixels);
-                    }
-                    else if (mtdata) // texture included
+                    if (mtdata) // texture included
                         skinframe = R_SkinFrame_LoadInternalQuake(tx->name, TEXF_MIPMAP | TEXF_ISWORLD | TEXF_PICMIP, false, r_fullbrights.integer, mtdata, tx->width, tx->height);
                 }
                 // if skinframe is still NULL the "missing" texture will be used
@@ -1880,6 +1861,7 @@ static void Mod_Q1BSP_LoadTextures(sizebuf_t *sb)
             else if (!strncmp(tx->name, "mirror", 6)) // Tenebrae
                 tx->skinframes[0] = R_SkinFrame_LoadInternalBGRA(tx->name, 0, zeroopaque, 1, 1, false);
         }
+#endif // DEDICATED_SERVER
 
         tx->basematerialflags = MATERIALFLAG_WALL;
         if (tx->name[0] == '*')
@@ -2138,63 +2120,6 @@ static void Mod_Q1BSP_LoadVisibility(sizebuf_t *sb)
     MSG_ReadBytes(sb, sb->cursize, loadmodel->brushq1.data_compressedpvs);
 }
 
-// used only for HalfLife maps
-static void Mod_Q1BSP_ParseWadsFromEntityLump(const char *data)
-{
-    char key[128], value[4096];
-    int i, j, k;
-    if (!data)
-        return;
-    if (!COM_ParseToken_Simple(&data, false, false, true))
-        return; // error
-    if (com_token[0] != '{')
-        return; // error
-    while (1)
-    {
-        if (!COM_ParseToken_Simple(&data, false, false, true))
-            return; // error
-        if (com_token[0] == '}')
-            break; // end of worldspawn
-        if (com_token[0] == '_')
-            strlcpy(key, com_token + 1, sizeof(key));
-        else
-            strlcpy(key, com_token, sizeof(key));
-        while (key[strlen(key)-1] == ' ') // remove trailing spaces
-            key[strlen(key)-1] = 0;
-        if (!COM_ParseToken_Simple(&data, false, false, true))
-            return; // error
-        dpsnprintf(value, sizeof(value), "%s", com_token);
-        if (!strcmp("wad", key)) // for HalfLife maps
-        {
-            if (loadmodel->brush.ishlbsp)
-            {
-                j = 0;
-                for (i = 0;i < (int)sizeof(value);i++)
-                    if (value[i] != ';' && value[i] != '\\' && value[i] != '/' && value[i] != ':')
-                        break;
-                if (i < (int)sizeof(value) && value[i])
-                {
-                    for (;i < (int)sizeof(value);i++)
-                    {
-                        // ignore path - the \\ check is for HalfLife... stupid windoze 'programmers'...
-                        if (value[i] == '\\' || value[i] == '/' || value[i] == ':')
-                            j = i+1;
-                        else if (value[i] == ';' || value[i] == 0)
-                        {
-                            k = value[i];
-                            value[i] = 0;
-                            W_LoadTextureWadFile(&value[j], false);
-                            j = i+1;
-                            if (!k)
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 static void Mod_Q1BSP_LoadEntities(sizebuf_t *sb)
 {
     loadmodel->brush.entities = NULL;
@@ -2203,8 +2128,6 @@ static void Mod_Q1BSP_LoadEntities(sizebuf_t *sb)
     loadmodel->brush.entities = (char *)Mem_Alloc(loadmodel->mempool, sb->cursize + 1);
     MSG_ReadBytes(sb, sb->cursize, (unsigned char *)loadmodel->brush.entities);
     loadmodel->brush.entities[sb->cursize] = 0;
-    if (loadmodel->brush.ishlbsp)
-        Mod_Q1BSP_ParseWadsFromEntityLump(loadmodel->brush.entities);
 }
 
 

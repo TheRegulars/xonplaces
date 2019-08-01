@@ -47,7 +47,6 @@
 #include "thread.h"
 
 #include "fs.h"
-#include "wad.h"
 
 // Win32 requires us to add O_BINARY, but the other OSes don't have it
 #ifndef O_BINARY
@@ -1330,9 +1329,6 @@ void FS_Rescan (void)
     default:
         break;
     }
-
-    // unload all wads so that future queries will return the new data
-    W_UnloadAll();
 }
 
 static void FS_Rescan_f(void)

@@ -20,7 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 #include "image.h"
-#include "wad.h"
 
 #include "cl_dyntexture.h"
 
@@ -462,35 +461,6 @@ reload:
             }
         }
         Mem_Free(lmpdata);
-    }
-    else if ((lmpdata = W_GetLumpName (pic->name + 4)))
-    {
-        if (developer_loading.integer)
-            Con_Printf("loading gfx.wad lump \"%s\"\n", pic->name + 4);
-
-        if (!strcmp(pic->name, "gfx/conchars"))
-        {
-            // conchars is a raw image and with color 0 as transparent instead of 255
-            pic->width = 128;
-            pic->height = 128;
-            // if no high quality replacement image was found, upload the original low quality texture
-            if (!loaded)
-            {
-                loaded = true;
-                pic->tex = R_LoadTexture2D(drawtexturepool, pic->name, 128, 128, lmpdata, vid.sRGB2D != 0 ? TEXTYPE_SRGB_PALETTE : TEXTYPE_PALETTE, pic->texflags, -1, palette_bgra_font);
-            }
-        }
-        else
-        {
-            pic->width = lmpdata[0] + lmpdata[1] * 256 + lmpdata[2] * 65536 + lmpdata[3] * 16777216;
-            pic->height = lmpdata[4] + lmpdata[5] * 256 + lmpdata[6] * 65536 + lmpdata[7] * 16777216;
-            // if no high quality replacement image was found, upload the original low quality texture
-            if (!loaded)
-            {
-                loaded = true;
-                pic->tex = R_LoadTexture2D(drawtexturepool, pic->name, pic->width, pic->height, lmpdata + 8, vid.sRGB2D != 0 ? TEXTYPE_SRGB_PALETTE : TEXTYPE_PALETTE, pic->texflags, -1, palette_bgra_transparent);
-            }
-        }
     }
 
     if (pixels)
