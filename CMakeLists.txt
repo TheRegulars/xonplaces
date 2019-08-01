@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.6)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 project(darkplaces LANGUAGES C CXX)
 set(SOURCE_ROOT "${PROJECT_SOURCE_DIR}/src")
@@ -79,6 +79,7 @@ option(COMPILE_VIDEO_CAPTURE "Enable video capture" ON)
 option(COMPILE_UTILS         "Enable compilling of various utils" OFF)
 option(CPACK_PACKAGING       "Build package with CPACK" OFF)
 option(BUILD_FUZZERS         "Enable fuzzer compilation" OFF)
+option(ENABLE_LIBBALANCE     "Enable libbalance" ON)
 
 # Global build params
 SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib:$ORIGIN/lib:$ORIGIN/")
@@ -255,7 +256,10 @@ find_library(GMP_LIBRARY NAMES gmp PATHS
 )
 mark_as_advanced(GMP_PREFIX GMP_LIBRARY)
 set(D0_LIBS ${D0_BLINID_LIBS_STATIC} ${GMP_LIBRARY})
-add_subdirectory("${SOURCE_ROOT}/libbalance/")
+if(ENABLE_LIBBALANCE)
+    add_subdirectory("${SOURCE_ROOT}/libbalance/")
+    list(APPEND COMPILE_DEFS "-DWITH_LIBBALANCE")
+endif()
 
 if (COMPILE_SERVER)
     add_executable(darkplaces-dedicated ${ABS_SOURCE_SERVER} ${ABS_SOURCE_COMMON})
@@ -273,7 +277,7 @@ if (COMPILE_SERVER)
     target_link_libraries(darkplaces-dedicated PRIVATE
         ${LIBS_COMMON}
         ${D0_LIBS}
-        balance
+        $<$<BOOL:${ENABLE_LIBBALANCE}>:balance>
         ${CURL_LIBRARIES}
         ${ZLIB_LIBRARIES}
         ${JPEG_LIBRARIES}
@@ -311,7 +315,7 @@ if (COMPILE_CLIENT)
         target_link_libraries(darkplaces-sdl PRIVATE
             ${LIBS_COMMON}
             ${D0_LIBS}
-            balance
+            $<$<BOOL:${ENABLE_LIBBALANCE}>:balance>
             ${CURL_LIBRARIES}
             ${ZLIB_LIBRARIES}
             ${ZLIB_LIBRARIES}
