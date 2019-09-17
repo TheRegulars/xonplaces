@@ -128,24 +128,7 @@ void CL_MoveLerpEntityStates(entity_t *ent) {
 void CL_VM_UpdateShowingScoresState(int showingscores) {
 }
 
-unsigned char palette_rgb[256][3];
-unsigned char palette_rgb_pantscolormap[16][3];
-unsigned char palette_rgb_shirtcolormap[16][3];
-
-unsigned int palette_bgra_complete[256];
-unsigned int palette_bgra_font[256];
-unsigned int palette_bgra_alpha[256];
-unsigned int palette_bgra_nocolormap[256];
-unsigned int palette_bgra_nocolormapnofullbrights[256];
-unsigned int palette_bgra_nofullbrights[256];
-unsigned int palette_bgra_nofullbrights_transparent[256];
-unsigned int palette_bgra_onlyfullbrights[256];
-unsigned int palette_bgra_onlyfullbrights_transparent[256];
-unsigned int palette_bgra_pantsaswhite[256];
-unsigned int palette_bgra_shirtaswhite[256];
 unsigned int palette_bgra_transparent[256];
-unsigned int palette_bgra_embeddedpic[256];
-unsigned char palette_featureflags[256];
 
 
 void R_RegisterModule(const char *name, void(*start)(void), void(*shutdown)(void), void(*newmap)(void), void(*devicelost)(void), void(*devicerestored)(void)) {
@@ -158,9 +141,6 @@ void R_Modules_Start(void) {
 }
 
 void R_Modules_Init(void) {
-}
-
-void R_ResetSkyBox(void) {
 }
 
 void R_Model_Sprite_Draw(entity_render_t *ent) {
