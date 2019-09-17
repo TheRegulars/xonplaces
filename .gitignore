@@ -21,3 +21,5 @@ Makefile.win
 *.dSYM
 *.sw[opn]
 build/
+extra/
+tags
