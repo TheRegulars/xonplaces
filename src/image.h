@@ -30,9 +30,6 @@ typedef union {
 // store them directly into output, so 255 | 0x80000000 would write 255)
 void Image_CopyMux(unsigned char *outpixels, const unsigned char *inpixels, int inputwidth, int inputheight, qboolean inputflipx, qboolean inputflipy, qboolean inputflipdiagonal, int numoutputcomponents, int numinputcomponents, int *outputinputcomponentindices);
 
-// applies gamma correction to RGB pixels, in can be the same as out
-void Image_GammaRemapRGB(const unsigned char *in, unsigned char *out, int pixels, const unsigned char *gammar, const unsigned char *gammag, const unsigned char *gammab);
-
 // converts 8bit image data to BGRA, in can not be the same as out
 void Image_Copy8bitBGRA(const unsigned char *in, unsigned char *out, int pixels, const unsigned int *pal);
 

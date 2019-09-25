@@ -117,18 +117,6 @@ void Image_CopyMux(unsigned char *outpixels, const unsigned char *inpixels, int 
 }
 #endif
 
-void Image_GammaRemapRGB(const unsigned char *in, unsigned char *out, int pixels, const unsigned char *gammar, const unsigned char *gammag, const unsigned char *gammab)
-{
-    while (pixels--)
-    {
-        out[0] = gammar[in[0]];
-        out[1] = gammag[in[1]];
-        out[2] = gammab[in[2]];
-        in += 3;
-        out += 3;
-    }
-}
-
 // note: pal must be 32bit color
 void Image_Copy8bitBGRA(const unsigned char *in, unsigned char *out, int pixels, const unsigned int *pal)
 {
