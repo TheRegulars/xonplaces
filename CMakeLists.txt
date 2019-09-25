@@ -120,8 +120,6 @@ set(SOURCE_COMMON
     mathlib.c mathlib.h
     matrixlib.c matrixlib.h
     mdfour.c mdfour.h
-    mod_skeletal_animatevertices_sse.c mod_skeletal_animatevertices_sse.h
-    mod_skeletal_animatevertices_generic.c mod_skeletal_animatevertices_generic.h
     model_alias.c model_alias.h
     model_brush.c model_brush.h
     model_shared.c model_shared.h
@@ -193,6 +191,8 @@ list(APPEND SOURCE_CLIENT_COMMON
     keys.c keys.h
     lhfont.h
     meshqueue.c meshqueue.h
+    mod_skeletal_animatevertices_sse.c mod_skeletal_animatevertices_sse.h
+    mod_skeletal_animatevertices_generic.c mod_skeletal_animatevertices_generic.h
     palette.c palette.h
     portals.c portals.h
     r_explosion.c

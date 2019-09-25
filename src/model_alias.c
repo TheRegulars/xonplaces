@@ -21,10 +21,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include "image.h"
 #include "r_shadow.h"
+
+#ifndef DEDICATED_SERVER
 #include "mod_skeletal_animatevertices_generic.h"
 #ifdef SSE_POSSIBLE
 #include "mod_skeletal_animatevertices_sse.h"
 #endif
+#endif // DEDICATED_SERVER
 
 #ifdef SSE_POSSIBLE
 cvar_t r_skeletal_use_sse = {0, "r_skeletal_use_sse", "1", "use SSE for skeletal model animation"};
@@ -159,6 +162,7 @@ void Mod_Skeletal_BuildTransforms(const dp_model_t * RESTRICT model, const frame
     }
 }
 
+#ifndef DEDICATED_SERVER
 static void Mod_Skeletal_AnimateVertices(const dp_model_t * RESTRICT model, const frameblend_t * RESTRICT frameblend, const skeleton_t *skeleton, float * RESTRICT vertex3f, float * RESTRICT normal3f, float * RESTRICT svector3f, float * RESTRICT tvector3f)
 {
 
@@ -182,6 +186,11 @@ static void Mod_Skeletal_AnimateVertices(const dp_model_t * RESTRICT model, cons
 #endif
     Mod_Skeletal_AnimateVertices_Generic(model, frameblend, skeleton, vertex3f, normal3f, svector3f, tvector3f);
 }
+#else
+static void Mod_Skeletal_AnimateVertices(const dp_model_t * RESTRICT model, const frameblend_t * RESTRICT frameblend, const skeleton_t *skeleton, float * RESTRICT vertex3f, float * RESTRICT normal3f, float * RESTRICT svector3f, float * RESTRICT tvector3f)
+{
+}
+#endif // DEDICATED_SERVER
 
 void Mod_AliasInit (void)
 {
