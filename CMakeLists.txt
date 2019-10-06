@@ -83,6 +83,7 @@ option(ENABLE_LIBBALANCE     "Enable libbalance" ON)
 
 # Global build params
 SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib:$ORIGIN/lib:$ORIGIN/")
+set(STB_INCLUDE_PATH "${PROJECT_SOURCE_DIR}/vendor/stb/")
 
 include(coverage)
 include(sanitizers)
@@ -272,6 +273,7 @@ if (COMPILE_SERVER)
         ${CURL_INCLUDE_DIRS}
         ${ZLIB_INCLUDE_DIRS}
         ${JPEG_INLUDE_DIR}
+        ${STB_INCLUDE_PATH}
     )
     target_link_libraries(darkplaces-dedicated PRIVATE
         ${LIBS_COMMON}

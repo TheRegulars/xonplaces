@@ -6,13 +6,15 @@
 #ifndef DEDICATED_SERVER
 #include <SDL.h>
 #include <SDL_image.h>
+#else
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 #endif // DEDICATED_SERVER
 
 int        image_width;
 int        image_height;
 
 
-#ifndef DEDICATED_SERVER
 static void Image_CopyAlphaFromBlueBGRA(unsigned char *outpixels, const unsigned char *inpixels, int w, int h)
 {
     int i, n;
@@ -20,6 +22,15 @@ static void Image_CopyAlphaFromBlueBGRA(unsigned char *outpixels, const unsigned
     for(i = 0; i < n; ++i)
         outpixels[4*i+3] = inpixels[4*i]; // blue channel
 }
+
+#ifndef DEDICATED_SERVER
+
+#define LOAD_IMG(filename, type) (Load_SDL_Image_BGRA(filename, type))
+
+#else
+
+static unsigned char* Load_STB_Image_BGRA(const char* filename, const char* type);
+#define LOAD_IMG(filename, type) (Load_STB_Image_BGRA(filename, type))
 
 #endif // DEDICATED_SERVER
 
@@ -253,7 +264,6 @@ imageformat_t imageformats_other[] =
     {NULL, NULL}
 };
 
-#ifndef DEDICATED_SERVER
 
 unsigned char *loadimagepixelsbgra (const char *filename, qboolean complain, qboolean allowFixtrans, qboolean convertsRGB, int *miplevel)
 {
@@ -263,8 +273,10 @@ unsigned char *loadimagepixelsbgra (const char *filename, qboolean complain, qbo
     char vabuf[1024];
     //if (developer_memorydebug.integer)
     //    Mem_CheckSentinelsGlobal();
+#ifndef DEDICATED_SERVER
     if (developer_texturelogging.integer)
         Log_Printf("textures.log", "%s\n", filename);
+#endif
     Image_StripImageExtension(filename, basename, sizeof(basename)); // strip filename extensions to allow replacement by other types
     // replace *'s with #, so commandline utils don't get confused when dealing with the external files
     for (c = basename;*c;c++)
@@ -293,7 +305,7 @@ unsigned char *loadimagepixelsbgra (const char *filename, qboolean complain, qbo
         int mymiplevel = miplevel ? *miplevel : 0;
         image_width = 0;
         image_height = 0;
-        data = Load_SDL_Image_BGRA(name, format->type);
+        data = LOAD_IMG(name, format->type);
         if (data)
         {
             if(strcasecmp(format->type, "JPG") == 0) // jpeg can't do alpha, so let's simulate it by loading another jpeg
@@ -303,7 +315,7 @@ unsigned char *loadimagepixelsbgra (const char *filename, qboolean complain, qbo
                 int mymiplevel2 = miplevel ? *miplevel : 0;
                 int image_width_save = image_width;
                 int image_height_save = image_height;
-                data2 = Load_SDL_Image_BGRA(name2, "JPG");
+                data2 = LOAD_IMG(name2, "JPG");
                 if(data2 && mymiplevel == mymiplevel2 && image_width == image_width_save && image_height == image_height_save) {
                     Image_CopyAlphaFromBlueBGRA(data, data2, image_width, image_height);
                 }
@@ -355,8 +367,6 @@ rtexture_t *loadtextureimage (rtexturepool_t *pool, const char *filename, qboole
     Mem_Free(data);
     return rt;
 }
-
-#endif // DEDICATED_SERVER
 
 qboolean Image_WriteTGABGR_preflipped (const char *filename, int width, int height, const unsigned char *data)
 {
@@ -864,14 +874,59 @@ int Image_SaveIMG(
     return result;
 }
 
-#else
 
-rtexture_t *loadtextureimage (rtexturepool_t *pool, const char *filename, qboolean complain, int flags, qboolean allowFixtrans, qboolean sRGB) {
-    return NULL;
+#else
+static int FS_STB_Read(void *user, char *data, int size) {
+    return FS_Read((qfile_t*)user, data, size);
 }
 
-unsigned char *loadimagepixelsbgra (const char *filename, qboolean complain, qboolean allowFixtrans, qboolean convertsRGB, int *miplevel) {
-    return NULL;
+static void FS_STB_Skip(void *user, int n) {
+    FS_Seek((qfile_t*)user, n, SEEK_CUR);
+}
+
+static int FS_STB_Eof(void *user) {
+    if (FS_Tell((qfile_t*)user) >= FS_FileSize((qfile_t*)user)) {
+        return 1;
+    }
+    return 0;
+}
+
+/* Use stb_image for mapshot loading */
+static unsigned char* Load_STB_Image_BGRA(const char* filename, const char* type) {
+    stbi_io_callbacks callbacks;
+    qfile_t* vfile;
+    unsigned char* img_data;
+    unsigned char *ret_imgedata;
+    int x, y, channels_in_file, i;
+
+    vfile = FS_OpenVirtualFile(filename, true);
+    if (vfile == NULL) {
+        return NULL;
+    }
+    callbacks.read = FS_STB_Read;
+    callbacks.skip = FS_STB_Skip;
+    callbacks.eof = FS_STB_Eof;
+
+    img_data = stbi_load_from_callbacks(&callbacks, vfile, &x, &y, &channels_in_file, 4);
+    FS_Close(vfile);
+    if (img_data == NULL) {
+        return NULL;
+    }
+    // TODO: fix this
+    image_width = x;
+    image_height = y;
+    ret_imgedata = (unsigned char*)Mem_Alloc(tempmempool, x * y * 4);
+    /* copy imgagedata and covert from RGBA to BGRA */
+    for (i = 0; i < x * y; i++) {
+        int p = i * 4;
+        ret_imgedata[p] = img_data[p + 2];
+        ret_imgedata[p + 1] = img_data[p + 1];
+        ret_imgedata[p + 2] = img_data[p];
+        ret_imgedata[p + 3] = img_data[p + 3];
+    }
+    stbi_image_free(img_data);
+
+    return ret_imgedata;
 }
 
 void Image_Init() {
@@ -879,4 +934,5 @@ void Image_Init() {
 
 void Image_Shutdown() {
 }
+
 #endif // DEDICATED_SERVER
