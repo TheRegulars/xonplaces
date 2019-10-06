@@ -282,6 +282,8 @@ qboolean Image_Compress(const char *imagename, size_t maxsize, void **buf, size_
     {
         *size = i->compressed_size;
         *buf = i->compressed;
+        // image was cached, there is no reason to continue image loading
+        return (*buf != NULL);
     }
 
     // load the image
