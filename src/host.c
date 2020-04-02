@@ -1393,8 +1393,12 @@ static void Host_Init (void)
         Cbuf_Execute();
     }
 
+    // save console log up to this point to log_file if it was set by configs
+    Log_Start();
+#ifndef DEDICATED_SERVER
     // put up the loading image so the user doesn't stare at a black screen...
     SCR_BeginLoadingPlaque(true);
+#endif
 
 #ifdef CONFIG_MENU
     if (cls.state != ca_dedicated)

@@ -3033,11 +3033,13 @@ void SV_SpawnServer (const char *server)
     if(cls.state == ca_dedicated)
         Sys_MakeProcessNice();
 
+#ifndef DEDICATED_SERVER
     if (cls.state != ca_dedicated)
     {
         SCR_BeginLoadingPlaque(false);
         S_StopAllSounds();
     }
+#endif
 
     if(sv.active)
     {

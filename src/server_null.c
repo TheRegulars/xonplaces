@@ -307,9 +307,6 @@ float scr_centertime_off;
 int r_stereo_side;
 rtexture_t *loadingscreentexture = NULL;
 
-void SCR_BeginLoadingPlaque (qboolean startup) {
-}
-
 void R_TimeReport(const char *desc) {
 }
 
