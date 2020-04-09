@@ -1557,6 +1557,7 @@ static void Mod_Q1BSP_DecompressVis(const unsigned char *in, const unsigned char
     }
 }
 
+#ifndef DEDICATED_SERVER
 /*
 =============
 R_Q1BSP_LoadSplitSky
@@ -1632,18 +1633,23 @@ static void R_Q1BSP_LoadSplitSky (unsigned char *src, int width, int height, int
     Mem_Free(alphapixels);
 }
 
+#endif // DEDICATED_SERVER
+
 static void Mod_Q1BSP_LoadTextures(sizebuf_t *sb)
 {
     int i, j, k, num, max, altmax, mtwidth, mtheight, doffset, incomplete, nummiptex = 0;
     skinframe_t *skinframe;
     texture_t *tx, *tx2, *anims[10], *altanims[10];
     texture_t backuptex;
-    unsigned char *data, *mtdata;
+    unsigned char *mtdata;
     const char *s;
     char mapname[MAX_QPATH], name[MAX_QPATH];
     unsigned char zeroopaque[4], zerotrans[4];
     sizebuf_t miptexsb;
+#ifndef DEDICATED_SERVER
+    unsigned char *data;
     char vabuf[1024];
+#endif
     Vector4Set(zeroopaque, 0, 0, 0, 255);
     Vector4Set(zerotrans, 0, 0, 0, 128);
 
