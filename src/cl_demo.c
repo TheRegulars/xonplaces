@@ -239,7 +239,7 @@ void CL_ReadDemoMessage(void)
                     cls.td_onesecondnexttime++;
                 }
             }
-            else if (cl.time < cl.mtime[0])
+            else if ((cl.time - 1e-9) < cl.mtime[0])
             {
                 // don't need another message yet
                 return;
