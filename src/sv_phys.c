@@ -94,6 +94,23 @@ int SV_GenericHitSuperContentsMask(const prvm_edict_t *passedict)
         return SUPERCONTENTS_SOLID | SUPERCONTENTS_BODY | SUPERCONTENTS_CORPSE;
 }
 
+int SV_EdictCollisionMask(const prvm_edict_t *edict) {
+    prvm_prog_t *prog = SVVM_prog;
+
+    if (!edict)
+        return SUPERCONTENTS_BODY;
+
+    int dpcollisionmask = (int)PRVM_serveredictfloat(edict, dpcollisionmask);
+
+    if (dpcollisionmask)
+        return dpcollisionmask;
+
+    if (PRVM_serveredictfloat(edict, solid) == SOLID_CORPSE)
+        return SUPERCONTENTS_CORPSE | SUPERCONTENTS_BODY;
+    else
+        return SUPERCONTENTS_BODY;
+}
+
 /*
 ==================
 SV_TracePoint
@@ -209,7 +226,8 @@ trace_t SV_TracePoint(const vec3_t start, int type, prvm_edict_t *passedict, int
                 continue;
         }
 
-        bodysupercontents = PRVM_serveredictfloat(touch, solid) == SOLID_CORPSE ? SUPERCONTENTS_CORPSE : SUPERCONTENTS_BODY;
+        //bodysupercontents = PRVM_serveredictfloat(touch, solid) == SOLID_CORPSE ? SUPERCONTENTS_CORPSE : SUPERCONTENTS_BODY;
+        bodysupercontents = SV_EdictCollisionMask(touch);
 
         // might interact, so do an exact clip
         model = NULL;
@@ -358,7 +376,8 @@ trace_t SV_TraceLine(const vec3_t start, const vec3_t end, int type, prvm_edict_
                 continue;
         }
 
-        bodysupercontents = PRVM_serveredictfloat(touch, solid) == SOLID_CORPSE ? SUPERCONTENTS_CORPSE : SUPERCONTENTS_BODY;
+        //bodysupercontents = PRVM_serveredictfloat(touch, solid) == SOLID_CORPSE ? SUPERCONTENTS_CORPSE : SUPERCONTENTS_BODY;
+        bodysupercontents = SV_EdictCollisionMask(touch);
 
         // might interact, so do an exact clip
         model = NULL;
@@ -536,7 +555,8 @@ trace_t SV_TraceBox(const vec3_t start, const vec3_t mins, const vec3_t maxs, co
                 continue;
         }
 
-        bodysupercontents = PRVM_serveredictfloat(touch, solid) == SOLID_CORPSE ? SUPERCONTENTS_CORPSE : SUPERCONTENTS_BODY;
+        //bodysupercontents = PRVM_serveredictfloat(touch, solid) == SOLID_CORPSE ? SUPERCONTENTS_CORPSE : SUPERCONTENTS_BODY;
+        bodysupercontents = SV_EdictCollisionMask(touch);
 
         // might interact, so do an exact clip
         model = NULL;
@@ -1791,6 +1811,7 @@ static void SV_PushMove (prvm_edict_t *pusher, float movetime)
     {
         prvm_edict_t *check = checkentities[e];
         int movetype = (int)PRVM_serveredictfloat(check, movetype);
+        int mask;
         switch(movetype)
         {
         case MOVETYPE_NONE:
@@ -1826,7 +1847,8 @@ static void SV_PushMove (prvm_edict_t *pusher, float movetime)
             VectorCopy(PRVM_serveredictvector(check, origin), checkorigin);
             VectorCopy(PRVM_serveredictvector(check, mins), checkmins);
             VectorCopy(PRVM_serveredictvector(check, maxs), checkmaxs);
-            Collision_ClipToGenericEntity(&trace, pushermodel, pusher->priv.server->frameblend, &pusher->priv.server->skeleton, pushermins, pushermaxs, SUPERCONTENTS_BODY, &pusherfinalmatrix, &pusherfinalimatrix, checkorigin, checkmins, checkmaxs, checkorigin, checkcontents, 0, collision_extendmovelength.value);
+            mask = SV_EdictCollisionMask(check);
+            Collision_ClipToGenericEntity(&trace, pushermodel, pusher->priv.server->frameblend, &pusher->priv.server->skeleton, pushermins, pushermaxs, mask, &pusherfinalmatrix, &pusherfinalimatrix, checkorigin, checkmins, checkmaxs, checkorigin, checkcontents, 0, collision_extendmovelength.value);
             //trace = SV_TraceBox(PRVM_serveredictvector(check, origin), PRVM_serveredictvector(check, mins), PRVM_serveredictvector(check, maxs), PRVM_serveredictvector(check, origin), MOVE_NOMONSTERS, check, checkcontents);
             if (!trace.startsolid)
             {
@@ -1893,7 +1915,7 @@ static void SV_PushMove (prvm_edict_t *pusher, float movetime)
         VectorCopy(PRVM_serveredictvector(check, origin), checkorigin);
         VectorCopy(PRVM_serveredictvector(check, mins), checkmins);
         VectorCopy(PRVM_serveredictvector(check, maxs), checkmaxs);
-        Collision_ClipToGenericEntity(&trace, pushermodel, pusher->priv.server->frameblend, &pusher->priv.server->skeleton, pushermins, pushermaxs, SUPERCONTENTS_BODY, &pusherfinalmatrix, &pusherfinalimatrix, checkorigin, checkmins, checkmaxs, checkorigin, checkcontents, 0, collision_extendmovelength.value);
+        Collision_ClipToGenericEntity(&trace, pushermodel, pusher->priv.server->frameblend, &pusher->priv.server->skeleton, pushermins, pushermaxs, SV_EdictCollisionMask(check), &pusherfinalmatrix, &pusherfinalimatrix, checkorigin, checkmins, checkmaxs, checkorigin, checkcontents, 0, collision_extendmovelength.value);
         if (trace.startsolid)
         {
             vec3_t move2;

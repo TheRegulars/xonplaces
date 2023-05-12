@@ -198,6 +198,23 @@ int CL_GenericHitSuperContentsMask(const prvm_edict_t *passedict)
         return SUPERCONTENTS_SOLID | SUPERCONTENTS_BODY | SUPERCONTENTS_CORPSE;
 }
 
+int CL_EdictCollisionMask(const prvm_edict_t *edict) {
+    prvm_prog_t *prog = CLVM_prog;
+
+    if (!edict)
+        return SUPERCONTENTS_BODY;
+
+    int dpcollisionmask = (int)PRVM_clientedictfloat(edict, dpcollisionmask);
+
+    if (dpcollisionmask)
+        return dpcollisionmask;
+
+    if (PRVM_clientedictfloat(edict, solid) == SOLID_CORPSE)
+        return SUPERCONTENTS_CORPSE | SUPERCONTENTS_BODY;
+    else
+        return SUPERCONTENTS_BODY;
+}
+
 /*
 ==================
 CL_Move
@@ -310,7 +327,9 @@ trace_t CL_TracePoint(const vec3_t start, int type, prvm_edict_t *passedict, int
 
         for (i = 1;i <= cl.maxclients;i++)
         {
+            prvm_edict_t *edict= PRVM_EDICT_NUM(i);
             entity_render_t *ent = &cl.entities[i].render;
+            int mask;
 
             // don't hit ourselves
             if (i == cl.playerentity)
@@ -336,7 +355,8 @@ trace_t CL_TracePoint(const vec3_t start, int type, prvm_edict_t *passedict, int
                 continue;
             Matrix4x4_CreateTranslate(&entmatrix, origin[0], origin[1], origin[2]);
             Matrix4x4_CreateTranslate(&entinversematrix, -origin[0], -origin[1], -origin[2]);
-            Collision_ClipPointToGenericEntity(&trace, NULL, NULL, NULL, cl.playerstandmins, cl.playerstandmaxs, SUPERCONTENTS_BODY, &entmatrix, &entinversematrix, start, hitsupercontentsmask, skipsupercontentsmask);
+            mask = CL_EdictCollisionMask(edict);
+            Collision_ClipPointToGenericEntity(&trace, NULL, NULL, NULL, cl.playerstandmins, cl.playerstandmaxs, mask, &entmatrix, &entinversematrix, start, hitsupercontentsmask, skipsupercontentsmask);
             if (cliptrace.fraction > trace.fraction && hitnetworkentity)
                 *hitnetworkentity = i;
             Collision_CombineTraces(&cliptrace, &trace, NULL, false);
@@ -386,7 +406,8 @@ skipnetworkplayers:
                 continue;
         }
 
-        bodysupercontents = PRVM_clientedictfloat(touch, solid) == SOLID_CORPSE ? SUPERCONTENTS_CORPSE : SUPERCONTENTS_BODY;
+        //bodysupercontents = PRVM_clientedictfloat(touch, solid) == SOLID_CORPSE ? SUPERCONTENTS_CORPSE : SUPERCONTENTS_BODY;
+        bodysupercontents = CL_EdictCollisionMask(touch);
 
         // might interact, so do an exact clip
         model = NULL;
@@ -529,6 +550,7 @@ trace_t CL_TraceLine(const vec3_t start, const vec3_t end, int type, prvm_edict_
         for (i = 1;i <= cl.maxclients;i++)
         {
             entity_render_t *ent = &cl.entities[i].render;
+            int mask;
 
             // don't hit ourselves
             if (i == cl.playerentity)
@@ -554,7 +576,8 @@ trace_t CL_TraceLine(const vec3_t start, const vec3_t end, int type, prvm_edict_
                 continue;
             Matrix4x4_CreateTranslate(&entmatrix, origin[0], origin[1], origin[2]);
             Matrix4x4_CreateTranslate(&entinversematrix, -origin[0], -origin[1], -origin[2]);
-            Collision_ClipLineToGenericEntity(&trace, NULL, NULL, NULL, cl.playerstandmins, cl.playerstandmaxs, SUPERCONTENTS_BODY, &entmatrix, &entinversematrix, start, end, hitsupercontentsmask, skipsupercontentsmask, extend, hitsurfaces);
+            mask = CL_EdictCollisionMask(PRVM_EDICT_NUM(i));
+            Collision_ClipLineToGenericEntity(&trace, NULL, NULL, NULL, cl.playerstandmins, cl.playerstandmaxs, mask, &entmatrix, &entinversematrix, start, end, hitsupercontentsmask, skipsupercontentsmask, extend, hitsurfaces);
             if (cliptrace.fraction > trace.fraction && hitnetworkentity)
                 *hitnetworkentity = i;
             Collision_CombineTraces(&cliptrace, &trace, NULL, false);
@@ -604,7 +627,8 @@ skipnetworkplayers:
                 continue;
         }
 
-        bodysupercontents = PRVM_clientedictfloat(touch, solid) == SOLID_CORPSE ? SUPERCONTENTS_CORPSE : SUPERCONTENTS_BODY;
+        //bodysupercontents = PRVM_clientedictfloat(touch, solid) == SOLID_CORPSE ? SUPERCONTENTS_CORPSE : SUPERCONTENTS_BODY;
+        bodysupercontents = CL_EdictCollisionMask(touch);
 
         // might interact, so do an exact clip
         model = NULL;
@@ -774,6 +798,7 @@ trace_t CL_TraceBox(const vec3_t start, const vec3_t mins, const vec3_t maxs, co
         for (i = 1;i <= cl.maxclients;i++)
         {
             entity_render_t *ent = &cl.entities[i].render;
+            int mask;
 
             // don't hit ourselves
             if (i == cl.playerentity)
@@ -799,7 +824,9 @@ trace_t CL_TraceBox(const vec3_t start, const vec3_t mins, const vec3_t maxs, co
                 continue;
             Matrix4x4_CreateTranslate(&entmatrix, origin[0], origin[1], origin[2]);
             Matrix4x4_CreateTranslate(&entinversematrix, -origin[0], -origin[1], -origin[2]);
-            Collision_ClipToGenericEntity(&trace, NULL, NULL, NULL, cl.playerstandmins, cl.playerstandmaxs, SUPERCONTENTS_BODY, &entmatrix, &entinversematrix, start, mins, maxs, end, hitsupercontentsmask, skipsupercontentsmask, extend);
+
+            mask = CL_EdictCollisionMask(PRVM_EDICT_NUM(i));
+            Collision_ClipToGenericEntity(&trace, NULL, NULL, NULL, cl.playerstandmins, cl.playerstandmaxs, mask, &entmatrix, &entinversematrix, start, mins, maxs, end, hitsupercontentsmask, skipsupercontentsmask, extend);
             if (cliptrace.fraction > trace.fraction && hitnetworkentity)
                 *hitnetworkentity = i;
             Collision_CombineTraces(&cliptrace, &trace, NULL, false);
@@ -849,7 +876,8 @@ skipnetworkplayers:
                 continue;
         }
 
-        bodysupercontents = PRVM_clientedictfloat(touch, solid) == SOLID_CORPSE ? SUPERCONTENTS_CORPSE : SUPERCONTENTS_BODY;
+        // bodysupercontents = PRVM_clientedictfloat(touch, solid) == SOLID_CORPSE ? SUPERCONTENTS_CORPSE : SUPERCONTENTS_BODY;
+        bodysupercontents = CL_EdictCollisionMask(touch);
 
         // might interact, so do an exact clip
         model = NULL;
