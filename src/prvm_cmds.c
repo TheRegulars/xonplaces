@@ -6382,11 +6382,13 @@ void VM_callfunction(prvm_prog_t *prog)
     {
         // negative statements are built in functions
         int builtinnumber = -func->first_statement;
+        PRVM_CALL_BUILTIN_START(builtinnumber, prog);
         prog->xfunction->builtinsprofile++;
         if (builtinnumber < prog->numbuiltins && prog->builtins[builtinnumber])
             prog->builtins[builtinnumber](prog);
         else
             prog->error_cmd("No such builtin #%i in %s; most likely cause: outdated engine build. Try updating!", builtinnumber, prog->name);
+        PRVM_CALL_BUILTIN_DONE(builtinnumber, prog);
     }
     else if(func - prog->functions > 0)
     {

@@ -618,6 +618,14 @@ static int PRVM_EnterFunction (prvm_prog_t *prog, mfunction_t *f)
 
     ++f->recursion;
     prog->xfunction = f;
+    if (PRVM_ENTER_FUNCTION_ENABLED()) {
+        PRVM_ENTER_FUNCTION(
+            f->first_statement,
+            PRVM_GetString(prog, f->s_name),
+            PRVM_GetString(prog, f->s_file),
+            prog
+        );
+    }
     return f->first_statement - 1;    // offset the s++
 }
 
@@ -670,6 +678,14 @@ static int PRVM_LeaveFunction (prvm_prog_t *prog)
         f->builtinsprofile_total += prog->stack[prog->depth].builtinsprofile_acc;
     }
     
+    if (PRVM_LEAVE_FUNCTION_ENABLED()) {
+        PRVM_LEAVE_FUNCTION(
+            f->first_statement,
+            PRVM_GetString(prog, f->s_name),
+            PRVM_GetString(prog, f->s_file),
+            prog
+        );
+    }
     return prog->stack[prog->depth].s;
 }
 
@@ -878,6 +894,8 @@ void CLVM_ExecuteProgram (prvm_prog_t *prog, func_t fnum, const char *errormessa
     }
 
     func = &prog->functions[fnum];
+    if (PRVM_CLVM_EXECUTE_PROGRAM_START_ENABLED())
+        PRVM_CLVM_EXECUTE_PROGRAM_START(fnum, PRVM_GetString(prog, func->s_name), PRVM_GetString(prog, func->s_file), prog);
 
     // after executing this function, delete all tempstrings it created
     restorevm_tempstringsbuf_cursize = prog->tempstringsbuf.cursize;
@@ -942,6 +960,9 @@ cleanup:
 
     if (prog == SVVM_prog)
         SV_FlushBroadcastMessages();
+
+    if (PRVM_CLVM_EXECUTE_PROGRAM_DONE_ENABLED())
+        PRVM_CLVM_EXECUTE_PROGRAM_DONE(fnum, PRVM_GetString(prog, func->s_name), PRVM_GetString(prog, func->s_file), prog);
 }
 #endif
 
@@ -989,6 +1010,8 @@ void PRVM_ExecuteProgram (prvm_prog_t *prog, func_t fnum, const char *errormessa
     }
 
     func = &prog->functions[fnum];
+    if (PRVM_SVVM_EXECUTE_PROGRAM_START_ENABLED())
+        PRVM_SVVM_EXECUTE_PROGRAM_START(fnum, PRVM_GetString(prog, func->s_name), PRVM_GetString(prog, func->s_file), prog);
 
     // after executing this function, delete all tempstrings it created
     restorevm_tempstringsbuf_cursize = prog->tempstringsbuf.cursize;
@@ -1053,4 +1076,6 @@ cleanup:
 
     if (prog == SVVM_prog)
         SV_FlushBroadcastMessages();
+    if (PRVM_SVVM_EXECUTE_PROGRAM_DONE_ENABLED())
+        PRVM_SVVM_EXECUTE_PROGRAM_DONE(fnum, PRVM_GetString(prog, func->s_name), PRVM_GetString(prog, func->s_file), prog);
 }

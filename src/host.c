@@ -734,6 +734,7 @@ void Host_Main(void)
     host_dirtytime = Sys_DirtyTime();
     for (;;)
     {
+        DARKPLACES_HOST_LOOP_START(host_framecount, svs);
         if (setjmp(host_abortframe))
         {
             SCR_ClearLoadingScreen(false);

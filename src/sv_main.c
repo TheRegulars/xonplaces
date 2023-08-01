@@ -3656,6 +3656,7 @@ static int SV_ThreadFunc(void *voiddata)
     sv_realtime = Sys_DirtyTime();
     while (!svs.threadstop)
     {
+        DARKPLACES_SV_THREAD_LOOP_START();
         // FIXME: we need to handle Host_Error in the server thread somehow
 //        if (setjmp(sv_abortframe))
 //            continue;            // something bad happened in the server game

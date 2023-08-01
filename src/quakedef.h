@@ -47,6 +47,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <setjmp.h>
 
 #include "qtypes.h"
+#include "tracing_probes.h"
 
 extern const char *buildstring;
 extern char engineversion[128];

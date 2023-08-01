@@ -6,7 +6,7 @@ include(ExternalProject)
 include(CTest)
 
 if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe -fvisibility=default")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -DNDEBUG \
     -fno-strict-aliasing -fno-math-errno -ffinite-math-only -fno-rounding-math \
     -fno-signaling-nans -fno-trapping-math -fstack-protector -fPIE -pie \
@@ -23,7 +23,7 @@ elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -DNDEBUG \
     -fno-strict-aliasing -fno-math-errno -ffinite-math-only -fno-trapping-math \
     -flto -fstack-protector -fPIE -pie -D_FORTIFY_SOURCE=1 \
-    -Wno-unused-command-line-argument")
+    -Wno-unused-command-line-argument -fvisibility=default")
     set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} \
     -flto -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
@@ -84,9 +84,12 @@ option(ENABLE_LIBBALANCE     "Enable libbalance" ON)
 # Global build params
 SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib:$ORIGIN/lib:$ORIGIN/")
 set(STB_INCLUDE_PATH "${PROJECT_SOURCE_DIR}/vendor/stb/")
+set(GENERATED_INCLUDE ${CMAKE_BINARY_DIR}/include)
+file(MAKE_DIRECTORY ${GENERATED_INCLUDE})
 
 include(coverage)
 include(sanitizers)
+include(dtrace)
 
 # detect client type
 SET(DP_CLIENT_SDL OFF)
@@ -264,6 +267,7 @@ endif()
 if (COMPILE_SERVER)
     add_executable(darkplaces-dedicated ${ABS_SOURCE_SERVER} ${ABS_SOURCE_COMMON})
     add_dependencies(darkplaces-dedicated d0_blindid)
+    ADD_DTRACE(darkplaces-dedicated)
     target_compile_definitions(darkplaces-dedicated PRIVATE
         ${COMPILE_DEFS}
         ${COMPILE_DEFS_SERVER}
@@ -274,11 +278,13 @@ if (COMPILE_SERVER)
         ${ZLIB_INCLUDE_DIRS}
         ${JPEG_INLUDE_DIR}
         ${STB_INCLUDE_PATH}
+        ${GENERATED_INCLUDE}
     )
     target_link_libraries(darkplaces-dedicated PRIVATE
         ${LIBS_COMMON}
         ${D0_LIBS}
         $<$<BOOL:${ENABLE_LIBBALANCE}>:balance>
+        $<$<BOOL:${ENABLE_DTRACE}>:${USDT_OBJECT_FILE}>
         ${CURL_LIBRARIES}
         ${ZLIB_LIBRARIES}
         ${JPEG_LIBRARIES}
@@ -297,6 +303,7 @@ if (COMPILE_CLIENT)
             ${ABS_SOURCE_CLIENT_COMMON}
             ${ABS_SOURCE_CLIENT_SDL}
         )
+        ADD_DTRACE(darkplaces-sdl)
         add_dependencies(darkplaces-sdl d0_blindid)
         target_compile_definitions(darkplaces-sdl PRIVATE
             ${COMPILE_DEFS}
@@ -312,11 +319,13 @@ if (COMPILE_CLIENT)
             ${OGG_INCLUDE_DIR}
             ${VORBIS_INCLUDE_DIR}
             ${SDL2_INCLUDE_DIR}
+            ${GENERATED_INCLUDE}
         )
         target_link_libraries(darkplaces-sdl PRIVATE
             ${LIBS_COMMON}
             ${D0_LIBS}
             $<$<BOOL:${ENABLE_LIBBALANCE}>:balance>
+            $<$<BOOL:${ENABLE_DTRACE}>:${USDT_OBJECT_FILE}>
             ${CURL_LIBRARIES}
             ${ZLIB_LIBRARIES}
             ${ZLIB_LIBRARIES}

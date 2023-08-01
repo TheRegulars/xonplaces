@@ -870,6 +870,7 @@ void R_TimeReport(const char *desc)
     int length;
     int t;
 
+    DARKPLACES_TIME_REPORT(desc);
     if (r_speeds.integer < 2 || !r_timereport_active)
         return;
 

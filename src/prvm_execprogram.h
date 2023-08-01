@@ -490,6 +490,7 @@
                 {
                     // negative first_statement values are built in functions
                     int builtinnumber = -enterfunc->first_statement;
+                    PRVM_CALL_BUILTIN_START(builtinnumber, prog);
                     prog->xfunction->builtinsprofile++;
                     if (builtinnumber < prog->numbuiltins && prog->builtins[builtinnumber])
                     {
@@ -519,6 +520,7 @@
                     }
                     else
                         prog->error_cmd("No such builtin #%i in %s; most likely cause: outdated engine build. Try updating!", builtinnumber, prog->name);
+                    PRVM_CALL_BUILTIN_DONE(builtinnumber, prog);
                 }
                 else
                     st = cached_statements + PRVM_EnterFunction(prog, enterfunc);

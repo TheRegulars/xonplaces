@@ -1812,9 +1812,11 @@ void Cmd_ExecuteString (const char *text, cmd_source_t src, qboolean lockmutex)
             switch (src)
             {
             case src_command:
-                if (cmd->consolefunction)
+                if (cmd->consolefunction) {
+                    DARKPLACES_CMD_CONSOLEFUNCTION_START(cmd->name, text, svs);
                     cmd->consolefunction ();
-                else if (cmd->clientfunction)
+                    DARKPLACES_CMD_CONSOLEFUNCTION_DONE(cmd->name, text, svs);
+                } else if (cmd->clientfunction)
                 {
                     if (cls.state == ca_connected)
                     {
@@ -1831,7 +1833,9 @@ void Cmd_ExecuteString (const char *text, cmd_source_t src, qboolean lockmutex)
             case src_client:
                 if (cmd->clientfunction)
                 {
+                    DARKPLACES_CMD_CLIENTFUNCTION_START(cmd->name, text, host_client);
                     cmd->clientfunction ();
+                    DARKPLACES_CMD_CLIENTFUNCTION_DONE(cmd->name, text, host_client);
                     goto done;
                 }
                 break;
