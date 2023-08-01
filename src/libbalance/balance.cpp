@@ -10,6 +10,7 @@
 #include <climits>
 #include <cassert>
 #include <cstring>
+#include <cstddef>
 
 const unsigned char* parse_players(const unsigned char *teams, player_list& players) {
     constexpr int STATE_MASK      = 0b0001;

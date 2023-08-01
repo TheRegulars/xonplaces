@@ -1,5 +1,6 @@
 #ifndef LIB_BALANCE_H
 #define LIB_BALANCE_H
+#include  <stddef.h>
 
 struct player_s {
     int id;
