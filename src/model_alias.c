@@ -162,7 +162,6 @@ void Mod_Skeletal_BuildTransforms(const dp_model_t * RESTRICT model, const frame
     }
 }
 
-#ifndef DEDICATED_SERVER
 static void Mod_Skeletal_AnimateVertices(const dp_model_t * RESTRICT model, const frameblend_t * RESTRICT frameblend, const skeleton_t *skeleton, float * RESTRICT vertex3f, float * RESTRICT normal3f, float * RESTRICT svector3f, float * RESTRICT tvector3f)
 {
 
@@ -177,6 +176,7 @@ static void Mod_Skeletal_AnimateVertices(const dp_model_t * RESTRICT model, cons
         if (tvector3f) memcpy(tvector3f, model->surfmesh.data_tvector3f, model->surfmesh.num_vertices*sizeof(float[3]));
         return;
     }
+#ifndef DEDICATED_SERVER
 
 #ifdef __SSE__
     if(r_skeletal_use_sse.integer) {
@@ -185,12 +185,13 @@ static void Mod_Skeletal_AnimateVertices(const dp_model_t * RESTRICT model, cons
     }
 #endif
     Mod_Skeletal_AnimateVertices_Generic(model, frameblend, skeleton, vertex3f, normal3f, svector3f, tvector3f);
-}
 #else
-static void Mod_Skeletal_AnimateVertices(const dp_model_t * RESTRICT model, const frameblend_t * RESTRICT frameblend, const skeleton_t *skeleton, float * RESTRICT vertex3f, float * RESTRICT normal3f, float * RESTRICT svector3f, float * RESTRICT tvector3f)
-{
-}
+    if (vertex3f) memcpy(vertex3f, model->surfmesh.data_vertex3f, model->surfmesh.num_vertices*sizeof(float[3]));
+    if (normal3f) memcpy(normal3f, model->surfmesh.data_normal3f, model->surfmesh.num_vertices*sizeof(float[3]));
+    if (svector3f) memcpy(svector3f, model->surfmesh.data_svector3f, model->surfmesh.num_vertices*sizeof(float[3]));
+    if (tvector3f) memcpy(tvector3f, model->surfmesh.data_tvector3f, model->surfmesh.num_vertices*sizeof(float[3]));
 #endif // DEDICATED_SERVER
+}
 
 void Mod_AliasInit (void)
 {
