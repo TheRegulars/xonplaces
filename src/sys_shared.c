@@ -409,6 +409,7 @@ void Sys_Sleep(int microseconds)
         }
         return;
     }
+    DARKPLACES_SLEEP_START(microseconds);
     if(sys_debugsleep.integer)
     {
         t = Sys_DirtyTime();
@@ -446,6 +447,7 @@ void Sys_Sleep(int microseconds)
         t = Sys_DirtyTime() - t;
         Sys_PrintfToTerminal("%d %d # debugsleep\n", microseconds, (unsigned int)(t * 1000000));
     }
+    DARKPLACES_SLEEP_DONE();
 }
 
 void Sys_PrintfToTerminal(const char *fmt, ...)

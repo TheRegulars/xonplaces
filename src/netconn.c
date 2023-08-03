@@ -2885,7 +2885,9 @@ void NetConn_ServerFrame(void)
 
 void NetConn_SleepMicroseconds(int microseconds)
 {
+    DARKPLACES_NETWAIT_SLEEP_START(microseconds);
     LHNET_SleepUntilPacket_Microseconds(microseconds);
+    DARKPLACES_NETWAIT_SLEEP_DONE();
 }
 
 #ifdef CONFIG_MENU

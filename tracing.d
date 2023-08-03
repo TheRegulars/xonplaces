@@ -6,6 +6,10 @@ provider darkplaces {
     probe cmd_consolefunction__done(char *name, char *text, void *svs);
     probe cmd_clientfunction__start(char *name, char *text, void *host_client);
     probe cmd_clientfunction__done(char *name, char *text, void *host_client);
+    probe sleep__start(int time);
+    probe sleep__done();
+    probe netwait_sleep__start(int time);
+    probe netwait_sleep__done();
 };
 
 provider prvm {
