@@ -2727,9 +2727,9 @@ static void VM_SV_serverkey(prvm_prog_t *prog)
 
 //#370 string(string teams_str, int teams_count) balanceteams
 static void VM_SV_balanceteams(prvm_prog_t *prog) {
-    char result_str[VM_STRINGTEMP_LENGTH];
     VM_SAFEPARMCOUNT(2, VM_SV_balanceteams);
 #ifdef WITH_LIBBALANCE
+    char result_str[VM_STRINGTEMP_LENGTH];
     int e = team_balance(PRVM_G_STRING(OFS_PARM0), (int)PRVM_G_FLOAT(OFS_PARM1), result_str, VM_STRINGTEMP_LENGTH);
     if (e == 0) {
         PRVM_G_INT(OFS_RETURN) = PRVM_SetTempString(prog, result_str);
