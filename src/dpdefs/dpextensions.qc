@@ -2608,3 +2608,11 @@ float MOVETYPE_USER_FIRST = 128;
 float MOVETYPE_USER_LAST = 191;
 //description:
 //user defined movetypes can be added between the start and end points, without producing unknown movetype warnings
+//DP_QC_FINDBOX
+//idea: Mario
+//darkplaces implementation: bones_was_here
+//builtin definitions:
+entity(vector mins, vector maxs) findbox = #566;
+entity(vector mins, vector maxs, .entity tofield) findbox_tofield = #566;
+//description:
+//Returns a chain of entities that are touching a box (a simpler findradius); supports DP_QC_FINDCHAIN_TOFIELD
