@@ -10,12 +10,14 @@ set(D0_BLINDID_EXE_LINKER_FLAGS_RELEASE
     "linker flags for d0_blind_id Release build"
 )
 
-if("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-    set(D0_BLINDID_C_FLAGS_RELEASE "${D0_BLINDID_C_FLAGS_RELEASE} -O3 \
-    -fstack-protector -fPIE -pie -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=1")
-elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-    set(D0_BLINDID_C_FLAGS_RELEASE "${D0_BLINDID_C_FLAGS_RELEASE} -O3 -flto \
-    -fstack-protector -fPIE -pie -D_FORTIFY_SOURCE=1")
+if("${CMAKE_C_COMPILER_ID}" MATCHES "^(GNU|Clang)$")
+    # Same hardening as the engine (DP_HARDENING_FLAGS from CMakeLists.txt)
+    string(JOIN " " _D0_HARDENING_FLAGS ${DP_HARDENING_FLAGS})
+    set(D0_BLINDID_C_FLAGS_RELEASE
+        "${D0_BLINDID_C_FLAGS_RELEASE} -O3 -fPIE ${_D0_HARDENING_FLAGS}")
+endif()
+if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+    string(APPEND D0_BLINDID_C_FLAGS_RELEASE " -flto")
     set(D0_BLINDID_EXE_LINKER_FLAGS_RELEASE "-flto")
 endif()
 

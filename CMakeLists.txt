@@ -1,7 +1,9 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.25)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 project(darkplaces LANGUAGES C CXX)
 set(SOURCE_ROOT "${PROJECT_SOURCE_DIR}/src")
+include(CheckCCompilerFlag)
+include(CheckPIESupported)
 include(ExternalProject)
 include(CTest)
 
@@ -63,13 +65,46 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
         "Debug" "Release" "NativeRelease" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-FUNCTION(PREPEND var prefix)
-   SET(listVar "")
-   FOREACH(f ${ARGN})
-      LIST(APPEND listVar "${prefix}/${f}")
-   ENDFOREACH(f)
-   SET(${var} "${listVar}" PARENT_SCOPE)
-ENDFUNCTION(PREPEND)
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS ON) # gnu17
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+check_pie_supported()
+# Link binaries with their final (install) RPATH. Otherwise CMake pads the
+# build-tree RPATH with ':' to patch it on install, and empty RPATH entries
+# make ld.so search the current directory.
+# Only the client gets an RPATH (set below).
+set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+
+if(CMAKE_C_COMPILER_ID MATCHES "^(GNU|Clang)$")
+    set(CMAKE_C_FLAGS_NATIVERELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native"
+        CACHE STRING "C flags for NativeRelease build")
+    set(CMAKE_CXX_FLAGS_NATIVERELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native"
+        CACHE STRING "C++ flags for NativeRelease build")
+    mark_as_advanced(CMAKE_C_FLAGS_NATIVERELEASE CMAKE_CXX_FLAGS_NATIVERELEASE)
+
+    set(DP_HARDENING_FLAGS
+        -fstack-protector -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2)
+    check_c_compiler_flag(-fstack-clash-protection HAVE_STACK_CLASH_PROTECTION)
+    if(HAVE_STACK_CLASH_PROTECTION)
+        list(APPEND DP_HARDENING_FLAGS -fstack-clash-protection)
+    endif()
+    set(DP_LTO "$<$<CONFIG:Release,NativeRelease>:-flto>")
+
+    add_compile_options(
+        # mathlib.h type-puns floats for NaN checks, keep strict aliasing off
+        -fno-strict-aliasing
+        -fno-math-errno -ffinite-math-only -fno-trapping-math
+        "$<$<COMPILE_LANGUAGE:CXX>:-fno-rtti;-fno-exceptions;-D_GLIBCXX_ASSERTIONS>"
+        "$<$<CONFIG:Debug>:-Wall;-Werror=unused-variable;-Werror=unused-function;-fno-omit-frame-pointer>"
+        "$<$<NOT:$<CONFIG:Debug>>:${DP_HARDENING_FLAGS}>"
+        ${DP_LTO}
+    )
+    add_link_options(${DP_LTO})
+    if(UNIX AND NOT APPLE)
+        add_link_options(LINKER:-z,noexecstack LINKER:-z,relro LINKER:-z,now)
+    endif()
+endif()
 
 option(COMPILE_CLIENT        "Build client code" ON)
 option(COMPILE_SERVER        "Build dedicated server" ON)
@@ -81,8 +116,6 @@ option(CPACK_PACKAGING       "Build package with CPACK" OFF)
 option(BUILD_FUZZERS         "Enable fuzzer compilation" OFF)
 option(ENABLE_LIBBALANCE     "Enable libbalance" ON)
 
-# Global build params
-SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib:$ORIGIN/lib:$ORIGIN/")
 set(STB_INCLUDE_PATH "${PROJECT_SOURCE_DIR}/vendor/stb/")
 set(GENERATED_INCLUDE ${CMAKE_BINARY_DIR}/include)
 file(MAKE_DIRECTORY ${GENERATED_INCLUDE})
@@ -92,10 +125,10 @@ include(sanitizers)
 include(dtrace)
 
 # detect client type
-SET(DP_CLIENT_SDL OFF)
+set(DP_CLIENT_SDL OFF)
 if(COMPILE_CLIENT)
     if(UNIX)
-        SET(DP_CLIENT_SDL ON)
+        set(DP_CLIENT_SDL ON)
     endif()
     # TODO: Implement other video backends
 endif()
@@ -141,39 +174,14 @@ set(SOURCE_COMMON
     sv_user.c
     svvm_cmds.c
     sys_shared.c
+    thread.h
     world.c world.h
     zone.c zone.h
     )
 
-
-set(CRYPTO_KEYGEN_SOURCE ${SOURCE_ROOT}/utils/crypto-keygen-standalone.c)
-
-set(SOURCE_SERVER)
-set(SOURCE_CLIENT_COMMON)
-set(SOURCE_CLIENT_SDL)
-# TODO: Support definitions for other compilers
-set(COMPILE_DEFS "")
-set(COMPILE_DEFS_CLIENT)
-set(COMPILE_DEFS_SERVER "-DDEDICATED_SERVER")
-
-if (COMPILE_MENU)
-    list(APPEND COMPILE_DEFS_CLIENT "-DCONFIG_MENU")
-    list(APPEND SOURCE_CLIENT_COMMON menu.c menu.h mprogdefs.h mvm_cmds.c)
-endif ()
-
-if (COMPILE_CD)
-    list(APPEND COMPILE_DEFS_CLIENT "-DCONFIG_CD")
-    list(APPEND SOURCE_CLIENT_COMMON cd_shared.c cdaudio.h)
-endif ()
-
-if (COMPILE_VIDEO_CAPTURE)
-    list(APPEND COMPILE_DEFS_CLIENT -DCONFIG_VIDEO_CAPTURE)
-    list(APPEND SOURCE_CLIENT_COMMON cap_avi.c cap_avi.h)
-endif ()
-
-list(APPEND SOURCE_CLIENT_SDL vid_sdl.c)
-
-list(APPEND SOURCE_CLIENT_COMMON
+set(SOURCE_SERVER snd_null.c server_null.c thread_null.c)
+set(SOURCE_CLIENT_SDL vid_sdl.c snd_sdl.c sys_sdl.c thread_sdl.c)
+set(SOURCE_CLIENT_COMMON
     cl_collision.c cl_collision.h
     cl_demo.c
     cl_dyntexture.c cl_dyntexture.h
@@ -214,38 +222,49 @@ list(APPEND SOURCE_CLIENT_COMMON
     vid_shared.c vid.h
     view.c
     )
-list(APPEND SOURCE_CLIENT_SDL snd_sdl.c sys_sdl.c)
-list(APPEND SOURCE_SERVER snd_null.c server_null.c)
 
-if (WIN32)
+# TODO: Support definitions for other compilers
+set(COMPILE_DEFS)
+set(COMPILE_DEFS_CLIENT)
+set(COMPILE_DEFS_SERVER DEDICATED_SERVER)
+
+if(COMPILE_MENU)
+    list(APPEND COMPILE_DEFS_CLIENT CONFIG_MENU)
+    list(APPEND SOURCE_CLIENT_COMMON menu.c menu.h mprogdefs.h mvm_cmds.c)
+endif()
+
+if(COMPILE_CD)
+    list(APPEND COMPILE_DEFS_CLIENT CONFIG_CD)
+    list(APPEND SOURCE_CLIENT_COMMON cd_shared.c cdaudio.h)
+endif()
+
+if(COMPILE_VIDEO_CAPTURE)
+    list(APPEND COMPILE_DEFS_CLIENT CONFIG_VIDEO_CAPTURE)
+    list(APPEND SOURCE_CLIENT_COMMON cap_avi.c cap_avi.h)
+endif()
+
+if(WIN32)
     list(APPEND SOURCE_SERVER sys_win.c)
     list(APPEND SOURCE_COMMON conproc.c conproc.h)
-else ()
+else()
     list(APPEND SOURCE_SERVER sys_linux.c)
-endif ()
+endif()
 
-list(APPEND SOURCE_COMMON thread.h)
-list(APPEND SOURCE_CLIENT_SDL thread_sdl.c)
-list(APPEND SOURCE_SERVER thread_null.c)
-
+foreach(srcs SOURCE_COMMON SOURCE_SERVER SOURCE_CLIENT_COMMON SOURCE_CLIENT_SDL)
+    list(TRANSFORM ${srcs} PREPEND "${SOURCE_ROOT}/")
+endforeach()
 
 set(LIBS_COMMON ${CMAKE_DL_LIBS})
-if (UNIX)
+if(UNIX)
     list(APPEND LIBS_COMMON m)
-endif ()
-if (WIN32)
+endif()
+if(WIN32)
     list(APPEND LIBS_COMMON ws2_32 winmm)
-endif ()
-PREPEND(ABS_SOURCE_COMMON ${SOURCE_ROOT} ${SOURCE_COMMON})
-PREPEND(ABS_SOURCE_SERVER ${SOURCE_ROOT} ${SOURCE_SERVER})
-PREPEND(ABS_SOURCE_CLIENT_COMMON ${SOURCE_ROOT} ${SOURCE_CLIENT_COMMON})
-PREPEND(ABS_SOURCE_CLIENT_SDL ${SOURCE_ROOT} ${SOURCE_CLIENT_SDL})
+endif()
 
-# load common libraries
 find_package(CURL REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(JPEG REQUIRED)
-# add d0_blind_id
 include(D0BlindId)
 
 # TODO: Make separate script: FindGMP
@@ -261,87 +280,70 @@ mark_as_advanced(GMP_PREFIX GMP_LIBRARY)
 set(D0_LIBS ${D0_BLINID_LIBS_STATIC} ${GMP_LIBRARY})
 if(ENABLE_LIBBALANCE)
     add_subdirectory("${SOURCE_ROOT}/libbalance/")
-    list(APPEND COMPILE_DEFS "-DWITH_LIBBALANCE")
+    list(APPEND COMPILE_DEFS WITH_LIBBALANCE)
 endif()
 
-if (COMPILE_SERVER)
-    add_executable(darkplaces-dedicated ${ABS_SOURCE_SERVER} ${ABS_SOURCE_COMMON})
-    add_dependencies(darkplaces-dedicated d0_blindid)
-    ADD_DTRACE(darkplaces-dedicated)
-    target_compile_definitions(darkplaces-dedicated PRIVATE
-        ${COMPILE_DEFS}
-        ${COMPILE_DEFS_SERVER}
-    )
-    target_include_directories(darkplaces-dedicated PRIVATE
+# Settings shared by the client and the dedicated server
+function(dp_engine_executable target)
+    add_dependencies(${target} d0_blindid)
+    ADD_DTRACE(${target})
+    target_compile_definitions(${target} PRIVATE ${COMPILE_DEFS})
+    target_include_directories(${target} PRIVATE
         ${D0_BLINDID_INCLUDE}
-        ${CURL_INCLUDE_DIRS}
-        ${ZLIB_INCLUDE_DIRS}
-        ${JPEG_INLUDE_DIR}
-        ${STB_INCLUDE_PATH}
         ${GENERATED_INCLUDE}
     )
-    target_link_libraries(darkplaces-dedicated PRIVATE
+    target_link_libraries(${target} PRIVATE
         ${LIBS_COMMON}
         ${D0_LIBS}
         $<$<BOOL:${ENABLE_LIBBALANCE}>:balance>
         $<$<BOOL:${ENABLE_DTRACE}>:${USDT_OBJECT_FILE}>
-        ${CURL_LIBRARIES}
-        ${ZLIB_LIBRARIES}
-        ${JPEG_LIBRARIES}
+        CURL::libcurl
+        ZLIB::ZLIB
+        JPEG::JPEG
     )
-    install(TARGETS darkplaces-dedicated RUNTIME DESTINATION bin)
-endif ()
+    install(TARGETS ${target} RUNTIME DESTINATION bin)
+endfunction()
 
-if (COMPILE_CLIENT)
-    if (DP_CLIENT_SDL)
-        find_package(PNG REQUIRED)
-        find_package(Freetype REQUIRED)
-        find_package(SDL2 REQUIRED)
-        find_package(OggVorbis REQUIRED)
-        add_executable(darkplaces-sdl
-            ${ABS_SOURCE_COMMON}
-            ${ABS_SOURCE_CLIENT_COMMON}
-            ${ABS_SOURCE_CLIENT_SDL}
-        )
-        ADD_DTRACE(darkplaces-sdl)
-        add_dependencies(darkplaces-sdl d0_blindid)
-        target_compile_definitions(darkplaces-sdl PRIVATE
-            ${COMPILE_DEFS}
-            ${COMPILE_DEFS_CLIENT}
-        )
-        target_include_directories(darkplaces-sdl PRIVATE
-            ${D0_BLINDID_INCLUDE}
-            ${CURL_INCLUDE_DIRS}
-            ${ZLIB_INCLUDE_DIRS}
-            ${JPEG_INLUDE_DIR}
-            ${PNG_INCLUDE_DIRS}
-            ${FREETYPE_INCLUDE_DIRS}
-            ${OGG_INCLUDE_DIR}
-            ${VORBIS_INCLUDE_DIR}
-            ${SDL2_INCLUDE_DIR}
-            ${GENERATED_INCLUDE}
-        )
-        target_link_libraries(darkplaces-sdl PRIVATE
-            ${LIBS_COMMON}
-            ${D0_LIBS}
-            $<$<BOOL:${ENABLE_LIBBALANCE}>:balance>
-            $<$<BOOL:${ENABLE_DTRACE}>:${USDT_OBJECT_FILE}>
-            ${CURL_LIBRARIES}
-            ${ZLIB_LIBRARIES}
-            ${ZLIB_LIBRARIES}
-            ${JPEG_LIBRARIES}
-            ${PNG_LIBRARIES}
-            ${FREETYPE_LIBRARIES}
-            ${OGGVORBIS_LIBRARIES}
-            ${SDL2_LIBRARY}
-            ${SDL2_IMAGE_LIBRARY}
-        )
-        install(TARGETS darkplaces-sdl RUNTIME DESTINATION bin)
-    endif()
-endif ()
+if(COMPILE_SERVER)
+    add_executable(darkplaces-dedicated ${SOURCE_SERVER} ${SOURCE_COMMON})
+    dp_engine_executable(darkplaces-dedicated)
+    target_compile_definitions(darkplaces-dedicated PRIVATE
+        ${COMPILE_DEFS_SERVER}
+    )
+    target_include_directories(darkplaces-dedicated PRIVATE ${STB_INCLUDE_PATH})
+endif()
+
+if(DP_CLIENT_SDL)
+    find_package(PNG REQUIRED)
+    find_package(Freetype REQUIRED)
+    find_package(SDL2 REQUIRED)
+    find_package(OggVorbis REQUIRED)
+    add_executable(darkplaces-sdl
+        ${SOURCE_COMMON}
+        ${SOURCE_CLIENT_COMMON}
+        ${SOURCE_CLIENT_SDL}
+    )
+    dp_engine_executable(darkplaces-sdl)
+    # Allow libraries bundled next to the client binary
+    set_target_properties(darkplaces-sdl PROPERTIES
+        INSTALL_RPATH "$ORIGIN/../lib:$ORIGIN/lib:$ORIGIN/")
+    target_compile_definitions(darkplaces-sdl PRIVATE ${COMPILE_DEFS_CLIENT})
+    target_include_directories(darkplaces-sdl PRIVATE
+        ${OGG_INCLUDE_DIR}
+        ${VORBIS_INCLUDE_DIR}
+        ${SDL2_INCLUDE_DIR}
+    )
+    target_link_libraries(darkplaces-sdl PRIVATE
+        PNG::PNG
+        Freetype::Freetype
+        ${OGGVORBIS_LIBRARIES}
+        ${SDL2_LIBRARY}
+        ${SDL2_IMAGE_LIBRARY}
+    )
+endif()
 
 if(COMPILE_UTILS)
-    add_executable(crypto-keygen ${CRYPTO_KEYGEN_SOURCE})
+    add_executable(crypto-keygen ${SOURCE_ROOT}/utils/crypto-keygen-standalone.c)
     add_dependencies(crypto-keygen d0_blindid)
     target_include_directories(crypto-keygen PRIVATE ${D0_BLINDID_INCLUDE})
     target_link_libraries(crypto-keygen PRIVATE ${LIBS_COMMON} ${D0_LIBS})
